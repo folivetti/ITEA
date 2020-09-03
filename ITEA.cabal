@@ -1,0 +1,30 @@
+name:                ITEA
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/githubuser/ITEA#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Author name here
+maintainer:          example@example.com
+copyright:           2020 Author name here
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+extra-source-files:  README.md
+
+executable itea
+  ghc-options:         -rtsopts -O2 -threaded -Wunused-imports
+  hs-source-dirs:      src
+  main-is:             MainITEA.hs
+  other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.Mutation, IT.Algorithms, ITEA.Config, ITEA.Regression
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5, random, mtl, hmatrix, containers, monad-extras, vector, split, splitmix, parallel, deepseq, directory, clock, ConfigFile, MissingH, random-shuffle, mltool
+
+executable crossval
+  ghc-options:         -rtsopts -O2 -threaded -Wunused-imports
+  hs-source-dirs:      src
+  main-is:             CROSSVAL.hs
+  other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.Mutation, IT.Algorithms, ITEA.Config, ITEA.Regression
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5, random, mtl, hmatrix, containers, monad-extras, vector, split, splitmix, parallel, deepseq, directory, clock, ConfigFile, MissingH, random-shuffle, mltool
