@@ -33,7 +33,7 @@ createMutCfg (e1,e2) tmax pop = (cfg, pop, 100000 `div` pop)
   where cfg = validateConfig
             $  exponents e1 e2
             <> termLimit 2 tmax
-            <> nonzeroExps 10
+            <> nonzeroExps 1
             <> transFunctions FAll
 
 -- | Validates the program arguments
