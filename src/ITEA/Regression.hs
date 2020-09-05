@@ -17,8 +17,6 @@ import IT.ITEA
 import IT.Regression
 import ITEA.Config
 
-import IT.Algorithms
-
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
 

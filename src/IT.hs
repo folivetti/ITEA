@@ -15,10 +15,6 @@ Definitions of IT data structure and support functions.
 -}
 module IT where
 
-import Data.Coerce
-import Data.Foldable
-import Data.Semigroup
-
 import Foreign.Storable
 
 import Data.List (intercalate, nub)
