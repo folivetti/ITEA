@@ -33,7 +33,7 @@ createMutCfg (e1,e2) tmax pop = (cfg, pop, 100000 `div` pop)
   where cfg = validateConfig
             $  exponents e1 e2
             <> termLimit 2 tmax
-            <> nonzeroExps 10
+            <> nonzeroExps 1
             <> transFunctions FAll
 
 -- | Validates the program arguments
@@ -128,7 +128,7 @@ main = do
   let
     -- generate all combination of configurations
     allCfgs        =  [createMutCfg] 
-                  <*> [(-2,2),(-3,3)]
+                  <*> [(-3,3)] -- [(-2,2),(-3,3)]
                   <*> [10,15]
                   <*> [100, 250, 500]
 
