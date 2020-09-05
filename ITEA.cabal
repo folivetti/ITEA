@@ -22,7 +22,7 @@ executable itea
   build-depends:       base >= 4.7 && < 5, random, mtl, hmatrix, containers, monad-extras, vector, split, splitmix, parallel, deepseq, directory, clock, ConfigFile, MissingH, random-shuffle, mltool
 
 executable crossval
-  ghc-options:         -rtsopts -O2 -threaded -Wunused-imports
+  ghc-options:         -rtsopts -O2 -optc-O3 -funfolding-use-threshold=16 -fexcess-precision -msse4 -threaded -Wunused-imports
   hs-source-dirs:      src
   main-is:             CROSSVAL.hs
   other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.Mutation, IT.Algorithms, ITEA.Config, ITEA.Regression

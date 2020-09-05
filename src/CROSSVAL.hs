@@ -128,7 +128,7 @@ main = do
   let
     -- generate all combination of configurations
     allCfgs        =  [createMutCfg] 
-                  <*> [(-2,2),(-3,3)]
+                  <*> [(-3,3)] -- [(-2,2),(-3,3)]
                   <*> [10,15]
                   <*> [100, 250, 500]
 
