@@ -3,6 +3,9 @@ import numpy as np
 
 datasets = ["airfoil", "concrete", "energyCooling", "energyHeating", "towerData", "wineRed", "wineWhite", "yacht"]
 datasets = ["airfoil", "concrete", "energyCooling", "energyHeating", "wineRed", "yacht"]
+datasets = ["wineWhite", "towerData", "tecator", "Geographical"]
+
+print(datasets)
 
 for dname in datasets:
     df = pd.read_csv(f"{dname}/stats.csv")
