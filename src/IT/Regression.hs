@@ -175,7 +175,7 @@ notInfNan s = not (isInfinite f || isNaN f)
 -- | Parallel strategy for evaluating multiple expressions
 parMapChunk :: Int -> (Expr Double -> LA.Matrix Double) -> [Expr Double] -> [LA.Matrix Double]
 parMapChunk 0 f xs = map f xs
-parMapChunk n f xs = concatMap (map f) (chunksOf n xs) `using` parList rdeepseq-- 
+parMapChunk n f xs = concatMap (map f) (chunksOf n xs) `using` parList rpar --rdeepseq-- 
 --parMapChunk n f xs = map f xs `using` parListChunk n rpar -- rpar or rdeepseq
 
 -- | Fitness function for regression

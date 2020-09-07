@@ -14,7 +14,7 @@ cabal-version:       >=1.10
 extra-source-files:  README.md
 
 executable itea
-  ghc-options:         -rtsopts -O2 -optc-O3 -msse4 -funfolding-use-threshold=16 -fexcess-precision -msse -msse2 -msse3 -mbmi -mbmi2 -mavx -mavx2 -mavx512cd -mavx512er -mavx512f -mavx512pf -Wunused-imports
+  ghc-options:         -rtsopts -Wunused-imports -threaded -O2 -fllvm -optlc-O3 
   hs-source-dirs:      src
   main-is:             MainITEA.hs
   other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.Mutation, IT.Algorithms, ITEA.Config, ITEA.Regression
@@ -22,7 +22,7 @@ executable itea
   build-depends:       base >= 4.7 && < 5, random, mtl, hmatrix, containers, monad-extras, vector, split, splitmix, parallel, deepseq, directory, clock, ConfigFile, MissingH, random-shuffle, mltool
 
 executable crossval
-  ghc-options:         -rtsopts -O2 -optc-O3 -funfolding-use-threshold=16 -fexcess-precision -msse4 -threaded -Wunused-imports
+  ghc-options:         -rtsopts -O2 -optc-O3 -funfolding-use-threshold=16 -fexcess-precision -msse4 -threaded -Wunused-imports -threaded
   hs-source-dirs:      src
   main-is:             CROSSVAL.hs
   other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.Mutation, IT.Algorithms, ITEA.Config, ITEA.Regression
