@@ -70,7 +70,7 @@ regLog     = Transformation "log" log
 regExp     = Transformation "exp" exp
 
 regTrig      = [regSin, regCos, regTanh] -- regTan
-regNonLinear = [regLog, regExp, regAbsSqrt] -- regSqrt
+regNonLinear = [regExp, regLog, regAbsSqrt] -- regSqrt regExp
 regLinear    = [Transformation "id" id]
 
 regAll = regTrig ++ regNonLinear ++ regLinear
