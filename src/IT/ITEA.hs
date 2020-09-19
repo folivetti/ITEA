@@ -49,10 +49,18 @@ initialPop :: Int                -- dimension
            -> Rnd (Population a b)
 initialPop dim maxTerms nPop rndTerm fit = fit <$> initialPop' dim maxTerms nPop
   where
-    rndExpr dim n = sampleExpr rndTerm n
+    rndExpr n = sampleExpr rndTerm n
+    rndLinear n = sampleExpr rndTerm' n 
+      where
+        rndTerm' = sampleTerm rndTrans rndInter
+        rndTrans = sampleTrans [Transformation "Identity" id]
+        rndInter = sampleInterMax dim 1 0 1
+
     initialPop' dim maxTerms 0    = return []
+    --initialPop' dim maxTerms 1    = do e <- rndLinear maxTerms 
+    --                                   return [e]
     initialPop' dim maxTerms nPop = do n <- sampleRng 1 maxTerms
-                                       e  <- rndExpr dim n
+                                       e  <- rndExpr n
                                        let s = uniqueTerms e
                                        ss <- initialPop' dim maxTerms (nPop-1)
                                        return $ s : ss

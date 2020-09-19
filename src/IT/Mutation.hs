@@ -44,7 +44,7 @@ addTerm rndTerm e = do t <- rndTerm
 --      You need to provide a Fitness function.
 --
 dropTerm :: Mutation a
-dropTerm e = do let n = exprlen e
+dropTerm e = do let n = numberOfTerms e
                 i <- sampleTo (n-1)
                 return (removeIthTerm i e)
 
@@ -55,7 +55,7 @@ dropTerm e = do let n = exprlen e
 --         You need to provide the minimum 
 --         and maximum allowed exponent
 replaceTerm :: Int -> Int -> Int -> Mutation a
-replaceTerm dim minExp maxExp e = do let n = exprlen e
+replaceTerm dim minExp maxExp e = do let n = numberOfTerms e
                                      i <- sampleTo (n-1)
                                      let t  = fromJust $ getIthTerm i e
                                          e' = removeIthTerm i e
@@ -73,7 +73,7 @@ rndReplaceStrength dim (Term tf ps) minExp maxExp =
                                     
 -- | replaces a random transformation function
 replaceTrans :: Rnd (Transformation a) -> Mutation a
-replaceTrans rndTrans e = do let n = exprlen e
+replaceTrans rndTrans e = do let n = numberOfTerms e
                              i  <- sampleTo (n-1)
                              tr <- rndTrans
                              return (replace i tr e)
@@ -86,7 +86,7 @@ replaceTrans rndTrans e = do let n = exprlen e
 -- | Combine two interactions with `op` operation (use (+) or (-)
 -- for positive and negative interaction)
 combineInter :: (Int -> Int -> Int) -> Int -> Int -> Mutation a
-combineInter op minExp maxExp e = do let n = exprlen e
+combineInter op minExp maxExp e = do let n = numberOfTerms e
                                      i <- sampleTo (n-1)
                                      j <- sampleTo (n-1)
                                      let ti = fromJust $ getIthTerm i e
@@ -124,4 +124,4 @@ mutFun dim (minExp, maxExp) (minTerms, maxTerms) rndTerm rndTrans e = sampleFrom
              
     addMut  = if len <= maxTerms then [addTerm rndTerm e] else []
     dropMut = if len >= minTerms then [dropTerm e]        else []
-    len     = exprlen e
+    len     = numberOfTerms e
