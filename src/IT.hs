@@ -11,7 +11,7 @@ Portability : POSIX
 An IT expression  represents a function of the form:
 
 \[
-f(x) = \sum_{i}{w_i \cdot t_i(\prod_{j}{x_j^{k_{ij}}}}
+f(x) = \sum_{i}{w_i \cdot t_i(\prod_{j}{x_j^{k_{ij}})}}
 \]
 
 with \(t_i\) being a transformation function.
