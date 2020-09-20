@@ -140,13 +140,17 @@ getIthTerm ix (Expr e) = if   ix >= length e
                          else Just (e !! ix)
 
 -- | inserts a new term into the expression.
+consTerm :: Term a -> Expr a -> Expr a
 consTerm t (Expr e) = Expr (t:e)
 
 -- | get the list of terms
+getListOfTerms :: Expr a -> [Term a]
 getListOfTerms (Expr ts) = ts
 
 -- | returns the number of terms in an expression.
+numberOfTerms :: Expr a -> Int
 numberOfTerms (Expr ts) = length ts
 
 -- | return the interactions of a term
+getInteractions :: Term a -> Interaction
 getInteractions (Term _ is) = is
