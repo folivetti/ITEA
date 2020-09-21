@@ -19,10 +19,11 @@ import Data.Either.Utils
 import ITEA.Regression
 import ITEA.Config
 
--- | get a given setting from a config file
+-- | Read the option 'x' located at section 'cat' from configuration 'cp'.
+getSetting :: Get_C a => ConfigParser -> SectionSpec -> OptionSpec -> a
 getSetting cp cat x = forceEither $ get cp cat x
 
--- | Read the config file and run the algorithm
+-- | Read the config file and run the algorithm.
 runWithConfig :: String -> IO ()
 runWithConfig fname = do
   cp <- return . forceEither =<< readfile emptyCP fname 
@@ -48,9 +49,10 @@ runWithConfig fname = do
                $  trainingset trainname
                <> testset testname
 
-  -- run ITEA with given configuration
+  -- run ITEA with the given configuration
   runITEAReg datasetCfg mutCfg log nPop nGens
 
+-- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()
 parseConfigFile [fname] = do exist <- doesFileExist fname
                              if exist 

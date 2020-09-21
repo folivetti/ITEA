@@ -7,14 +7,10 @@ Maintainer  : fabricio.olivetti@gmail.com
 Stability   : experimental
 Portability : POSIX
 
-Hyperparameter tuning for ITEA
+Run a 5-fold cross-validation on the training set to find the best
+combination of hyperparameters.
 -}
 module RunCrossVal where
-
-import ITEA.Config
-import IT.ITEA
-import IT.Regression
-import IT.Algorithms
 
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
@@ -26,7 +22,17 @@ import Control.Monad.State
 import System.Random.SplitMix
 import System.Random.Shuffle
 
--- | Creates a mutation configuration instance
+import ITEA.Config
+import IT.ITEA
+import IT.Regression
+import IT.Algorithms
+
+-- | Returns the mutation configuration, population size and number of generations.
+--
+-- * '(e1, e2)' are the minimum and maximum exponentes.
+-- * 'tmax' is the maximum number of terms.
+-- * 'pop' is the population size.
+createMutCfg :: Integral c => (Int, Int) -> Int -> c -> (MutationCfg, c, c)
 createMutCfg (e1,e2) tmax pop = (cfg, pop, 100000 `div` pop)
   where cfg = validateConfig
             $  exponents e1 e2
@@ -58,10 +64,7 @@ runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
       best               = getBest nGens gens
   (return._rmse.fitTest)  best
 
-average xs = sum xs / l
-  where l = fromIntegral (length xs)
   
-cycle' (x:xs) = xs ++ [x]
 
 -- | runs a configuration for a given data set
 runCfg :: String -> Int -> (MutationCfg, Int, Int) -> IO Double
@@ -75,12 +78,11 @@ runCfg dname fold (mutCfg, pop, gen) = do
       dim   = LA.cols trainX
       
       -- random 5-cv split
+      cycle' (x:xs) = xs ++ [x]
       rndix  = shuffle' [0 .. (nRows-1)] nRows g
       nRows' = nRows `div` 5
       idxs   = [take nRows' $ drop (i*nRows') rndix | i <- [0..4]]
       folds  = take 5 $ map (\(x:xs) -> (concat xs,x)) $ iterate cycle' idxs
-      --idxs1 = take (nRows `div` 2) rndix
-      --idxs2 = drop (nRows `div` 2) rndix
       
       -- tr = training, tv = validation
       getY is = LA.flatten $ (LA.asColumn trainY) LA.?? (LA.Pos (LA.idxs is), LA.All)
@@ -96,6 +98,8 @@ runCfg dname fold (mutCfg, pop, gen) = do
       
       fitTrains = zipWith (\x y -> fitnessReg pop (toRegMtx x) y) trXs trYs
       fitTests  =  zipWith (\x y -> fitnessTest (toRegMtx x) y) tvXs tvYs
+
+      average xs = sum xs / fromIntegral (length xs)
       
       run fitTr fitTe = runITEARegCV fitTr fitTe dim mutCfg pop gen
       
