@@ -35,7 +35,7 @@ import Data.List.Split
 type Vector = LA.Vector Double
 
 -- * IT specific stuff
- 
+
 -- | IT Instance for regression evals an expression to
 -- sum(w_i * term_i) + w0
 -- with
@@ -43,7 +43,7 @@ type Vector = LA.Vector Double
 --  and p_i(xs) = prod(x^eij)
 instance IT Double where
   --itTimes :: Dataset Double -> Interaction -> Column Double
-  itTimes vs m 
+  itTimes vs m
     | VV.length vs == 0 = LA.fromList []
     | otherwise         = M.foldrWithKey f vzero m
     where
@@ -77,10 +77,11 @@ regAll = regTrig ++ regNonLinear ++ regLinear
 
 -- * Error measures
 
--- | Mean and variance for vector of doubles
+-- | Mean for a vector of doubles
 mean :: Vector -> Double
 mean xs = V.sum xs / fromIntegral (V.length xs)
 
+-- | Variance for a vector of doubles
 var :: Vector -> Double
 var xs = sum' / fromIntegral (V.length xs)
   where
@@ -94,12 +95,22 @@ meanError :: (Double -> Double) -- ^ a function to be applied to the error terms
           -> Double
 meanError op ysHat ys = mean $ V.map op $ ysHat - ys
 
--- | Common error measures for regression: 
+-- * Common error measures for regression: 
 -- MSE, MAE, RMSE, NMSE, r^2
+
+-- | Mean Squared Error
 mse           = meanError (^2)
+
+-- | Mean Absolute Error
 mae           = meanError abs
+
+-- | Normalized Mean Squared Error
 nmse ysHat ys = mse ysHat ys / var ys
+
+-- | Root of the Mean Squared Error 
 rmse ysHat ys = sqrt $ mse ysHat ys
+
+-- | R^2 
 rSq ysHat ys  = 1 - r/t
   where
     ym      = mean ys
@@ -110,8 +121,8 @@ rSq ysHat ys  = 1 - r/t
 -- | Predict a linear model
 predict :: LA.Matrix Double -> Vector -> Vector
 predict xs w = xs LA.#> w
-    
--- | Regression statitstics
+
+-- | Store regression statitstics
 data RegStats = RS { _rmse    :: Double
                    , _mae     :: Double
                    , _nmse    :: Double
@@ -119,7 +130,7 @@ data RegStats = RS { _rmse    :: Double
                    , _weights :: Vector  -- ^ the fitted weights for the IT expression
                    }
 
- 
+
 -- | Displaying the statistics, one per line
 instance Show RegStats where
   show (RS r m n r2 w) = stats ++ "\n\n"
@@ -131,9 +142,9 @@ instance Show RegStats where
 -- | Used to deepforce the evaluation
 instance NFData RegStats where
   rnf a = ()
-  
+
 -- * Utility functions
-    
+
 -- | A value is invalid if it's wether NaN or Infinite
 isInvalid :: Double -> Bool
 isInvalid x = isNaN x || isInfinite x
@@ -141,7 +152,7 @@ isInvalid x = isNaN x || isInfinite x
 -- | a set of points is valid if none of its values are invalid and
 -- the maximum abosolute value is below 1e150 (to avoid overflow)
 isValid :: [Double] -> Bool
-isValid xs = all (not.isInvalid) xs && (maximum (map abs xs) < 1e150) 
+isValid xs = all (not.isInvalid) xs && (maximum (map abs xs) < 1e150)
 
 {- TO BE TESTED
  -- && var > 1e-4
@@ -158,7 +169,7 @@ exprToMatrix :: Dataset Double -> Expr Double -> LA.Matrix Double
 exprToMatrix rss (Expr e) = ((1 LA.|||) . LA.fromColumns) zss
   where
     zss = map (`evalTerm` rss) e
-    
+
 -- | Clean the expression by removing the invalid teerms
 cleanExpr :: Dataset Double -> Expr Double -> Expr Double
 cleanExpr rss (Expr e) = Expr (cleanExpr' e)
@@ -168,6 +179,7 @@ cleanExpr rss (Expr e) = Expr (cleanExpr' e)
                        then cleanExpr' e
                        else t : cleanExpr' e
 
+-- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution Double RegStats -> Bool
 notInfNan s = not (isInfinite f || isNaN f)
   where f = _fit s
@@ -196,14 +208,15 @@ fitnessReg nPop xss ys exprs = let n  = nPop `div` (2*numCapabilities)
 fitnessTest :: Dataset Double -> Vector -> Solution Double RegStats -> RegStats
 fitnessTest xss ys sol = let zs = exprToMatrix xss (_expr sol)
                              ws = (_weights . _stat) sol
-                             ysHat = predict zs ws 
+                             ysHat = predict zs ws
                              rs    = RS (rmse ysHat ys) (mae ysHat ys) (nmse ysHat ys) (rSq ysHat ys) ws
                              inf   = 1/0
                           in if V.length ws == LA.cols zs
                              then rs
                              else RS inf inf inf inf (V.singleton 0.0)
-                             
 
+
+-- | Experimental: round off floating point to the 1e-10 place.
 roundoff :: RealFrac a => a -> a
 roundoff x
   | x < thr   = 0.0
@@ -211,24 +224,30 @@ roundoff x
   | otherwise = (fromInteger $ round (x / thr)) * thr
   where thr = 1e-10
 
---(*thr) $ fromIntegral $ round (x*thr)
---  where thr = 1e-10
+bogusSolution :: RegStats
+bogusSolution = RS inf inf inf inf (V.singleton 0.0)
+  where inf = 1/0
+
+-- build a RegStats 
+buildSolution :: Vector -> Vector -> Vector -> RegStats 
+buildSolution ysHat ys = RS (rmse ysHat ys) (mae ysHat ys) (nmse ysHat ys) (rSq ysHat ys)
+
+-- | Solve the OLS *zss*w = ys*
+solveOLS :: LA.Matrix Double -> Vector -> Vector
+solveOLS zss ys = LA.flatten $ LA.linearSolveSVD zss (LA.asColumn ys)
 
 -- | Applies OLS and returns a Solution
 -- if the expression is invalid, it returns Infinity as a fitness
 regress :: Vector -> Expr Double -> LA.Matrix Double -> Solution Double RegStats
-regress ys expr zss 
-  | LA.rows zss == 0 = let rs  = RS inf inf inf inf (V.singleton 0.0)
-                           inf = 1/0
-                       in  Sol expr (_rmse rs ) rs
-  | any (not.isValid) (LA.toLists zss) = let rs  = RS inf inf inf inf (V.singleton 0.0)
-                                             inf = 1/0
-                                         in  Sol expr (_rmse rs ) rs
-  | otherwise        = let ws    = LA.flatten $ LA.linearSolveSVD zss (LA.asColumn ys)
-                           ws'   = V.map roundoff ws
-                           ysHat = predict zss ws 
-                           ysHat'= predict zss ws'
-                           rs    = if abs (rmse ysHat' ys - rmse ysHat ys) < 0.01
-                                     then RS (rmse ysHat' ys) (mae ysHat' ys) (nmse ysHat' ys) (rSq ysHat' ys) ws'
-                                     else RS (rmse ysHat ys) (mae ysHat ys) (nmse ysHat ys) (rSq ysHat ys) ws
-                       in  Sol expr (_rmse rs ) rs
+regress ys expr zss
+  | LA.rows zss == 0 || not (all isValid (LA.toLists zss)) 
+    = Sol expr (_rmse bogusSolution) bogusSolution
+  | otherwise 
+    = let ws    = solveOLS zss ys 
+          ws'   = V.map roundoff ws
+          ysHat = predict zss ws
+          ysHat'= predict zss ws'
+          rs    = if abs (rmse ysHat' ys - rmse ysHat ys) < 0.01
+                   then buildSolution ysHat' ys ws' 
+                   else buildSolution ysHat ys ws
+      in  Sol expr (_rmse rs ) rs

@@ -46,6 +46,8 @@ sampleInterMax' dim budget minExp maxExp = do b <- toss
                                               else do es <- sampleInterMax' (dim-1) budget minExp maxExp
                                                       return $ es
 
+-- | Sample a random interaction given the problem dimension and 
+-- the minimum and maximum exponents
 sampleInter :: Int               -- ^ problem dimension
             -> Int               -- ^ minimum exponent            
             -> Int               -- ^ maximum exponent

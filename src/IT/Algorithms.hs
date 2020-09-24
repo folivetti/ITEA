@@ -45,13 +45,10 @@ type Population a b = [Solution a b]
 instance (NFData a, NFData b) => NFData (Solution a b) where
   rnf a = ()
 
--- | 'Fitness' function with signature '[Expr a] -> Population a b'
--- a fitness function should preferably compute in parallel
+-- | 'Fitness' function that takes a list of expressions and 
+-- returns an evaluated population. 
+-- This function is a good candidate for parallelization.
 type Fitness    a b = [Expr a] -> Population a b -- (Expr a, Double, b)
-
--- | 'Constraint' represents a function the calculates how
--- many constraint violations there are for a  given solution
-type Constraint a b =  Solution a b  -> Double 
 
 -- | 'Mutation' function with signature 'Solution a b -> Rnd (Solution a b)'
 type Mutation   a   = Expr a -> Rnd (Expr a)

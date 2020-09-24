@@ -17,36 +17,34 @@ This function will result in an infinite list of populations, with
 the /i/-th element being the population of the /i/-th generation.
 
 This library also provides some generic mutation function builders.
-
-A sample example is provided by &quot;ITEAReg&quot; module.
 -}</span><span>
-</span><span id="line-23"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">IT.ITEA</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-24"></span><span>
-</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.html"><span class="hs-identifier">IT</span></a></span><span> </span><span class="hs-comment">-- (itea, addTerm, dropTerm)</span><span>
-</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Algorithms.html"><span class="hs-identifier">IT.Algorithms</span></a></span><span>
-</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Random.html"><span class="hs-identifier">IT.Random</span></a></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">IT.ITEA</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.html"><span class="hs-identifier">IT</span></a></span><span> </span><span class="hs-comment">-- (itea, addTerm, dropTerm)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Algorithms.html"><span class="hs-identifier">IT.Algorithms</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Random.html"><span class="hs-identifier">IT.Random</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Extra</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">iterateM</span></span><span class="hs-special">)</span><span>
 </span><span id="line-28"></span><span>
-</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Extra</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">iterateM</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
 </span><span id="line-30"></span><span>
-</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- ---------------------------------------------------------------------------</span><span>
 </span><span id="line-32"></span><span>
-</span><span id="line-33"></span><span class="hs-comment">-- ---------------------------------------------------------------------------</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- * ITEA</span><span>
 </span><span id="line-34"></span><span>
-</span><span id="line-35"></span><span class="hs-comment">-- * ITEA</span><span>
-</span><span id="line-36"></span><span>
-</span><span id="line-37"></span><span class="hs-comment">-- | Creates an infinite list of populations where the /i/-th </span><span>
-</span><span id="line-38"></span><span class="hs-comment">-- element corresponds to t he /i/-th generation.</span><span>
-</span><span id="line-39"></span><span id="local-6989586621679111788"><span id="local-6989586621679111789"><span class="annot"><a href="IT.ITEA.html#itea"><span class="hs-identifier hs-type">itea</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111789"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111788"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Mutation"><span class="hs-identifier hs-type">Mutation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111789"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111789"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111788"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111789"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111788"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111789"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111788"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">]</span></span></span><span>
-</span><span id="line-40"></span><span id="itea"><span class="annot"><span class="annottext">itea :: Mutation a -&gt; Fitness a b -&gt; Population a b -&gt; Rnd [Population a b]
-</span><a href="IT.ITEA.html#itea"><span class="hs-identifier hs-var hs-var">itea</span></a></span></span><span> </span><span id="local-6989586621679111786"><span class="annot"><span class="annottext">f :: Mutation a
-</span><a href="#local-6989586621679111786"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679111785"><span class="annot"><span class="annottext">g :: Fitness a b
-</span><a href="#local-6989586621679111785"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679111784"><span class="annot"><span class="annottext">p0 :: Population a b
-</span><a href="#local-6989586621679111784"><span class="hs-identifier hs-var">p0</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111783"><span class="annot"><span class="annottext">n :: Int
-</span><a href="#local-6989586621679111783"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int
+</span><span id="line-35"></span><span class="hs-comment">-- | Creates a stream of generations the /i/-th </span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- element corresponds to the population of the /i/-th generation.</span><span>
+</span><span id="line-37"></span><span id="local-6989586621679111645"><span id="local-6989586621679111646"><span class="annot"><a href="IT.ITEA.html#itea"><span class="hs-identifier hs-type">itea</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111646"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111645"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Mutation"><span class="hs-identifier hs-type">Mutation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111646"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111646"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111645"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111646"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111645"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111646"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111645"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-38"></span><span id="itea"><span class="annot"><span class="annottext">itea :: Mutation a -&gt; Fitness a b -&gt; Population a b -&gt; Rnd [Population a b]
+</span><a href="IT.ITEA.html#itea"><span class="hs-identifier hs-var hs-var">itea</span></a></span></span><span> </span><span id="local-6989586621679111643"><span class="annot"><span class="annottext">f :: Mutation a
+</span><a href="#local-6989586621679111643"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679111642"><span class="annot"><span class="annottext">g :: Fitness a b
+</span><a href="#local-6989586621679111642"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679111641"><span class="annot"><span class="annottext">p0 :: Population a b
+</span><a href="#local-6989586621679111641"><span class="hs-identifier hs-var">p0</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111640"><span class="annot"><span class="annottext">n :: Int
+</span><a href="#local-6989586621679111640"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111784"><span class="hs-identifier hs-var">p0</span></a></span><span>
-</span><span id="line-41"></span><span>              </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">(Population a b -&gt; StateT SMGen Identity (Population a b))
+</span><a href="#local-6989586621679111641"><span class="hs-identifier hs-var">p0</span></a></span><span>
+</span><span id="line-39"></span><span>              </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">(Population a b -&gt; StateT SMGen Identity (Population a b))
 -&gt; Population a b -&gt; Rnd [Population a b]
 forall (m :: * -&gt; *) a. Monad m =&gt; (a -&gt; m a) -&gt; a -&gt; m [a]
 </span><span class="hs-identifier hs-var">iterateM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Mutation a
@@ -59,249 +57,208 @@ forall a b.
 Mutation a
 -&gt; Fitness a b -&gt; Int -&gt; Population a b -&gt; Rnd (Population a b)
 </span><a href="IT.ITEA.html#step"><span class="hs-identifier hs-var">step</span></a></span><span> </span><span class="annot"><span class="annottext">Mutation a
-</span><a href="#local-6989586621679111786"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness a b
-</span><a href="#local-6989586621679111785"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111783"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111784"><span class="hs-identifier hs-var">p0</span></a></span><span>
-</span><span id="line-42"></span><span>
-</span><span id="line-43"></span><span class="hs-comment">-- | Generate an Initial Population at Random</span><span>
-</span><span id="line-44"></span><span id="local-6989586621679111779"><span id="local-6989586621679111780"><span class="annot"><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-type">initialPop</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                </span><span class="hs-comment">-- dimension</span><span>
-</span><span id="line-45"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                </span><span class="hs-comment">-- maxTerms</span><span>
-</span><span id="line-46"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                </span><span class="hs-comment">-- nPop</span><span>
-</span><span id="line-47"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Term"><span class="hs-identifier hs-type">Term</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111780"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-48"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111780"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111779"><span class="hs-identifier hs-type">b</span></a></span><span>        </span><span class="hs-comment">-- fitness function</span><span>
-</span><span id="line-49"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111780"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111779"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
-</span><span id="line-50"></span><span id="initialPop"><span class="annot"><span class="annottext">initialPop :: Int
+</span><a href="#local-6989586621679111643"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness a b
+</span><a href="#local-6989586621679111642"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111640"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Population a b
+</span><a href="#local-6989586621679111641"><span class="hs-identifier hs-var">p0</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | Generate an Initial Population at Random</span><span>
+</span><span id="line-42"></span><span id="local-6989586621679111636"><span id="local-6989586621679111637"><span class="annot"><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-type">initialPop</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                </span><span class="hs-comment">-- ^ dimension</span><span>
+</span><span id="line-43"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                </span><span class="hs-comment">-- ^ maxTerms</span><span>
+</span><span id="line-44"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                </span><span class="hs-comment">-- ^ nPop</span><span>
+</span><span id="line-45"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Term"><span class="hs-identifier hs-type">Term</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111637"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>       </span><span class="hs-comment">-- ^ random term generator</span><span>
+</span><span id="line-46"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111637"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111636"><span class="hs-identifier hs-type">b</span></a></span><span>        </span><span class="hs-comment">-- ^ fitness function</span><span>
+</span><span id="line-47"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111637"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111636"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-48"></span><span id="initialPop"><span class="annot"><span class="annottext">initialPop :: Int
 -&gt; Int
 -&gt; Int
 -&gt; Rnd (Term a)
 -&gt; Fitness a b
 -&gt; Rnd (Population a b)
-</span><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-var hs-var">initialPop</span></a></span></span><span> </span><span id="local-6989586621679111777"><span class="annot"><span class="annottext">dim :: Int
-</span><a href="#local-6989586621679111777"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111776"><span class="annot"><span class="annottext">maxTerms :: Int
-</span><a href="#local-6989586621679111776"><span class="hs-identifier hs-var">maxTerms</span></a></span></span><span> </span><span id="local-6989586621679111775"><span class="annot"><span class="annottext">nPop :: Int
-</span><a href="#local-6989586621679111775"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679111774"><span class="annot"><span class="annottext">rndTerm :: Rnd (Term a)
-</span><a href="#local-6989586621679111774"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span> </span><span id="local-6989586621679111773"><span class="annot"><span class="annottext">fit :: Fitness a b
-</span><a href="#local-6989586621679111773"><span class="hs-identifier hs-var">fit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fitness a b
-</span><a href="#local-6989586621679111773"><span class="hs-identifier hs-var">fit</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness a b
+</span><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-var hs-var">initialPop</span></a></span></span><span> </span><span id="local-6989586621679111634"><span class="annot"><span class="annottext">dim :: Int
+</span><a href="#local-6989586621679111634"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111633"><span class="annot"><span class="annottext">maxTerms :: Int
+</span><a href="#local-6989586621679111633"><span class="hs-identifier hs-var">maxTerms</span></a></span></span><span> </span><span id="local-6989586621679111632"><span class="annot"><span class="annottext">nPop :: Int
+</span><a href="#local-6989586621679111632"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679111631"><span class="annot"><span class="annottext">rndTerm :: Rnd (Term a)
+</span><a href="#local-6989586621679111631"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span> </span><span id="local-6989586621679111630"><span class="annot"><span class="annottext">fit :: Fitness a b
+</span><a href="#local-6989586621679111630"><span class="hs-identifier hs-var">fit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fitness a b
+</span><a href="#local-6989586621679111630"><span class="hs-identifier hs-var">fit</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness a b
 -&gt; StateT SMGen Identity [Expr a] -&gt; Rnd (Population a b)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [Expr a]
 forall t t.
 (Eq t, Num t) =&gt;
 t -&gt; Int -&gt; t -&gt; StateT SMGen Identity [Expr a]
-</span><a href="#local-6989586621679111771"><span class="hs-identifier hs-var">initialPop'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111777"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111776"><span class="hs-identifier hs-var">maxTerms</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111775"><span class="hs-identifier hs-var">nPop</span></a></span><span>
-</span><span id="line-51"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-52"></span><span>    </span><span id="local-6989586621679111770"><span class="annot"><span class="annottext">rndExpr :: Int -&gt; Rnd (Expr a)
-</span><a href="#local-6989586621679111770"><span class="hs-identifier hs-var hs-var">rndExpr</span></a></span></span><span> </span><span id="local-6989586621679111769"><span class="annot"><span class="annottext">n :: Int
-</span><a href="#local-6989586621679111769"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
+</span><a href="#local-6989586621679111628"><span class="hs-identifier hs-var">initialPop'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111634"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111633"><span class="hs-identifier hs-var">maxTerms</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111632"><span class="hs-identifier hs-var">nPop</span></a></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-50"></span><span>    </span><span id="local-6989586621679111627"><span class="annot"><span class="annottext">rndExpr :: Int -&gt; Rnd (Expr a)
+</span><a href="#local-6989586621679111627"><span class="hs-identifier hs-var hs-var">rndExpr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
 forall a. Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
 </span><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-var">sampleExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Term a)
-</span><a href="#local-6989586621679111774"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111769"><span class="hs-identifier hs-var">n</span></a></span><span>
-</span><span id="line-53"></span><span>    </span><span id="local-6989586621679111767"><span class="annot"><span class="annottext">rndLinear :: Int -&gt; Rnd (Expr a)
-</span><a href="#local-6989586621679111767"><span class="hs-identifier hs-var hs-var">rndLinear</span></a></span></span><span> </span><span id="local-6989586621679111766"><span class="annot"><span class="annottext">n :: Int
-</span><a href="#local-6989586621679111766"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
-forall a. Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
-</span><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-var">sampleExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Term a)
-forall a. Rnd (Term a)
-</span><a href="#local-6989586621679111765"><span class="hs-identifier hs-var">rndTerm'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111766"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span>
-</span><span id="line-54"></span><span>      </span><span class="hs-keyword">where</span><span>
-</span><span id="line-55"></span><span>        </span><span id="local-6989586621679111765"><span class="annot"><span class="annottext">rndTerm' :: Rnd (Term a)
-</span><a href="#local-6989586621679111765"><span class="hs-identifier hs-var hs-var">rndTerm'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rnd (Transformation a) -&gt; Rnd Interaction -&gt; Rnd (Term a)
-forall a. Rnd (Transformation a) -&gt; Rnd Interaction -&gt; Rnd (Term a)
-</span><a href="IT.Random.html#sampleTerm"><span class="hs-identifier hs-var">sampleTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Transformation a)
-forall a. Rnd (Transformation a)
-</span><a href="#local-6989586621679111763"><span class="hs-identifier hs-var">rndTrans</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd Interaction
-</span><a href="#local-6989586621679111762"><span class="hs-identifier hs-var">rndInter</span></a></span><span>
-</span><span id="line-56"></span><span>        </span><span id="local-6989586621679111763"><span class="annot"><span class="annottext">rndTrans :: Rnd (Transformation a)
-</span><a href="#local-6989586621679111763"><span class="hs-identifier hs-var hs-var">rndTrans</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Transformation a] -&gt; Rnd (Transformation a)
-forall a. [Transformation a] -&gt; Rnd (Transformation a)
-</span><a href="IT.Random.html#sampleTrans"><span class="hs-identifier hs-var">sampleTrans</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; (a -&gt; a) -&gt; Transformation a
-forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
-</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Identity&quot;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
-forall a. a -&gt; a
-</span><span class="hs-identifier hs-var">id</span></span><span class="hs-special">]</span><span>
-</span><span id="line-57"></span><span>        </span><span id="local-6989586621679111762"><span class="annot"><span class="annottext">rndInter :: Rnd Interaction
-</span><a href="#local-6989586621679111762"><span class="hs-identifier hs-var hs-var">rndInter</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int -&gt; Int -&gt; Rnd Interaction
-</span><a href="IT.Random.html#sampleInterMax"><span class="hs-identifier hs-var">sampleInterMax</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111777"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span>
-</span><span id="line-58"></span><span>
-</span><span id="line-59"></span><span>    </span><span id="local-6989586621679111771"><span class="annot"><span class="annottext">initialPop' :: t -&gt; Int -&gt; t -&gt; StateT SMGen Identity [Expr a]
-</span><a href="#local-6989586621679111771"><span class="hs-identifier hs-var hs-var">initialPop'</span></a></span></span><span> </span><span id="local-6989586621679111757"><span class="annot"><span class="annottext">dim :: t
-</span><a href="#local-6989586621679111757"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111756"><span class="annot"><span class="annottext">maxTerms :: Int
-</span><a href="#local-6989586621679111756"><span class="hs-identifier hs-var">maxTerms</span></a></span></span><span> </span><span class="hs-number">0</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Expr a] -&gt; StateT SMGen Identity [Expr a]
+</span><a href="#local-6989586621679111631"><span class="hs-identifier hs-var">rndTerm</span></a></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-comment">-- return a random list of random expressions</span><span>
+</span><span id="line-53"></span><span>    </span><span id="local-6989586621679111628"><span class="annot"><span class="annottext">initialPop' :: t -&gt; Int -&gt; t -&gt; StateT SMGen Identity [Expr a]
+</span><a href="#local-6989586621679111628"><span class="hs-identifier hs-var hs-var">initialPop'</span></a></span></span><span> </span><span id="local-6989586621679111625"><span class="annot"><span class="annottext">dim :: t
+</span><a href="#local-6989586621679111625"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111624"><span class="annot"><span class="annottext">maxTerms :: Int
+</span><a href="#local-6989586621679111624"><span class="hs-identifier hs-var">maxTerms</span></a></span></span><span> </span><span class="hs-number">0</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Expr a] -&gt; StateT SMGen Identity [Expr a]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><span id="line-60"></span><span>    </span><span class="hs-comment">--initialPop' dim maxTerms 1    = do e &lt;- rndLinear maxTerms </span><span>
-</span><span id="line-61"></span><span>    </span><span class="hs-comment">--                                   return [e]</span><span>
-</span><span id="line-62"></span><span>    </span><span class="annot"><a href="#local-6989586621679111771"><span class="hs-identifier hs-var">initialPop'</span></a></span><span> </span><span id="local-6989586621679111755"><span class="annot"><span class="annottext">dim :: t
-</span><a href="#local-6989586621679111755"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111754"><span class="annot"><span class="annottext">maxTerms :: Int
-</span><a href="#local-6989586621679111754"><span class="hs-identifier hs-var">maxTerms</span></a></span></span><span> </span><span id="local-6989586621679111753"><span class="annot"><span class="annottext">nPop :: t
-</span><a href="#local-6989586621679111753"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111752"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111752"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
+</span><span id="line-54"></span><span>    </span><span class="annot"><a href="#local-6989586621679111628"><span class="hs-identifier hs-var">initialPop'</span></a></span><span> </span><span id="local-6989586621679111623"><span class="annot"><span class="annottext">dim :: t
+</span><a href="#local-6989586621679111623"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111622"><span class="annot"><span class="annottext">maxTerms :: Int
+</span><a href="#local-6989586621679111622"><span class="hs-identifier hs-var">maxTerms</span></a></span></span><span> </span><span id="local-6989586621679111621"><span class="annot"><span class="annottext">nPop :: t
+</span><a href="#local-6989586621679111621"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111620"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111620"><span class="hs-identifier hs-var">n</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-var">sampleRng</span></a></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111754"><span class="hs-identifier hs-var">maxTerms</span></a></span><span>
-</span><span id="line-63"></span><span>                                       </span><span id="local-6989586621679111750"><span class="annot"><span class="annottext">Expr a
-</span><a href="#local-6989586621679111750"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd (Expr a)
-</span><a href="#local-6989586621679111770"><span class="hs-identifier hs-var">rndExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111752"><span class="hs-identifier hs-var">n</span></a></span><span>
-</span><span id="line-64"></span><span>                                       </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111749"><span class="annot"><span class="annottext">s :: Expr a
-</span><a href="#local-6989586621679111749"><span class="hs-identifier hs-var hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Expr a -&gt; Expr a
-forall a. Expr a -&gt; Expr a
-</span><a href="IT.html#uniqueTerms"><span class="hs-identifier hs-var">uniqueTerms</span></a></span><span> </span><span class="annot"><span class="annottext">Expr a
-</span><a href="#local-6989586621679111750"><span class="hs-identifier hs-var">e</span></a></span><span>
-</span><span id="line-65"></span><span>                                       </span><span id="local-6989586621679111747"><span class="annot"><span class="annottext">[Expr a]
-</span><a href="#local-6989586621679111747"><span class="hs-identifier hs-var">ss</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">t -&gt; Int -&gt; t -&gt; StateT SMGen Identity [Expr a]
-</span><a href="#local-6989586621679111771"><span class="hs-identifier hs-var">initialPop'</span></a></span><span> </span><span class="annot"><span class="annottext">t
-</span><a href="#local-6989586621679111755"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111754"><span class="hs-identifier hs-var">maxTerms</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">t
-</span><a href="#local-6989586621679111753"><span class="hs-identifier hs-var">nPop</span></a></span><span class="annot"><span class="annottext">t -&gt; t -&gt; t
+</span><a href="#local-6989586621679111622"><span class="hs-identifier hs-var">maxTerms</span></a></span><span>
+</span><span id="line-55"></span><span>                                       </span><span id="local-6989586621679111618"><span class="annot"><span class="annottext">Expr a
+</span><a href="#local-6989586621679111618"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd (Expr a)
+</span><a href="#local-6989586621679111627"><span class="hs-identifier hs-var">rndExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111620"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-56"></span><span>                                       </span><span id="local-6989586621679111617"><span class="annot"><span class="annottext">[Expr a]
+</span><a href="#local-6989586621679111617"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">t -&gt; Int -&gt; t -&gt; StateT SMGen Identity [Expr a]
+</span><a href="#local-6989586621679111628"><span class="hs-identifier hs-var">initialPop'</span></a></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679111623"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111622"><span class="hs-identifier hs-var">maxTerms</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679111621"><span class="hs-identifier hs-var">nPop</span></a></span><span class="annot"><span class="annottext">t -&gt; t -&gt; t
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
-</span><span id="line-66"></span><span>                                       </span><span class="annot"><span class="annottext">[Expr a] -&gt; StateT SMGen Identity [Expr a]
+</span><span id="line-57"></span><span>                                       </span><span class="annot"><span class="annottext">[Expr a] -&gt; StateT SMGen Identity [Expr a]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">([Expr a] -&gt; StateT SMGen Identity [Expr a])
 -&gt; [Expr a] -&gt; StateT SMGen Identity [Expr a]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Expr a
-</span><a href="#local-6989586621679111749"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Expr a -&gt; [Expr a] -&gt; [Expr a]
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Expr a -&gt; Expr a
+forall a. Expr a -&gt; Expr a
+</span><a href="IT.html#uniqueTerms"><span class="hs-identifier hs-var">uniqueTerms</span></a></span><span> </span><span class="annot"><span class="annottext">Expr a
+</span><a href="#local-6989586621679111618"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">Expr a -&gt; [Expr a] -&gt; [Expr a]
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Expr a]
-</span><a href="#local-6989586621679111747"><span class="hs-identifier hs-var">ss</span></a></span><span>
-</span><span id="line-67"></span><span>
-</span><span id="line-68"></span><span>
-</span><span id="line-69"></span><span class="hs-comment">-- | Tournament Selection</span><span>
-</span><span id="line-70"></span><span class="hs-comment">--</span><span>
-</span><span id="line-71"></span><span class="hs-comment">-- given the concatenation of the previous population</span><span>
-</span><span id="line-72"></span><span class="hs-comment">-- and the mutated children, it will return a sampled</span><span>
-</span><span id="line-73"></span><span class="hs-comment">-- selection of these combined population with</span><span>
-</span><span id="line-74"></span><span class="hs-comment">-- the same size as the original population.</span><span>
-</span><span id="line-75"></span><span class="hs-comment">--</span><span>
-</span><span id="line-76"></span><span id="local-6989586621679111807"><span id="local-6989586621679111808"><span class="annot"><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-type">tournament</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111808"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111807"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111808"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111807"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
-</span><span id="line-77"></span><span id="tournament"><span class="annot"><span class="annottext">tournament :: Population a b -&gt; Int -&gt; Rnd (Population a b)
-</span><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-var hs-var">tournament</span></a></span></span><span> </span><span id="local-6989586621679111745"><span class="annot"><span class="annottext">p :: Population a b
-</span><a href="#local-6989586621679111745"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Rnd (Population a b)
+</span><a href="#local-6989586621679111617"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- | Tournament Selection</span><span>
+</span><span id="line-61"></span><span class="hs-comment">--</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- given the concatenation of the previous population</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- and the mutated children, it will return a sampled</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- selection of these combined population with</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- the same size as the original population.</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--</span><span>
+</span><span id="line-67"></span><span id="local-6989586621679111665"><span id="local-6989586621679111666"><span class="annot"><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-type">tournament</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111666"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111665"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111666"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111665"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-68"></span><span id="tournament"><span class="annot"><span class="annottext">tournament :: Population a b -&gt; Int -&gt; Rnd (Population a b)
+</span><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-var hs-var">tournament</span></a></span></span><span> </span><span id="local-6989586621679111614"><span class="annot"><span class="annottext">p :: Population a b
+</span><a href="#local-6989586621679111614"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Rnd (Population a b)
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
-</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span>
-</span><span id="line-78"></span><span class="annot"><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-var">tournament</span></a></span><span> </span><span id="local-6989586621679111744"><span class="annot"><span class="annottext">p :: Population a b
-</span><a href="#local-6989586621679111744"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679111743"><span class="annot"><span class="annottext">n :: Int
-</span><a href="#local-6989586621679111743"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111742"><span class="annot"><span class="annottext">Solution a b
-</span><a href="#local-6989586621679111742"><span class="hs-identifier hs-var">pi</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Rnd (Solution a b)
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-69"></span><span class="annot"><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-var">tournament</span></a></span><span> </span><span id="local-6989586621679111613"><span class="annot"><span class="annottext">p :: Population a b
+</span><a href="#local-6989586621679111613"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679111612"><span class="annot"><span class="annottext">n :: Int
+</span><a href="#local-6989586621679111612"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111611"><span class="annot"><span class="annottext">Solution a b
+</span><a href="#local-6989586621679111611"><span class="hs-identifier hs-var">pi</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Rnd (Solution a b)
 forall a b. Population a b -&gt; Rnd (Solution a b)
-</span><a href="#local-6989586621679111741"><span class="hs-identifier hs-var">chooseOne</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111744"><span class="hs-identifier hs-var">p</span></a></span><span>
-</span><span id="line-79"></span><span>                    </span><span id="local-6989586621679111740"><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111740"><span class="hs-identifier hs-var">p'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Rnd (Population a b)
+</span><a href="#local-6989586621679111610"><span class="hs-identifier hs-var">chooseOne</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b
+</span><a href="#local-6989586621679111613"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-70"></span><span>                    </span><span id="local-6989586621679111609"><span class="annot"><span class="annottext">Population a b
+</span><a href="#local-6989586621679111609"><span class="hs-identifier hs-var">p'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Rnd (Population a b)
 forall a b. Population a b -&gt; Int -&gt; Rnd (Population a b)
 </span><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-var">tournament</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111744"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111743"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111613"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111612"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
-</span><span id="line-80"></span><span>                    </span><span class="annot"><span class="annottext">Population a b -&gt; Rnd (Population a b)
+</span><span id="line-71"></span><span>                    </span><span class="annot"><span class="annottext">Population a b -&gt; Rnd (Population a b)
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Population a b -&gt; Rnd (Population a b))
 -&gt; Population a b -&gt; Rnd (Population a b)
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Solution a b
-</span><a href="#local-6989586621679111742"><span class="hs-identifier hs-var">pi</span></a></span><span class="annot"><span class="annottext">Solution a b -&gt; Population a b -&gt; Population a b
+</span><a href="#local-6989586621679111611"><span class="hs-identifier hs-var">pi</span></a></span><span class="annot"><span class="annottext">Solution a b -&gt; Population a b -&gt; Population a b
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111740"><span class="hs-identifier hs-var">p'</span></a></span><span> </span><span>
-</span><span id="line-81"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-82"></span><span>    </span><span id="local-6989586621679111809"><span id="local-6989586621679111810"><span class="annot"><a href="#local-6989586621679111741"><span class="hs-identifier hs-type">chooseOne</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111810"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111809"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111810"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111809"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
-</span><span id="line-83"></span><span>    </span><span id="local-6989586621679111741"><span class="annot"><span class="annottext">chooseOne :: Population a b -&gt; Rnd (Solution a b)
-</span><a href="#local-6989586621679111741"><span class="hs-identifier hs-var hs-var">chooseOne</span></a></span></span><span> </span><span id="local-6989586621679111739"><span class="annot"><span class="annottext">p :: Population a b
-</span><a href="#local-6989586621679111739"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111738"><span class="annot"><span class="annottext">n :: Int
-</span><a href="#local-6989586621679111738"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int
+</span><a href="#local-6989586621679111609"><span class="hs-identifier hs-var">p'</span></a></span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-73"></span><span>    </span><span id="local-6989586621679111667"><span id="local-6989586621679111668"><span class="annot"><a href="#local-6989586621679111610"><span class="hs-identifier hs-type">chooseOne</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111668"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111667"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111668"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111667"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-74"></span><span>    </span><span id="local-6989586621679111610"><span class="annot"><span class="annottext">chooseOne :: Population a b -&gt; Rnd (Solution a b)
+</span><a href="#local-6989586621679111610"><span class="hs-identifier hs-var hs-var">chooseOne</span></a></span></span><span> </span><span id="local-6989586621679111608"><span class="annot"><span class="annottext">p :: Population a b
+</span><a href="#local-6989586621679111608"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111607"><span class="annot"><span class="annottext">n :: Int
+</span><a href="#local-6989586621679111607"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111739"><span class="hs-identifier hs-var">p</span></a></span><span>
-</span><span id="line-84"></span><span>                     </span><span id="local-6989586621679111737"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111737"><span class="hs-identifier hs-var">c1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd Int
+</span><a href="#local-6989586621679111608"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-75"></span><span>                     </span><span id="local-6989586621679111606"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111606"><span class="hs-identifier hs-var">c1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleTo"><span class="hs-identifier hs-var">sampleTo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111738"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111607"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
-</span><span id="line-85"></span><span>                     </span><span id="local-6989586621679111735"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111735"><span class="hs-identifier hs-var">c2</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd Int
+</span><span id="line-76"></span><span>                     </span><span id="local-6989586621679111604"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111604"><span class="hs-identifier hs-var">c2</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleTo"><span class="hs-identifier hs-var">sampleTo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111738"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111607"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
-</span><span id="line-86"></span><span>                     </span><span class="annot"><span class="annottext">Solution a b -&gt; Rnd (Solution a b)
+</span><span id="line-77"></span><span>                     </span><span class="annot"><span class="annottext">Solution a b -&gt; Rnd (Solution a b)
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
-</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Solution a b -&gt; Solution a b -&gt; Solution a b
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Solution a b -&gt; Rnd (Solution a b))
+-&gt; Solution a b -&gt; Rnd (Solution a b)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Solution a b -&gt; Solution a b -&gt; Solution a b
 forall a. Ord a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-identifier hs-var">min</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111739"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Solution a b
+</span><a href="#local-6989586621679111608"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Solution a b
 forall a. [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111737"><span class="hs-identifier hs-var">c1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111739"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Solution a b
+</span><a href="#local-6989586621679111606"><span class="hs-identifier hs-var">c1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Population a b
+</span><a href="#local-6989586621679111608"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Solution a b
 forall a. [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111735"><span class="hs-identifier hs-var">c2</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span>
-</span><span id="line-87"></span><span>
-</span><span id="line-88"></span><span class="hs-comment">-- | Perform one iterative step of ITEA</span><span>
-</span><span id="line-89"></span><span id="local-6989586621679111842"><span id="local-6989586621679111844"><span class="annot"><a href="IT.ITEA.html#step"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111844"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111842"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Mutation"><span class="hs-identifier hs-type">Mutation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111844"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111844"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111842"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111844"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111842"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111844"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111842"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
-</span><span id="line-90"></span><span id="step"><span class="annot"><span class="annottext">step :: Mutation a
+</span><a href="#local-6989586621679111604"><span class="hs-identifier hs-var">c2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- | Perform one iteration of ITEA</span><span>
+</span><span id="line-80"></span><span id="local-6989586621679111690"><span id="local-6989586621679111692"><span class="annot"><a href="IT.ITEA.html#step"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111692"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NFData</span></span><span> </span><span class="annot"><a href="#local-6989586621679111690"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Mutation"><span class="hs-identifier hs-type">Mutation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111692"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111692"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111690"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111692"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111690"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Population"><span class="hs-identifier hs-type">Population</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111692"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111690"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-81"></span><span id="step"><span class="annot"><span class="annottext">step :: Mutation a
 -&gt; Fitness a b -&gt; Int -&gt; Population a b -&gt; Rnd (Population a b)
-</span><a href="IT.ITEA.html#step"><span class="hs-identifier hs-var hs-var">step</span></a></span></span><span> </span><span id="local-6989586621679111732"><span class="annot"><span class="annottext">mutFun :: Mutation a
-</span><a href="#local-6989586621679111732"><span class="hs-identifier hs-var">mutFun</span></a></span></span><span> </span><span id="local-6989586621679111731"><span class="annot"><span class="annottext">fitFun :: Fitness a b
-</span><a href="#local-6989586621679111731"><span class="hs-identifier hs-var">fitFun</span></a></span></span><span> </span><span id="local-6989586621679111730"><span class="annot"><span class="annottext">nPop :: Int
-</span><a href="#local-6989586621679111730"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679111729"><span class="annot"><span class="annottext">pop :: Population a b
-</span><a href="#local-6989586621679111729"><span class="hs-identifier hs-var">pop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-91"></span><span>  </span><span id="local-6989586621679111728"><span class="annot"><span class="annottext">[Expr a]
-</span><a href="#local-6989586621679111728"><span class="hs-identifier hs-var">exprs</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[StateT SMGen Identity (Expr a)] -&gt; StateT SMGen Identity [Expr a]
-forall (t :: * -&gt; *) (m :: * -&gt; *) a.
-(Traversable t, Monad m) =&gt;
-t (m a) -&gt; m (t a)
-</span><span class="hs-identifier hs-var">sequence</span></span><span> </span><span class="annot"><span class="annottext">([StateT SMGen Identity (Expr a)]
- -&gt; StateT SMGen Identity [Expr a])
--&gt; [StateT SMGen Identity (Expr a)]
--&gt; StateT SMGen Identity [Expr a]
-forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Mutation a
-</span><a href="#local-6989586621679111732"><span class="hs-identifier hs-var">mutFun</span></a></span><span> </span><span class="annot"><span class="annottext">Mutation a
+</span><a href="IT.ITEA.html#step"><span class="hs-identifier hs-var hs-var">step</span></a></span></span><span> </span><span id="local-6989586621679111601"><span class="annot"><span class="annottext">mutFun :: Mutation a
+</span><a href="#local-6989586621679111601"><span class="hs-identifier hs-var">mutFun</span></a></span></span><span> </span><span id="local-6989586621679111600"><span class="annot"><span class="annottext">fitFun :: Fitness a b
+</span><a href="#local-6989586621679111600"><span class="hs-identifier hs-var">fitFun</span></a></span></span><span> </span><span id="local-6989586621679111599"><span class="annot"><span class="annottext">nPop :: Int
+</span><a href="#local-6989586621679111599"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679111598"><span class="annot"><span class="annottext">pop :: Population a b
+</span><a href="#local-6989586621679111598"><span class="hs-identifier hs-var">pop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-82"></span><span>  </span><span id="local-6989586621679111597"><span class="annot"><span class="annottext">Population a b
+</span><a href="#local-6989586621679111597"><span class="hs-identifier hs-var">children</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Fitness a b
+</span><a href="#local-6989586621679111600"><span class="hs-identifier hs-var">fitFun</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness a b
+-&gt; StateT SMGen Identity [Expr a] -&gt; Rnd (Population a b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Solution a b -&gt; StateT SMGen Identity (Expr a))
+-&gt; Population a b -&gt; StateT SMGen Identity [Expr a]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span><span class="hs-identifier hs-var">traverse</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Mutation a
+</span><a href="#local-6989586621679111601"><span class="hs-identifier hs-var">mutFun</span></a></span><span> </span><span class="annot"><span class="annottext">Mutation a
 -&gt; (Solution a b -&gt; Expr a)
 -&gt; Solution a b
 -&gt; StateT SMGen Identity (Expr a)
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Solution a b -&gt; Expr a
 forall a b. Solution a b -&gt; Expr a
-</span><a href="IT.Algorithms.html#_expr"><span class="hs-identifier hs-var hs-var">_expr</span></a></span><span> </span><span class="annot"><span class="annottext">(Solution a b -&gt; StateT SMGen Identity (Expr a))
--&gt; Population a b -&gt; [StateT SMGen Identity (Expr a)]
-forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
-</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111729"><span class="hs-identifier hs-var">pop</span></a></span><span>
-</span><span id="line-92"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111724"><span class="annot"><span class="annottext">pop' :: Population a b
-</span><a href="#local-6989586621679111724"><span class="hs-identifier hs-var hs-var">pop'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fitness a b
-</span><a href="#local-6989586621679111731"><span class="hs-identifier hs-var">fitFun</span></a></span><span> </span><span class="annot"><span class="annottext">[Expr a]
-</span><a href="#local-6989586621679111728"><span class="hs-identifier hs-var">exprs</span></a></span><span>
-</span><span id="line-93"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int
-forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
-</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111729"><span class="hs-identifier hs-var">pop</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
-forall a. Eq a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span>
-</span><span id="line-94"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Rnd (Population a b)
+</span><a href="IT.Algorithms.html#_expr"><span class="hs-identifier hs-var hs-var">_expr</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Population a b
+</span><a href="#local-6989586621679111598"><span class="hs-identifier hs-var">pop</span></a></span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">Population a b
+</span><a href="#local-6989586621679111597"><span class="hs-identifier hs-var">children</span></a></span><span> </span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Rnd (Population a b)
 forall a b. Population a b -&gt; Int -&gt; Rnd (Population a b)
 </span><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-var">tournament</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111729"><span class="hs-identifier hs-var">pop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111730"><span class="hs-identifier hs-var">nPop</span></a></span><span>
-</span><span id="line-95"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Rnd (Population a b)
+</span><a href="#local-6989586621679111598"><span class="hs-identifier hs-var">pop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111599"><span class="hs-identifier hs-var">nPop</span></a></span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Int -&gt; Rnd (Population a b)
 forall a b. Population a b -&gt; Int -&gt; Rnd (Population a b)
 </span><a href="IT.ITEA.html#tournament"><span class="hs-identifier hs-var">tournament</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111729"><span class="hs-identifier hs-var">pop</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Population a b -&gt; Population a b
+</span><a href="#local-6989586621679111598"><span class="hs-identifier hs-var">pop</span></a></span><span> </span><span class="annot"><span class="annottext">Population a b -&gt; Population a b -&gt; Population a b
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Population a b
-</span><a href="#local-6989586621679111724"><span class="hs-identifier hs-var">pop'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111730"><span class="hs-identifier hs-var">nPop</span></a></span><span>
-</span><span id="line-96"></span><span>  </span><span class="hs-comment">-- return $ take nPop $ sort (pop ++ pop') -- elitism, to be tested</span><span>
-</span><span id="line-97"></span></pre></body></html>
+</span><a href="#local-6989586621679111597"><span class="hs-identifier hs-var">children</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111599"><span class="hs-identifier hs-var">nPop</span></a></span><span>
+</span><span id="line-86"></span></pre></body></html>

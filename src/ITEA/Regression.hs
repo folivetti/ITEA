@@ -10,6 +10,7 @@ Maintainer  : fabricio.olivetti@gmail.com
 Stability   : experimental
 Portability : POSIX
 
+Function to execute ITEA
 -}
 module ITEA.Regression where
 
@@ -30,24 +31,21 @@ runITEAReg :: Datasets     -- training and test datasets
            -> Int          -- population size
            -> Int          -- generations
            -> IO ()
-runITEAReg (D tr te) mcfg output nPop nGens = do
-  g <- initSMGen
-  (trainX, trainY) <- parseFile <$> readFile tr
-  (testX,  testY ) <- parseFile <$> readFile te
-  let 
-      xss  = (V.fromList $ LA.toColumns trainX)
-      xss' = (V.fromList $ LA.toColumns testX)
-      fitTrain = fitnessReg nPop xss trainY    -- create the fitness function
-      fitTest  = fitnessTest xss' testY         -- create the fitness for the test set
-      dim      = LA.cols trainX
-      (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
-      -- p0       = initialPop dim (getMaxTerms mcfg) nPop rndTerm fitTrain
-      p0       = initialPop dim 4 nPop rndTerm fitTrain      -- initialize de population
-      gens     = (p0 >>= itea mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
-      best     = getBest nGens gens                          -- get the best solution of the first gens generations
-  genReports output gens nGens fitTest                       -- create the report
-  --    p0i = _expr $ head $ p0 `evalState` g
-  --print $ exprToMatrix xss $ p0i
-  --print $ p0i 
-  
+runITEAReg (D tr te) mcfg output nPop nGens =
+ do g <- initSMGen
+    (trainX, trainY) <- parseFile <$> readFile tr
+    (testX,  testY ) <- parseFile <$> readFile te
+    let
+        xss      = V.fromList $ LA.toColumns trainX
+        xss'     = V.fromList $ LA.toColumns testX
+        fitTrain = fitnessReg nPop xss trainY    -- create the fitness function
+        fitTest  = fitnessTest xss' testY         -- create the fitness for the test set
+        dim      = LA.cols trainX
 
+        (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
+
+        p0       = initialPop dim 4 nPop rndTerm fitTrain      -- initialize de population
+        gens     = (p0 >>= itea mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
+        best     = getBest nGens gens                          -- get the best solution of the first gens generations
+
+    genReports output gens nGens fitTest                       -- create the report

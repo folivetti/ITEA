@@ -7,6 +7,7 @@ Maintainer  : fabricio.olivetti@gmail.com
 Stability   : experimental
 Portability : POSIX
 
+Mutation operators.
 -}
 module IT.Mutation where
 

@@ -1,6 +1,16 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeApplications #-}
+{-|
+Module      : Example.Regression
+Description : Example of usage for Symbolic Regression
+Copyright   : (c) Fabricio Olivetti de Franca, 2020
+License     : GPL-3
+Maintainer  : fabricio.olivetti@gmail.com
+Stability   : experimental
+Portability : POSIX
 
+Configuration parsing and report generation.
+-}
 module ITEA.Config where
 
 import System.Directory
@@ -19,12 +29,14 @@ import qualified MachineLearning as ML
 import Data.List.Split (splitOn)
 import Data.List (intersperse)
 
--- | Configuration Validation
+-- | Class of types that can be validate
 class Monoid a => Valid a b | a -> b, b -> a where
   validateConfig :: a -> b
 
+-- | A parameter is either empty (None) or Has something
 data Param a = None | Has a deriving Show
 
+-- | Extract parameter. This is a partial function.
 fromParam :: Param a -> a
 fromParam (Has x) = x
 
@@ -34,30 +46,37 @@ instance Semigroup (Param a) where
 instance Monoid (Param a) where
   mempty = None
   
--- | Mutation configuration
+-- | Groups of transformation functions 
 data Funcs = FLinear | FNonLinear | FTrig | FAll deriving (Read, Show)
 
+-- | Unchecked mutation config 
 data UncheckedMutationCfg = UMCfg { _expLim   :: (Param (Int, Int))
                                   , _termLim  :: (Param (Int, Int))
                                   , _nzExp    :: Param Int
                                   , _transFun :: (Param Funcs)
                                   }
+
+-- | Validated mutation config 
 data MutationCfg = MCfg (Int, Int) (Int, Int) Int Funcs deriving Show
 
 instance Semigroup UncheckedMutationCfg where
   (UMCfg p1 p2 p3 p4) <> (UMCfg q1 q2 q3 q4) = UMCfg (p1<>q1) (p2<>q2) (p3<>q3) (p4<>q4)
 instance Monoid UncheckedMutationCfg where
   mempty = UMCfg mempty mempty mempty mempty
-  
+
+-- | Generates a configuration with only '_expLim' holding a value.
 exponents :: Int -> Int -> UncheckedMutationCfg
 exponents x y = mempty { _expLim   = Has (x,y) }
 
+-- | Generates a configuration with only '_termLim' holding a value.
 termLimit :: Int -> Int -> UncheckedMutationCfg
 termLimit   x y = mempty { _termLim  = Has (x,y) }
 
+-- | Generates a configuration with only '_nzExp' holding a value.
 nonzeroExps :: Int -> UncheckedMutationCfg
 nonzeroExps x = mempty { _nzExp = Has x }
 
+-- | Generates a configuration with only '_transFun' holding a value.
 transFunctions :: Funcs -> UncheckedMutationCfg
 transFunctions  fs  = mempty { _transFun = Has fs }
 
@@ -95,11 +114,12 @@ withMutation (MCfg elim tlim nzExp transfun) dim = (mutFun dim elim tlim rndTerm
     rndTrans = sampleTrans (trans transfun)
     rndTerm  = sampleTerm rndTrans rndInter
 
--- | Datasets configuration
+-- * Datasets configuration
 
 data UncheckedDatasets = UD { _trainset :: Param String, _testset :: Param String }  deriving Show
 data Datasets = D String String deriving Show
 
+-- | sets the training and test data set names 
 trainingset, testset :: String -> UncheckedDatasets
 trainingset name = mempty { _trainset = Has name }
 testset     name = mempty { _testset = Has name }
@@ -117,14 +137,17 @@ instance Valid UncheckedDatasets Datasets where
 -- | Output configuration  
 data Output = Screen | PartialLog String | FullLog String deriving Read
 
+-- | Get best solution from all generations
 getBest :: Int  -> [Population Double RegStats] -> Solution Double RegStats
 getBest n p     = minimum $ getAllBests n p
 getAllBests n p = map minimum (take n p) 
 
+-- | Statistic type 
 data StatType = Best | Worst | Avg deriving Show
 
 applyStat f n p = map (map f) $ take n p
 
+-- | Get all Best/Worst/Avg from every generation.
 getAll :: StatType -> (RegStats -> Double) -> Int -> [[RegStats]] -> [Double]
 getAll Best f n p  = map minimum (applyStat f n p) 
 getAll Worst f n p = map maximum (applyStat f n p)
@@ -227,6 +250,7 @@ genEvoStream (x:xs) hs = do
   zipWithM_ hPutStr hs zs
   genEvoStream xs hs
 
+-- | Generates evolution report 
 genEvoReport :: [AggStats] -> String -> IO ()
 genEvoReport stats dirname = do
   let names     = fmap (dirname++) ["Rmse", "Mae", "Nmse", "R2"]
@@ -243,6 +267,7 @@ genEvoReport stats dirname = do
   mapM_ hClose hsWorst
   mapM_ hClose hsAvg
 
+-- | converts a result to a String
 resultsToStr :: Solution Double RegStats -> RegStats -> [String]
 resultsToStr train stest = (map show statlist) ++ [show (_expr train)]
   where 
