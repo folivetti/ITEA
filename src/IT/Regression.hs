@@ -199,8 +199,9 @@ parMapChunk n f xs = concatMap (map f) (chunksOf n xs) `using` parList rpar --rd
 fitnessReg :: Int -> Dataset Double -> Vector -> [Expr Double] -> Population Double RegStats
 fitnessReg nPop xss ys []       = []
 fitnessReg nPop xss ys exprs = let n  = nPop `div` (2*numCapabilities)
-                                   zs = parMapChunk n (exprToMatrix xss) exprs
-                                   ps = zipWith (regress ys) exprs zs
+                                   --zs = parMapChunk n (exprToMatrix xss) exprs
+                                   ps = map (\e -> regress ys e $ exprToMatrix xss e) exprs
+                                   --ps = zipWith (regress ys) exprs zs
                                in  filter notInfNan ps
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
