@@ -38,7 +38,7 @@ runITEAReg (D tr te) mcfg output nPop nGens =
     let
         xss      = V.fromList $ LA.toColumns trainX
         xss'     = V.fromList $ LA.toColumns testX
-        fitTrain = fitnessReg nPop xss trainY    -- create the fitness function
+        fitTrain = fitnessReg xss trainY    -- create the fitness function
         fitTest  = fitnessTest xss' testY         -- create the fitness for the test set
         dim      = LA.cols trainX
 

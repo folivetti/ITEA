@@ -185,10 +185,10 @@ notInfNan s = not (isInfinite f || isNaN f)
   where f = _fit s
 
 -- | Parallel strategy for evaluating multiple expressions
-parMapChunk :: Int -> (Expr Double -> LA.Matrix Double) -> [Expr Double] -> [LA.Matrix Double]
+--parMapChunk :: Int -> (Expr Double -> LA.Matrix Double) -> [Expr Double] -> [LA.Matrix Double]
 parMapChunk 0 f xs = map f xs
-parMapChunk n f xs = concatMap (map f) (chunksOf n xs) `using` parList rpar --rdeepseq-- 
---parMapChunk n f xs = map f xs `using` parListChunk n rpar -- rpar or rdeepseq
+--parMapChunk n f xs = concatMap (map f) (chunksOf n xs) `using` parList rpar --rdeepseq-- 
+parMapChunk n f xs = map f xs `using` parListChunk n rpar -- rpar or rdeepseq
 
 -- | Fitness function for regression
 -- 
@@ -196,14 +196,21 @@ parMapChunk n f xs = concatMap (map f) (chunksOf n xs) `using` parList rpar --rd
 --  evaluate the expressions in parallel
 --  run a Linear regression on the evaluated expressions
 --  Remove from the population any expression that leads to NaNs or Infs
-fitnessReg :: Int -> Dataset Double -> Vector -> [Expr Double] -> Population Double RegStats
+--fitnessReg :: Int -> Dataset Double -> Vector -> [Expr Double] -> Population Double RegStats
+fitnessReg :: Dataset Double -> Vector -> Expr Double -> Maybe (Solution Double RegStats)
+fitnessReg xss ys expr 
+  | notInfNan ps = Just ps
+  | otherwise    = Nothing
+  where 
+    ps = regress ys expr $ exprToMatrix xss expr 
+  {-
 fitnessReg nPop xss ys []       = []
 fitnessReg nPop xss ys exprs = let n  = nPop `div` (2*numCapabilities)
                                    --zs = parMapChunk n (exprToMatrix xss) exprs
-                                   ps = map (\e -> regress ys e $ exprToMatrix xss e) exprs
+                                   ps = parMapChunk n (\e -> regress ys e $ exprToMatrix xss e) exprs
                                    --ps = zipWith (regress ys) exprs zs
                                in  filter notInfNan ps
-
+-}
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.
 fitnessTest :: Dataset Double -> Vector -> Solution Double RegStats -> RegStats

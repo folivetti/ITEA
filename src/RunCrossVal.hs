@@ -96,7 +96,7 @@ runCfg dname fold (mutCfg, pop, gen) = do
       
       toRegMtx = V.fromList . LA.toColumns
       
-      fitTrains = zipWith (\x y -> fitnessReg pop (toRegMtx x) y) trXs trYs
+      fitTrains = zipWith (\x y -> fitnessReg (toRegMtx x) y) trXs trYs
       fitTests  =  zipWith (\x y -> fitnessTest (toRegMtx x) y) tvXs tvYs
 
       average xs = sum xs / fromIntegral (length xs)

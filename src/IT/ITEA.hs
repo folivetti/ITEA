@@ -26,11 +26,31 @@ import IT.Random
 
 import Control.Monad.Extra (iterateM)
 
-import Control.DeepSeq
+import GHC.Conc (numCapabilities)
 
+import Control.Monad.State
+import Control.DeepSeq
+import Control.Parallel.Strategies
+import Data.Maybe
+import System.Random.SplitMix
 -- ---------------------------------------------------------------------------
 
 -- * ITEA
+
+parRandom :: Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
+parRandom n rndf f pop = state g
+  where
+    g seed = let (s1:ss) = genseeds seed
+                 rndpop  = zip ss pop
+                 h (s,p) = f $ evalState (rndf p) s
+             in  (parMaybeMap n h rndpop, s1)
+
+genseeds s = s1 : genseeds s2
+  where
+    (s1,s2) = splitSMGen s 
+
+parMaybeMap n f pop = catMaybes res
+  where res = map f pop `using` parListChunk n rpar
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
@@ -45,9 +65,10 @@ initialPop :: Int                -- ^ dimension
            -> Rnd (Term a)       -- ^ random term generator
            -> Fitness a b        -- ^ fitness function
            -> Rnd (Population a b)
-initialPop dim maxTerms nPop rndTerm fit = fit <$> initialPop' dim maxTerms nPop
+initialPop dim maxTerms nPop rndTerm fit = parMaybeMap n fit <$> initialPop' dim maxTerms nPop
   where
     rndExpr = sampleExpr rndTerm
+    n       = nPop `div` (2*numCapabilities)
 
     -- return a random list of random expressions
     initialPop' dim maxTerms 0    = return []
@@ -79,7 +100,9 @@ tournament p n = do pi <- chooseOne p
 -- | Perform one iteration of ITEA
 step :: (NFData a, NFData b) => Mutation a -> Fitness a b -> Int -> Population a b -> Rnd (Population a b)
 step mutFun fitFun nPop pop = do
-  children  <- fitFun <$> traverse (mutFun . _expr) pop
-  if null children 
+  let n = nPop `div` (2*numCapabilities)
+  children  <- parRandom n (mutFun . _expr) fitFun pop
+  --children  <- parMaybeMap n fitFun <$> traverse (mutFun . _expr) pop
+  if null children
   then tournament pop nPop
   else tournament (pop ++ children) nPop

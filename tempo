@@ -1,0 +1,26 @@
+sem multithread
+34 seg.
+
+com multithread
+N2 = 22 seg.
+N4 = 18 seg.
+N6 = 14 seg.
+
+outer multithread 
+N2 = 18
+N4 = 10
+N6 = 10
+
+random multithread
+N2 = 18
+N4 = 7
+N6 = 7
+N12 = 12
+
+random multithread 2000 pop
+N2  = 38
+N4  = 24
+N6  = 15
+N8  = 18
+N10 = 21
+N12 = 19
