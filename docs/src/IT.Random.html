@@ -22,7 +22,7 @@ Portability : POSIX
 </span><span id="line-22"></span><span class="hs-comment">-- * Random expressions generation</span><span>
 </span><span id="line-23"></span><span> </span><span>
 </span><span id="line-24"></span><span class="hs-comment">-- | The type used for generating random values of 'a'</span><span>
-</span><span id="line-25"></span><span class="hs-keyword">type</span><span> </span><span id="Rnd"><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-var">Rnd</span></a></span></span><span> </span><span id="local-6989586621679111276"><span class="annot"><a href="#local-6989586621679111276"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">State</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">SMGen</span></span><span> </span><span class="annot"><a href="#local-6989586621679111276"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">type</span><span> </span><span id="Rnd"><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-var">Rnd</span></a></span></span><span> </span><span id="local-6989586621679111448"><span class="annot"><a href="#local-6989586621679111448"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">State</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">SMGen</span></span><span> </span><span class="annot"><a href="#local-6989586621679111448"><span class="hs-identifier hs-type">a</span></a></span><span>
 </span><span id="line-26"></span><span>
 </span><span id="line-27"></span><span class="hs-comment">-- | Creates a random interaction with up to n variables. </span><span>
 </span><span id="line-28"></span><span class="hs-comment">--   Guaranteed to choose at least one variable.</span><span>
@@ -32,20 +32,20 @@ Portability : POSIX
 </span><span id="line-32"></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>               </span><span class="hs-comment">-- ^ maximum exponent</span><span>
 </span><span id="line-33"></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><a href="IT.html#Interaction"><span class="hs-identifier hs-type">Interaction</span></a></span><span>   </span><span class="hs-comment">-- ^ Random interaction generator</span><span>
 </span><span id="line-34"></span><span id="sampleInterMax"><span class="annot"><span class="annottext">sampleInterMax :: Int -&gt; Int -&gt; Int -&gt; Int -&gt; Rnd Interaction
-</span><a href="IT.Random.html#sampleInterMax"><span class="hs-identifier hs-var hs-var">sampleInterMax</span></a></span></span><span> </span><span id="local-6989586621679111273"><span class="annot"><span class="annottext">dim :: Int
-</span><a href="#local-6989586621679111273"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111272"><span class="annot"><span class="annottext">budget :: Int
-</span><a href="#local-6989586621679111272"><span class="hs-identifier hs-var">budget</span></a></span></span><span> </span><span id="local-6989586621679111271"><span class="annot"><span class="annottext">minExp :: Int
-</span><a href="#local-6989586621679111271"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111270"><span class="annot"><span class="annottext">maxExp :: Int
-</span><a href="#local-6989586621679111270"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111269"><span class="annot"><span class="annottext">[(Int, Int)]
-</span><a href="#local-6989586621679111269"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(Int, Int)]
+</span><a href="IT.Random.html#sampleInterMax"><span class="hs-identifier hs-var hs-var">sampleInterMax</span></a></span></span><span> </span><span id="local-6989586621679111445"><span class="annot"><span class="annottext">dim :: Int
+</span><a href="#local-6989586621679111445"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111444"><span class="annot"><span class="annottext">budget :: Int
+</span><a href="#local-6989586621679111444"><span class="hs-identifier hs-var">budget</span></a></span></span><span> </span><span id="local-6989586621679111443"><span class="annot"><span class="annottext">minExp :: Int
+</span><a href="#local-6989586621679111443"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111442"><span class="annot"><span class="annottext">maxExp :: Int
+</span><a href="#local-6989586621679111442"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111441"><span class="annot"><span class="annottext">[(Int, Int)]
+</span><a href="#local-6989586621679111441"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(Int, Int)]
 forall a t.
 (Eq a, Eq t, Num a, Num t) =&gt;
 a -&gt; t -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
 </span><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111273"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111272"><span class="hs-identifier hs-var">budget</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111271"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111270"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><a href="#local-6989586621679111445"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111444"><span class="hs-identifier hs-var">budget</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111443"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111442"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
 </span><span id="line-35"></span><span>                                             </span><span class="annot"><span class="annottext">Interaction -&gt; Rnd Interaction
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Interaction -&gt; Rnd Interaction) -&gt; Interaction -&gt; Rnd Interaction
@@ -53,87 +53,87 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[(Int, Int)] -&gt; Interaction
 forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
 </span><span class="hs-identifier hs-var">M.fromList</span></span><span> </span><span class="annot"><span class="annottext">[(Int, Int)]
-</span><a href="#local-6989586621679111269"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><a href="#local-6989586621679111441"><span class="hs-identifier hs-var">es</span></a></span><span>
 </span><span id="line-36"></span><span>                                          </span><span>
 </span><span id="line-37"></span><span id="sampleInterMax%27"><span class="annot"><span class="annottext">sampleInterMax' :: a -&gt; t -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
 </span><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var hs-var">sampleInterMax'</span></a></span></span><span> </span><span class="hs-number">0</span><span>   </span><span class="hs-identifier">_</span><span>      </span><span class="hs-identifier">_</span><span>      </span><span class="hs-identifier">_</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><span id="line-38"></span><span class="annot"><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span id="local-6989586621679111266"><span class="annot"><span class="annottext">dim :: a
-</span><a href="#local-6989586621679111266"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span class="hs-number">0</span><span>      </span><span id="local-6989586621679111265"><span class="annot"><span class="annottext">minExp :: Int
-</span><a href="#local-6989586621679111265"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111264"><span class="annot"><span class="annottext">maxExp :: Int
-</span><a href="#local-6989586621679111264"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
+</span><span id="line-38"></span><span class="annot"><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span id="local-6989586621679111438"><span class="annot"><span class="annottext">dim :: a
+</span><a href="#local-6989586621679111438"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span class="hs-number">0</span><span>      </span><span id="local-6989586621679111437"><span class="annot"><span class="annottext">minExp :: Int
+</span><a href="#local-6989586621679111437"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111436"><span class="annot"><span class="annottext">maxExp :: Int
+</span><a href="#local-6989586621679111436"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><span id="line-39"></span><span class="annot"><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span class="hs-number">1</span><span>   </span><span id="local-6989586621679111263"><span class="annot"><span class="annottext">budget :: t
-</span><a href="#local-6989586621679111263"><span class="hs-identifier hs-var">budget</span></a></span></span><span> </span><span id="local-6989586621679111262"><span class="annot"><span class="annottext">minExp :: Int
-</span><a href="#local-6989586621679111262"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111261"><span class="annot"><span class="annottext">maxExp :: Int
-</span><a href="#local-6989586621679111261"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111260"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111260"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
+</span><span id="line-39"></span><span class="annot"><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span class="hs-number">1</span><span>   </span><span id="local-6989586621679111435"><span class="annot"><span class="annottext">budget :: t
+</span><a href="#local-6989586621679111435"><span class="hs-identifier hs-var">budget</span></a></span></span><span> </span><span id="local-6989586621679111434"><span class="annot"><span class="annottext">minExp :: Int
+</span><a href="#local-6989586621679111434"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111433"><span class="annot"><span class="annottext">maxExp :: Int
+</span><a href="#local-6989586621679111433"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111432"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111432"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleNZRng"><span class="hs-identifier hs-var">sampleNZRng</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111262"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111261"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><a href="#local-6989586621679111434"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111433"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
 </span><span id="line-40"></span><span>                                              </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">([(a, Int)] -&gt; StateT SMGen Identity [(a, Int)])
 -&gt; [(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111260"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-41"></span><span class="annot"><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span id="local-6989586621679111258"><span class="annot"><span class="annottext">dim :: a
-</span><a href="#local-6989586621679111258"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111257"><span class="annot"><span class="annottext">budget :: t
-</span><a href="#local-6989586621679111257"><span class="hs-identifier hs-var">budget</span></a></span></span><span> </span><span id="local-6989586621679111256"><span class="annot"><span class="annottext">minExp :: Int
-</span><a href="#local-6989586621679111256"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111255"><span class="annot"><span class="annottext">maxExp :: Int
-</span><a href="#local-6989586621679111255"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111254"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679111254"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd Bool
+</span><a href="#local-6989586621679111432"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-41"></span><span class="annot"><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span id="local-6989586621679111430"><span class="annot"><span class="annottext">dim :: a
+</span><a href="#local-6989586621679111430"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111429"><span class="annot"><span class="annottext">budget :: t
+</span><a href="#local-6989586621679111429"><span class="hs-identifier hs-var">budget</span></a></span></span><span> </span><span id="local-6989586621679111428"><span class="annot"><span class="annottext">minExp :: Int
+</span><a href="#local-6989586621679111428"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111427"><span class="annot"><span class="annottext">maxExp :: Int
+</span><a href="#local-6989586621679111427"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111426"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679111426"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd Bool
 </span><a href="IT.Random.html#toss"><span class="hs-identifier hs-var">toss</span></a></span><span>
 </span><span id="line-42"></span><span>                                              </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679111254"><span class="hs-identifier hs-var">b</span></a></span><span>
-</span><span id="line-43"></span><span>                                              </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111252"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111252"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
+</span><a href="#local-6989586621679111426"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-43"></span><span>                                              </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111424"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111424"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleNZRng"><span class="hs-identifier hs-var">sampleNZRng</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111256"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111255"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
-</span><span id="line-44"></span><span>                                                      </span><span id="local-6989586621679111251"><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679111251"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">a -&gt; t -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
+</span><a href="#local-6989586621679111428"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111427"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><span id="line-44"></span><span>                                                      </span><span id="local-6989586621679111423"><span class="annot"><span class="annottext">[(a, Int)]
+</span><a href="#local-6989586621679111423"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">a -&gt; t -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
 </span><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679111258"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+</span><a href="#local-6989586621679111430"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">t
-</span><a href="#local-6989586621679111257"><span class="hs-identifier hs-var">budget</span></a></span><span class="annot"><span class="annottext">t -&gt; t -&gt; t
+</span><a href="#local-6989586621679111429"><span class="hs-identifier hs-var">budget</span></a></span><span class="annot"><span class="annottext">t -&gt; t -&gt; t
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111256"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111255"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><a href="#local-6989586621679111428"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111427"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
 </span><span id="line-45"></span><span>                                                      </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">([(a, Int)] -&gt; StateT SMGen Identity [(a, Int)])
 -&gt; [(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679111258"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+</span><a href="#local-6989586621679111430"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111252"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="annot"><span class="annottext">(a, Int) -&gt; [(a, Int)] -&gt; [(a, Int)]
+</span><a href="#local-6989586621679111424"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="annot"><span class="annottext">(a, Int) -&gt; [(a, Int)] -&gt; [(a, Int)]
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679111251"><span class="hs-identifier hs-var">es</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-46"></span><span>                                              </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111250"><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679111250"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">a -&gt; t -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
+</span><a href="#local-6989586621679111423"><span class="hs-identifier hs-var">es</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>                                              </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111422"><span class="annot"><span class="annottext">[(a, Int)]
+</span><a href="#local-6989586621679111422"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">a -&gt; t -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
 </span><a href="IT.Random.html#sampleInterMax%27"><span class="hs-identifier hs-var">sampleInterMax'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679111258"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+</span><a href="#local-6989586621679111430"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">t
-</span><a href="#local-6989586621679111257"><span class="hs-identifier hs-var">budget</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111256"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111255"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><a href="#local-6989586621679111429"><span class="hs-identifier hs-var">budget</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111428"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111427"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
 </span><span id="line-47"></span><span>                                                      </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">([(a, Int)] -&gt; StateT SMGen Identity [(a, Int)])
 -&gt; [(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679111250"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><a href="#local-6989586621679111422"><span class="hs-identifier hs-var">es</span></a></span><span>
 </span><span id="line-48"></span><span>
 </span><span id="line-49"></span><span class="hs-comment">-- | Sample a random interaction given the problem dimension and </span><span>
 </span><span id="line-50"></span><span class="hs-comment">-- the minimum and maximum exponents</span><span>
@@ -142,18 +142,18 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span id="line-53"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>               </span><span class="hs-comment">-- ^ maximum exponent</span><span>
 </span><span id="line-54"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><a href="IT.html#Interaction"><span class="hs-identifier hs-type">Interaction</span></a></span><span>   </span><span class="hs-comment">-- ^ Random interaction generator</span><span>
 </span><span id="line-55"></span><span id="sampleInter"><span class="annot"><span class="annottext">sampleInter :: Int -&gt; Int -&gt; Int -&gt; Rnd Interaction
-</span><a href="IT.Random.html#sampleInter"><span class="hs-identifier hs-var hs-var">sampleInter</span></a></span></span><span> </span><span id="local-6989586621679111248"><span class="annot"><span class="annottext">dim :: Int
-</span><a href="#local-6989586621679111248"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111247"><span class="annot"><span class="annottext">minExp :: Int
-</span><a href="#local-6989586621679111247"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111246"><span class="annot"><span class="annottext">maxExp :: Int
-</span><a href="#local-6989586621679111246"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111245"><span class="annot"><span class="annottext">[(Int, Int)]
-</span><a href="#local-6989586621679111245"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(Int, Int)]
+</span><a href="IT.Random.html#sampleInter"><span class="hs-identifier hs-var hs-var">sampleInter</span></a></span></span><span> </span><span id="local-6989586621679111420"><span class="annot"><span class="annottext">dim :: Int
+</span><a href="#local-6989586621679111420"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111419"><span class="annot"><span class="annottext">minExp :: Int
+</span><a href="#local-6989586621679111419"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111418"><span class="annot"><span class="annottext">maxExp :: Int
+</span><a href="#local-6989586621679111418"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111417"><span class="annot"><span class="annottext">[(Int, Int)]
+</span><a href="#local-6989586621679111417"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(Int, Int)]
 forall a.
 (Eq a, Num a) =&gt;
 a -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
 </span><a href="IT.Random.html#sampleInter%27"><span class="hs-identifier hs-var">sampleInter'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111248"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111247"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111246"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><a href="#local-6989586621679111420"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111419"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111418"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
 </span><span id="line-56"></span><span>                                   </span><span class="annot"><span class="annottext">Interaction -&gt; Rnd Interaction
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Interaction -&gt; Rnd Interaction) -&gt; Interaction -&gt; Rnd Interaction
@@ -161,71 +161,71 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[(Int, Int)] -&gt; Interaction
 forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
 </span><span class="hs-identifier hs-var">M.fromList</span></span><span> </span><span class="annot"><span class="annottext">[(Int, Int)]
-</span><a href="#local-6989586621679111245"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><a href="#local-6989586621679111417"><span class="hs-identifier hs-var">es</span></a></span><span>
 </span><span id="line-57"></span><span>                                </span><span>
 </span><span id="line-58"></span><span id="sampleInter%27"><span class="annot"><span class="annottext">sampleInter' :: a -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
 </span><a href="IT.Random.html#sampleInter%27"><span class="hs-identifier hs-var hs-var">sampleInter'</span></a></span></span><span> </span><span class="hs-number">0</span><span>   </span><span class="hs-identifier">_</span><span>      </span><span class="hs-identifier">_</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><span id="line-59"></span><span class="annot"><a href="IT.Random.html#sampleInter%27"><span class="hs-identifier hs-var">sampleInter'</span></a></span><span> </span><span id="local-6989586621679111243"><span class="annot"><span class="annottext">dim :: a
-</span><a href="#local-6989586621679111243"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111242"><span class="annot"><span class="annottext">minExp :: Int
-</span><a href="#local-6989586621679111242"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111241"><span class="annot"><span class="annottext">maxExp :: Int
-</span><a href="#local-6989586621679111241"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111240"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111240"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
+</span><span id="line-59"></span><span class="annot"><a href="IT.Random.html#sampleInter%27"><span class="hs-identifier hs-var">sampleInter'</span></a></span><span> </span><span id="local-6989586621679111415"><span class="annot"><span class="annottext">dim :: a
+</span><a href="#local-6989586621679111415"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679111414"><span class="annot"><span class="annottext">minExp :: Int
+</span><a href="#local-6989586621679111414"><span class="hs-identifier hs-var">minExp</span></a></span></span><span> </span><span id="local-6989586621679111413"><span class="annot"><span class="annottext">maxExp :: Int
+</span><a href="#local-6989586621679111413"><span class="hs-identifier hs-var">maxExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111412"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111412"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-var">sampleRng</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111242"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111241"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
-</span><span id="line-60"></span><span>                                    </span><span id="local-6989586621679111238"><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679111238"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">a -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
+</span><a href="#local-6989586621679111414"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111413"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><span id="line-60"></span><span>                                    </span><span id="local-6989586621679111410"><span class="annot"><span class="annottext">[(a, Int)]
+</span><a href="#local-6989586621679111410"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">a -&gt; Int -&gt; Int -&gt; StateT SMGen Identity [(a, Int)]
 </span><a href="IT.Random.html#sampleInter%27"><span class="hs-identifier hs-var">sampleInter'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679111243"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+</span><a href="#local-6989586621679111415"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111242"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111241"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
+</span><a href="#local-6989586621679111414"><span class="hs-identifier hs-var">minExp</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111413"><span class="hs-identifier hs-var">maxExp</span></a></span><span>
 </span><span id="line-61"></span><span>                                    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111240"><span class="hs-identifier hs-var">e</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679111412"><span class="hs-identifier hs-var">e</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span class="annot"><span class="hs-number">0</span></span><span>
 </span><span id="line-62"></span><span>                                    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679111238"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><a href="#local-6989586621679111410"><span class="hs-identifier hs-var">es</span></a></span><span>
 </span><span id="line-63"></span><span>                                    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[(a, Int)] -&gt; StateT SMGen Identity [(a, Int)]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679111243"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+</span><a href="#local-6989586621679111415"><span class="hs-identifier hs-var">dim</span></a></span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111240"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="annot"><span class="annottext">(a, Int) -&gt; [(a, Int)] -&gt; [(a, Int)]
+</span><a href="#local-6989586621679111412"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="annot"><span class="annottext">(a, Int) -&gt; [(a, Int)] -&gt; [(a, Int)]
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[(a, Int)]
-</span><a href="#local-6989586621679111238"><span class="hs-identifier hs-var">es</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679111410"><span class="hs-identifier hs-var">es</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-64"></span><span>                                          </span><span>
 </span><span id="line-65"></span><span>                                          </span><span>
 </span><span id="line-66"></span><span class="hs-comment">-- | Samples a random transformation function from a provided list of functions</span><span>
-</span><span id="line-67"></span><span id="local-6989586621679111237"><span class="annot"><a href="IT.Random.html#sampleTrans"><span class="hs-identifier hs-type">sampleTrans</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111237"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>      </span><span class="hs-comment">-- ^ choices of transformation functions</span><span>
-</span><span id="line-68"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111237"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-comment">-- ^ Random generator</span></span><span>
+</span><span id="line-67"></span><span id="local-6989586621679111409"><span class="annot"><a href="IT.Random.html#sampleTrans"><span class="hs-identifier hs-type">sampleTrans</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111409"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>      </span><span class="hs-comment">-- ^ choices of transformation functions</span><span>
+</span><span id="line-68"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111409"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-comment">-- ^ Random generator</span></span><span>
 </span><span id="line-69"></span><span id="sampleTrans"><span class="annot"><span class="annottext">sampleTrans :: [Transformation a] -&gt; Rnd (Transformation a)
-</span><a href="IT.Random.html#sampleTrans"><span class="hs-identifier hs-var hs-var">sampleTrans</span></a></span></span><span> </span><span id="local-6989586621679111235"><span class="annot"><span class="annottext">ts :: [Transformation a]
-</span><a href="#local-6989586621679111235"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Transformation a] -&gt; Rnd (Transformation a)
+</span><a href="IT.Random.html#sampleTrans"><span class="hs-identifier hs-var hs-var">sampleTrans</span></a></span></span><span> </span><span id="local-6989586621679111407"><span class="annot"><span class="annottext">ts :: [Transformation a]
+</span><a href="#local-6989586621679111407"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Transformation a] -&gt; Rnd (Transformation a)
 forall a. [a] -&gt; Rnd a
 </span><a href="IT.Random.html#sampleFromList"><span class="hs-identifier hs-var">sampleFromList</span></a></span><span> </span><span class="annot"><span class="annottext">[Transformation a]
-</span><a href="#local-6989586621679111235"><span class="hs-identifier hs-var">ts</span></a></span><span>
+</span><a href="#local-6989586621679111407"><span class="hs-identifier hs-var">ts</span></a></span><span>
 </span><span id="line-70"></span><span>
 </span><span id="line-71"></span><span class="hs-comment">-- | Samples a random term using a random transformation and a random interaction generators.</span><span>
-</span><span id="line-72"></span><span id="local-6989586621679111233"><span class="annot"><a href="IT.Random.html#sampleTerm"><span class="hs-identifier hs-type">sampleTerm</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111233"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-comment">-- ^ random transformation function</span><span>
+</span><span id="line-72"></span><span id="local-6989586621679111405"><span class="annot"><a href="IT.Random.html#sampleTerm"><span class="hs-identifier hs-type">sampleTerm</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111405"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-comment">-- ^ random transformation function</span><span>
 </span><span id="line-73"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><a href="IT.html#Interaction"><span class="hs-identifier hs-type">Interaction</span></a></span><span>         </span><span class="hs-comment">-- ^ random interaction function</span><span>
-</span><span id="line-74"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Term"><span class="hs-identifier hs-type">Term</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111233"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>            </span><span class="hs-comment">-- ^ Random generator</span></span><span>
+</span><span id="line-74"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Term"><span class="hs-identifier hs-type">Term</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111405"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>            </span><span class="hs-comment">-- ^ Random generator</span></span><span>
 </span><span id="line-75"></span><span id="sampleTerm"><span class="annot"><span class="annottext">sampleTerm :: Rnd (Transformation a) -&gt; Rnd Interaction -&gt; Rnd (Term a)
-</span><a href="IT.Random.html#sampleTerm"><span class="hs-identifier hs-var hs-var">sampleTerm</span></a></span></span><span> </span><span id="local-6989586621679111231"><span class="annot"><span class="annottext">rndTrans :: Rnd (Transformation a)
-</span><a href="#local-6989586621679111231"><span class="hs-identifier hs-var">rndTrans</span></a></span></span><span> </span><span id="local-6989586621679111230"><span class="annot"><span class="annottext">rndInter :: Rnd Interaction
-</span><a href="#local-6989586621679111230"><span class="hs-identifier hs-var">rndInter</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111229"><span class="annot"><span class="annottext">Transformation a
-</span><a href="#local-6989586621679111229"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd (Transformation a)
-</span><a href="#local-6989586621679111231"><span class="hs-identifier hs-var">rndTrans</span></a></span><span>
-</span><span id="line-76"></span><span>                                  </span><span id="local-6989586621679111228"><span class="annot"><span class="annottext">Interaction
-</span><a href="#local-6989586621679111228"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd Interaction
-</span><a href="#local-6989586621679111230"><span class="hs-identifier hs-var">rndInter</span></a></span><span>
+</span><a href="IT.Random.html#sampleTerm"><span class="hs-identifier hs-var hs-var">sampleTerm</span></a></span></span><span> </span><span id="local-6989586621679111403"><span class="annot"><span class="annottext">rndTrans :: Rnd (Transformation a)
+</span><a href="#local-6989586621679111403"><span class="hs-identifier hs-var">rndTrans</span></a></span></span><span> </span><span id="local-6989586621679111402"><span class="annot"><span class="annottext">rndInter :: Rnd Interaction
+</span><a href="#local-6989586621679111402"><span class="hs-identifier hs-var">rndInter</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111401"><span class="annot"><span class="annottext">Transformation a
+</span><a href="#local-6989586621679111401"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd (Transformation a)
+</span><a href="#local-6989586621679111403"><span class="hs-identifier hs-var">rndTrans</span></a></span><span>
+</span><span id="line-76"></span><span>                                  </span><span id="local-6989586621679111400"><span class="annot"><span class="annottext">Interaction
+</span><a href="#local-6989586621679111400"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd Interaction
+</span><a href="#local-6989586621679111402"><span class="hs-identifier hs-var">rndInter</span></a></span><span>
 </span><span id="line-77"></span><span>                                  </span><span class="annot"><span class="annottext">Term a -&gt; Rnd (Term a)
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Term a -&gt; Rnd (Term a)) -&gt; Term a -&gt; Rnd (Term a)
@@ -233,30 +233,30 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Transformation a -&gt; Interaction -&gt; Term a
 forall a. Transformation a -&gt; Interaction -&gt; Term a
 </span><a href="IT.html#Term"><span class="hs-identifier hs-var">Term</span></a></span><span> </span><span class="annot"><span class="annottext">Transformation a
-</span><a href="#local-6989586621679111229"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Interaction
-</span><a href="#local-6989586621679111228"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><a href="#local-6989586621679111401"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Interaction
+</span><a href="#local-6989586621679111400"><span class="hs-identifier hs-var">i</span></a></span><span>
 </span><span id="line-78"></span><span>
 </span><span id="line-79"></span><span class="hs-comment">-- | Create a random expression with exactly n terms</span><span>
-</span><span id="line-80"></span><span id="local-6989586621679111301"><span class="annot"><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-type">sampleExpr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Term"><span class="hs-identifier hs-type">Term</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111301"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>         </span><span class="hs-comment">-- ^ random term function</span><span>
+</span><span id="line-80"></span><span id="local-6989586621679111473"><span class="annot"><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-type">sampleExpr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Term"><span class="hs-identifier hs-type">Term</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111473"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>         </span><span class="hs-comment">-- ^ random term function</span><span>
 </span><span id="line-81"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                  </span><span class="hs-comment">-- ^ number of terms</span><span>
-</span><span id="line-82"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111301"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>         </span><span class="hs-comment">-- ^ Random generator</span></span><span>
+</span><span id="line-82"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111473"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>         </span><span class="hs-comment">-- ^ Random generator</span></span><span>
 </span><span id="line-83"></span><span id="sampleExpr"><span class="annot"><span class="annottext">sampleExpr :: Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
 </span><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-var hs-var">sampleExpr</span></a></span></span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-number">0</span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Expr a -&gt; Rnd (Expr a)
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Term a] -&gt; Expr a
 forall a. [Term a] -&gt; Expr a
 </span><a href="IT.html#Expr"><span class="hs-identifier hs-var">Expr</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-84"></span><span class="annot"><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-var">sampleExpr</span></a></span><span> </span><span id="local-6989586621679111224"><span class="annot"><span class="annottext">rndTerm :: Rnd (Term a)
-</span><a href="#local-6989586621679111224"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span> </span><span id="local-6989586621679111223"><span class="annot"><span class="annottext">nTerms :: Int
-</span><a href="#local-6989586621679111223"><span class="hs-identifier hs-var">nTerms</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111222"><span class="annot"><span class="annottext">Term a
-</span><a href="#local-6989586621679111222"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd (Term a)
-</span><a href="#local-6989586621679111224"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span>
-</span><span id="line-85"></span><span>                               </span><span id="local-6989586621679111221"><span class="annot"><span class="annottext">Expr a
-</span><a href="#local-6989586621679111221"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
+</span><span id="line-84"></span><span class="annot"><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-var">sampleExpr</span></a></span><span> </span><span id="local-6989586621679111396"><span class="annot"><span class="annottext">rndTerm :: Rnd (Term a)
+</span><a href="#local-6989586621679111396"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span> </span><span id="local-6989586621679111395"><span class="annot"><span class="annottext">nTerms :: Int
+</span><a href="#local-6989586621679111395"><span class="hs-identifier hs-var">nTerms</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111394"><span class="annot"><span class="annottext">Term a
+</span><a href="#local-6989586621679111394"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd (Term a)
+</span><a href="#local-6989586621679111396"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span>
+</span><span id="line-85"></span><span>                               </span><span id="local-6989586621679111393"><span class="annot"><span class="annottext">Expr a
+</span><a href="#local-6989586621679111393"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
 forall a. Rnd (Term a) -&gt; Int -&gt; Rnd (Expr a)
 </span><a href="IT.Random.html#sampleExpr"><span class="hs-identifier hs-var">sampleExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Term a)
-</span><a href="#local-6989586621679111224"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111223"><span class="hs-identifier hs-var">nTerms</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111396"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111395"><span class="hs-identifier hs-var">nTerms</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
 </span><span id="line-86"></span><span>                               </span><span class="annot"><span class="annottext">Expr a -&gt; Rnd (Expr a)
@@ -264,55 +264,55 @@ forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Expr a -&gt; Rnd (Expr a)) -&gt; Expr a -&gt; Rnd (Expr a)
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Term a
-</span><a href="#local-6989586621679111222"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Term a -&gt; Expr a -&gt; Expr a
+</span><a href="#local-6989586621679111394"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Term a -&gt; Expr a -&gt; Expr a
 forall a. Term a -&gt; Expr a -&gt; Expr a
 </span><a href="IT.html#consTerm"><span class="hs-operator hs-var">`consTerm`</span></a></span><span> </span><span class="annot"><span class="annottext">Expr a
-</span><a href="#local-6989586621679111221"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><a href="#local-6989586621679111393"><span class="hs-identifier hs-var">e</span></a></span><span>
 </span><span id="line-87"></span><span>
 </span><span id="line-88"></span><span class="hs-comment">-- | Create a random population of n expressions with varying number of terms</span><span>
-</span><span id="line-89"></span><span id="local-6989586621679111298"><span class="annot"><a href="IT.Random.html#samplePop"><span class="hs-identifier hs-type">samplePop</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                   </span><span class="hs-comment">-- population size</span><span>
+</span><span id="line-89"></span><span id="local-6989586621679111470"><span class="annot"><a href="IT.Random.html#samplePop"><span class="hs-identifier hs-type">samplePop</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                   </span><span class="hs-comment">-- population size</span><span>
 </span><span id="line-90"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                   </span><span class="hs-comment">-- max number of terms</span><span>
-</span><span id="line-91"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111298"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- random expression generator</span><span>
-</span><span id="line-92"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111298"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-91"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111470"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- random expression generator</span><span>
+</span><span id="line-92"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111470"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
 </span><span id="line-93"></span><span id="samplePop"><span class="annot"><span class="annottext">samplePop :: Int -&gt; Int -&gt; (Int -&gt; Rnd (Expr a)) -&gt; Rnd [Expr a]
-</span><a href="IT.Random.html#samplePop"><span class="hs-identifier hs-var hs-var">samplePop</span></a></span></span><span> </span><span id="local-6989586621679111218"><span class="annot"><span class="annottext">nPop :: Int
-</span><a href="#local-6989586621679111218"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679111217"><span class="annot"><span class="annottext">maxNTerms :: Int
-</span><a href="#local-6989586621679111217"><span class="hs-identifier hs-var">maxNTerms</span></a></span></span><span> </span><span id="local-6989586621679111216"><span class="annot"><span class="annottext">rndExpr :: Int -&gt; Rnd (Expr a)
-</span><a href="#local-6989586621679111216"><span class="hs-identifier hs-var">rndExpr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111215"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111215"><span class="hs-identifier hs-var">n</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
+</span><a href="IT.Random.html#samplePop"><span class="hs-identifier hs-var hs-var">samplePop</span></a></span></span><span> </span><span id="local-6989586621679111390"><span class="annot"><span class="annottext">nPop :: Int
+</span><a href="#local-6989586621679111390"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679111389"><span class="annot"><span class="annottext">maxNTerms :: Int
+</span><a href="#local-6989586621679111389"><span class="hs-identifier hs-var">maxNTerms</span></a></span></span><span> </span><span id="local-6989586621679111388"><span class="annot"><span class="annottext">rndExpr :: Int -&gt; Rnd (Expr a)
+</span><a href="#local-6989586621679111388"><span class="hs-identifier hs-var">rndExpr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111387"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111387"><span class="hs-identifier hs-var">n</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-var">sampleRng</span></a></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111217"><span class="hs-identifier hs-var">maxNTerms</span></a></span><span>
-</span><span id="line-94"></span><span>                                      </span><span id="local-6989586621679111214"><span class="annot"><span class="annottext">Expr a
-</span><a href="#local-6989586621679111214"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd (Expr a)
-</span><a href="#local-6989586621679111216"><span class="hs-identifier hs-var">rndExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111215"><span class="hs-identifier hs-var">n</span></a></span><span>
-</span><span id="line-95"></span><span>                                      </span><span id="local-6989586621679111213"><span class="annot"><span class="annottext">[Expr a]
-</span><a href="#local-6989586621679111213"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; (Int -&gt; Rnd (Expr a)) -&gt; Rnd [Expr a]
+</span><a href="#local-6989586621679111389"><span class="hs-identifier hs-var">maxNTerms</span></a></span><span>
+</span><span id="line-94"></span><span>                                      </span><span id="local-6989586621679111386"><span class="annot"><span class="annottext">Expr a
+</span><a href="#local-6989586621679111386"><span class="hs-identifier hs-var">e</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd (Expr a)
+</span><a href="#local-6989586621679111388"><span class="hs-identifier hs-var">rndExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111387"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-95"></span><span>                                      </span><span id="local-6989586621679111385"><span class="annot"><span class="annottext">[Expr a]
+</span><a href="#local-6989586621679111385"><span class="hs-identifier hs-var">es</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; (Int -&gt; Rnd (Expr a)) -&gt; Rnd [Expr a]
 forall a. Int -&gt; Int -&gt; (Int -&gt; Rnd (Expr a)) -&gt; Rnd [Expr a]
 </span><a href="IT.Random.html#samplePop"><span class="hs-identifier hs-var">samplePop</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111218"><span class="hs-identifier hs-var">nPop</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111390"><span class="hs-identifier hs-var">nPop</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111217"><span class="hs-identifier hs-var">maxNTerms</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd (Expr a)
-</span><a href="#local-6989586621679111216"><span class="hs-identifier hs-var">rndExpr</span></a></span><span>
+</span><a href="#local-6989586621679111389"><span class="hs-identifier hs-var">maxNTerms</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd (Expr a)
+</span><a href="#local-6989586621679111388"><span class="hs-identifier hs-var">rndExpr</span></a></span><span>
 </span><span id="line-96"></span><span>                                      </span><span class="annot"><span class="annottext">[Expr a] -&gt; Rnd [Expr a]
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">([Expr a] -&gt; Rnd [Expr a]) -&gt; [Expr a] -&gt; Rnd [Expr a]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Expr a
-</span><a href="#local-6989586621679111214"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">Expr a -&gt; [Expr a] -&gt; [Expr a]
+</span><a href="#local-6989586621679111386"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">Expr a -&gt; [Expr a] -&gt; [Expr a]
 forall a. a -&gt; [a] -&gt; [a]
 </span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Expr a]
-</span><a href="#local-6989586621679111213"><span class="hs-identifier hs-var">es</span></a></span><span>
+</span><a href="#local-6989586621679111385"><span class="hs-identifier hs-var">es</span></a></span><span>
 </span><span id="line-97"></span><span>
 </span><span id="line-98"></span><span class="hs-comment">-- * Utility random functions</span><span>
 </span><span id="line-99"></span><span>
 </span><span id="line-100"></span><span class="hs-comment">-- | sample from [0,n]</span><span>
 </span><span id="line-101"></span><span class="annot"><a href="IT.Random.html#sampleTo"><span class="hs-identifier hs-type">sampleTo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-102"></span><span id="sampleTo"><span class="annot"><span class="annottext">sampleTo :: Int -&gt; Rnd Int
-</span><a href="IT.Random.html#sampleTo"><span class="hs-identifier hs-var hs-var">sampleTo</span></a></span></span><span> </span><span id="local-6989586621679111211"><span class="annot"><span class="annottext">n :: Int
-</span><a href="#local-6989586621679111211"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111211"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="IT.Random.html#sampleTo"><span class="hs-identifier hs-var hs-var">sampleTo</span></a></span></span><span> </span><span id="local-6989586621679111383"><span class="annot"><span class="annottext">n :: Int
+</span><a href="#local-6989586621679111383"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111383"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Ord a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Rnd Int
 forall a. HasCallStack =&gt; [Char] -&gt; a
@@ -320,15 +320,15 @@ forall a. HasCallStack =&gt; [Char] -&gt; a
 </span><span id="line-103"></span><span>           </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
 </span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-var">sampleRng</span></a></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111211"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><a href="#local-6989586621679111383"><span class="hs-identifier hs-var">n</span></a></span><span>
 </span><span id="line-104"></span><span>
 </span><span id="line-105"></span><span class="hs-comment">-- | Sample from a range of integers</span><span>
 </span><span id="line-106"></span><span class="annot"><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-type">sampleRng</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-107"></span><span id="sampleRng"><span class="annot"><span class="annottext">sampleRng :: Int -&gt; Int -&gt; Rnd Int
-</span><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-var hs-var">sampleRng</span></a></span></span><span> </span><span id="local-6989586621679111208"><span class="annot"><span class="annottext">x :: Int
-</span><a href="#local-6989586621679111208"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679111207"><span class="annot"><span class="annottext">y :: Int
-</span><a href="#local-6989586621679111207"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Int
-</span><a href="#local-6989586621679111206"><span class="hs-identifier hs-var">addBias</span></a></span><span>  </span><span class="annot"><span class="annottext">(Word64 -&gt; Int) -&gt; StateT SMGen Identity Word64 -&gt; Rnd Int
+</span><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-var hs-var">sampleRng</span></a></span></span><span> </span><span id="local-6989586621679111380"><span class="annot"><span class="annottext">x :: Int
+</span><a href="#local-6989586621679111380"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679111379"><span class="annot"><span class="annottext">y :: Int
+</span><a href="#local-6989586621679111379"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Int
+</span><a href="#local-6989586621679111378"><span class="hs-identifier hs-var">addBias</span></a></span><span>  </span><span class="annot"><span class="annottext">(Word64 -&gt; Int) -&gt; StateT SMGen Identity Word64 -&gt; Rnd Int
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(SMGen -&gt; (Word64, SMGen)) -&gt; StateT SMGen Identity Word64
 forall s (m :: * -&gt; *) a. MonadState s m =&gt; (s -&gt; (a, s)) -&gt; m a
@@ -337,24 +337,24 @@ forall s (m :: * -&gt; *) a. MonadState s m =&gt; (s -&gt; (a, s)) -&gt; m a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; SMGen -&gt; (Word64, SMGen)
 </span><span class="hs-identifier hs-var">bitmaskWithRejection64</span></span><span> </span><span class="annot"><span class="annottext">Word64
-</span><a href="#local-6989586621679111202"><span class="hs-identifier hs-var">range</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-108"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679111206"><span class="annot"><span class="annottext">addBias :: Word64 -&gt; Int
-</span><a href="#local-6989586621679111206"><span class="hs-identifier hs-var hs-var">addBias</span></a></span></span><span> </span><span id="local-6989586621679111201"><span class="annot"><span class="annottext">z :: Word64
-</span><a href="#local-6989586621679111201"><span class="hs-identifier hs-var">z</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Int
+</span><a href="#local-6989586621679111374"><span class="hs-identifier hs-var">range</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679111378"><span class="annot"><span class="annottext">addBias :: Word64 -&gt; Int
+</span><a href="#local-6989586621679111378"><span class="hs-identifier hs-var hs-var">addBias</span></a></span></span><span> </span><span id="local-6989586621679111373"><span class="annot"><span class="annottext">z :: Word64
+</span><a href="#local-6989586621679111373"><span class="hs-identifier hs-var">z</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Int
 forall a b. (Integral a, Num b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Word64
-</span><a href="#local-6989586621679111201"><span class="hs-identifier hs-var">z</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111373"><span class="hs-identifier hs-var">z</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111208"><span class="hs-identifier hs-var">x</span></a></span><span>
-</span><span id="line-109"></span><span>        </span><span id="local-6989586621679111202"><span class="annot"><span class="annottext">range :: Word64
-</span><a href="#local-6989586621679111202"><span class="hs-identifier hs-var hs-var">range</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Word64
+</span><a href="#local-6989586621679111380"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-109"></span><span>        </span><span id="local-6989586621679111374"><span class="annot"><span class="annottext">range :: Word64
+</span><a href="#local-6989586621679111374"><span class="hs-identifier hs-var hs-var">range</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Word64
 forall a b. (Integral a, Num b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111207"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111379"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111208"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111380"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
 </span><span id="line-110"></span><span class="hs-comment">-- randomR (x,y)</span><span>
@@ -362,48 +362,48 @@ forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span id="line-112"></span><span class="hs-comment">-- | Sample from a range of integers excluding 0</span><span>
 </span><span id="line-113"></span><span class="annot"><a href="IT.Random.html#sampleNZRng"><span class="hs-identifier hs-type">sampleNZRng</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
 </span><span id="line-114"></span><span id="sampleNZRng"><span class="annot"><span class="annottext">sampleNZRng :: Int -&gt; Int -&gt; Rnd Int
-</span><a href="IT.Random.html#sampleNZRng"><span class="hs-identifier hs-var hs-var">sampleNZRng</span></a></span></span><span> </span><span id="local-6989586621679111199"><span class="annot"><span class="annottext">x :: Int
-</span><a href="#local-6989586621679111199"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679111198"><span class="annot"><span class="annottext">y :: Int
-</span><a href="#local-6989586621679111198"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111197"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111197"><span class="hs-identifier hs-var">z</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
+</span><a href="IT.Random.html#sampleNZRng"><span class="hs-identifier hs-var hs-var">sampleNZRng</span></a></span></span><span> </span><span id="local-6989586621679111371"><span class="annot"><span class="annottext">x :: Int
+</span><a href="#local-6989586621679111371"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679111370"><span class="annot"><span class="annottext">y :: Int
+</span><a href="#local-6989586621679111370"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679111369"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111369"><span class="hs-identifier hs-var">z</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleRng"><span class="hs-identifier hs-var">sampleRng</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111199"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111198"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><a href="#local-6989586621679111371"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111370"><span class="hs-identifier hs-var">y</span></a></span><span>
 </span><span id="line-115"></span><span>                     </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111197"><span class="hs-identifier hs-var">z</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679111369"><span class="hs-identifier hs-var">z</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span>
 </span><span id="line-116"></span><span>                     </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleNZRng"><span class="hs-identifier hs-var">sampleNZRng</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111199"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111198"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><a href="#local-6989586621679111371"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111370"><span class="hs-identifier hs-var">y</span></a></span><span>
 </span><span id="line-117"></span><span>                     </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd Int
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111197"><span class="hs-identifier hs-var">z</span></a></span><span>
+</span><a href="#local-6989586621679111369"><span class="hs-identifier hs-var">z</span></a></span><span>
 </span><span id="line-118"></span><span>
 </span><span id="line-119"></span><span class="hs-comment">-- | Sample a random element from a list</span><span>
-</span><span id="line-120"></span><span id="local-6989586621679111308"><span class="annot"><a href="IT.Random.html#sampleFromList"><span class="hs-identifier hs-type">sampleFromList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679111308"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111308"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-120"></span><span id="local-6989586621679111480"><span class="annot"><a href="IT.Random.html#sampleFromList"><span class="hs-identifier hs-type">sampleFromList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679111480"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679111480"><span class="hs-identifier hs-type">a</span></a></span></span><span>
 </span><span id="line-121"></span><span id="sampleFromList"><span class="annot"><span class="annottext">sampleFromList :: [a] -&gt; Rnd a
-</span><a href="IT.Random.html#sampleFromList"><span class="hs-identifier hs-var hs-var">sampleFromList</span></a></span></span><span> </span><span id="local-6989586621679111196"><span class="annot"><span class="annottext">xs :: [a]
-</span><a href="#local-6989586621679111196"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111195"><span class="annot"><span class="annottext">n :: Int
-</span><a href="#local-6989586621679111195"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
+</span><a href="IT.Random.html#sampleFromList"><span class="hs-identifier hs-var hs-var">sampleFromList</span></a></span></span><span> </span><span id="local-6989586621679111368"><span class="annot"><span class="annottext">xs :: [a]
+</span><a href="#local-6989586621679111368"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679111367"><span class="annot"><span class="annottext">n :: Int
+</span><a href="#local-6989586621679111367"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679111196"><span class="hs-identifier hs-var">xs</span></a></span><span>
-</span><span id="line-122"></span><span>                       </span><span id="local-6989586621679111193"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111193"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd Int
+</span><a href="#local-6989586621679111368"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-122"></span><span>                       </span><span id="local-6989586621679111365"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679111365"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Rnd Int
 </span><a href="IT.Random.html#sampleTo"><span class="hs-identifier hs-var">sampleTo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111195"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679111367"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
 </span><span id="line-123"></span><span>                       </span><span class="annot"><span class="annottext">a -&gt; Rnd a
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679111196"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int -&gt; a
+</span><a href="#local-6989586621679111368"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int -&gt; a
 forall a. [a] -&gt; Int -&gt; a
 </span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679111193"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
+</span><a href="#local-6989586621679111365"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
 </span><span id="line-124"></span><span>
 </span><span id="line-125"></span><span class="hs-comment">-- | Toss a coin to your Witcher</span><span>
 </span><span id="line-126"></span><span class="annot"><a href="IT.Random.html#toss"><span class="hs-identifier hs-type">toss</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Random.html#Rnd"><span class="hs-identifier hs-type">Rnd</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>

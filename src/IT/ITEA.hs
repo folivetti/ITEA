@@ -33,24 +33,8 @@ import Control.DeepSeq
 import Control.Parallel.Strategies
 import Data.Maybe
 import System.Random.SplitMix
--- ---------------------------------------------------------------------------
 
 -- * ITEA
-
-parRandom :: Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
-parRandom n rndf f pop = state g
-  where
-    g seed = let (s1:ss) = genseeds seed
-                 rndpop  = zip ss pop
-                 h (s,p) = f $ evalState (rndf p) s
-             in  (parMaybeMap n h rndpop, s1)
-
-genseeds s = s1 : genseeds s2
-  where
-    (s1,s2) = splitSMGen s 
-
-parMaybeMap n f pop = catMaybes res
-  where res = map f pop `using` parListChunk n rpar
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
@@ -65,18 +49,13 @@ initialPop :: Int                -- ^ dimension
            -> Rnd (Term a)       -- ^ random term generator
            -> Fitness a b        -- ^ fitness function
            -> Rnd (Population a b)
-initialPop dim maxTerms nPop rndTerm fit = parMaybeMap n fit <$> initialPop' dim maxTerms nPop
+initialPop dim maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
   where
     rndExpr = sampleExpr rndTerm
-    n       = nPop `div` (2*numCapabilities)
 
     -- return a random list of random expressions
-    initialPop' dim maxTerms 0    = return []
-    initialPop' dim maxTerms nPop = do n  <- sampleRng 1 maxTerms
-                                       e  <- rndExpr n
-                                       es <- initialPop' dim maxTerms (nPop-1)
-                                       return $ uniqueTerms e : es
-
+    rndIndividual () = do n <- sampleRng 1 maxTerms
+                          uniqueTerms <$> rndExpr n
 
 -- | Tournament Selection
 --
@@ -100,9 +79,40 @@ tournament p n = do pi <- chooseOne p
 -- | Perform one iteration of ITEA
 step :: (NFData a, NFData b) => Mutation a -> Fitness a b -> Int -> Population a b -> Rnd (Population a b)
 step mutFun fitFun nPop pop = do
-  let n = nPop `div` (2*numCapabilities)
-  children  <- parRandom n (mutFun . _expr) fitFun pop
-  --children  <- parMaybeMap n fitFun <$> traverse (mutFun . _expr) pop
+  children  <- parRndMap nPop (mutFun . _expr) fitFun pop
   if null children
-  then tournament pop nPop
-  else tournament (pop ++ children) nPop
+   then tournament pop nPop
+   else tournament (pop ++ children) nPop
+   
+-- * Parallel random functions
+
+-- | Runs in parallel the composition of a function that generates random effects with
+-- a function that maybe returns a result.
+parRndMap :: Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
+parRndMap nPop rndf randFun pop = state stFun
+  where
+    stFun seed = let seeds         = genNseeds (nPop+1) seed
+                     rndpop        = zip seeds pop
+                     compFun (s,p) = randFun $ evalState (rndf p) s
+                     nSplits       = numberOfSplits nPop
+                     pop'          = parMaybeMap nSplits compFun rndpop
+                 in  (pop', last seeds)
+
+-- | Calculates the number of splits as twice the number of cores
+numberOfSplits :: Int -> Int
+numberOfSplits n = n `div` 2*numCapabilities
+
+-- | Generates n random seeds.
+genNseeds :: Int -> SMGen -> [SMGen]
+genNseeds n = take n . genseeds
+
+-- | Generates an infinite list of random seeds.
+genseeds :: SMGen -> [SMGen]
+genseeds s = let (s1, s2) = splitSMGen s
+             in  s1 : genseeds s2
+
+-- | Runs a computation that may returns a result in parallel.
+parMaybeMap :: Int -> (a -> Maybe b) -> [a] -> [b]
+parMaybeMap n f pop = catMaybes parmap
+  where
+    parmap = map f pop `using` parListChunk n rpar

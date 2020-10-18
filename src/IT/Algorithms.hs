@@ -49,7 +49,7 @@ instance (NFData a, NFData b) => NFData (Solution a b) where
 -- returns an evaluated population. 
 -- This function is a good candidate for parallelization.
 --type Fitness    a b = [Expr a] -> Population a b -- (Expr a, Double, b)
-type Fitness    a b = Expr a -> Maybe (Solution a b) -- (Expr a, Double, b)
+type Fitness    a b = Expr a -> Maybe (Solution a b)
 
 -- | 'Mutation' function with signature 'Solution a b -> Rnd (Solution a b)'
 type Mutation   a   = Expr a -> Rnd (Expr a)
