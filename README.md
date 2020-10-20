@@ -47,19 +47,7 @@ where <conf-file> is the path and name of the config file.
 
 ## Interaction-Transformation
 
-Interaction-Transformation (IT) is a representation proposed in \cite{de2018greedy} to avoid some redundancy in the search space.
-Given the definitions of a transformation function $t: \mathbb{R} \rightarrow \mathbb{R}$, as any univariate function, and an interaction function $p: \mathbb{R}^{d} \rightarrow \mathbb{R}$ for a $d$-dimensional space and described as:
-
-$$p(\mathbf{x}) = \prod_{i=1}^{d}{x_i^{k_i}},$$
-
-with $k_i \in \mathbb{Z}$ called the **strength** of the interaction. We can define an IT expression for regression as a function with the form:
-
-$$
-f(\mathbf{x}) = w_0 + \sum_{i}{w_i \cdot (t_i \circ p_i) (\mathbf{x})},
-$$
-
-where $w_i \in \mathbb{R}$ is the $i$-th coefficient of a linear combination, hereafter referred to as **weight**.
-
+Interaction-Transformation (IT) is a representation proposed in [1](https://www.sciencedirect.com/science/article/pii/S0020025516308635?casa_token=NSH9KVyjs84AAAAA:tDVSPVS8P15nHb8rZvLiW4klNp-nVew1QsKwsxz2YhpxZu2oyhUBJvkufKB8VK8Q6hJIaDr87oo) to avoid some redundancy in the search space of Symbolic Regression.
 
 ## Cite
 
@@ -80,7 +68,7 @@ Maintained by Fabrício Olivetti de França (folivetti at ufabc.edu.br)
 
 ## Acknowledgments
 
-This project is supported by Funda\c{c}\~{a}o de Amparo \`{a} Pesquisa do Estado de S\~{a}o Paulo (FAPESP), grant number 2018/14173-8.
+This project is supported by Fundação de Amparo à Pesquisa do Estado de São Paulo (FAPESP), grant number 2018/14173-8.
 
 ## License
 
