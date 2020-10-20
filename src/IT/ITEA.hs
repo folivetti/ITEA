@@ -32,7 +32,7 @@ import Control.Monad.State
 import Control.DeepSeq
 import Control.Parallel.Strategies
 import Data.Maybe
-import System.Random.SplitMix
+import System.Random
 
 -- * ITEA
 
@@ -103,12 +103,12 @@ numberOfSplits :: Int -> Int
 numberOfSplits n = n `div` 2*numCapabilities
 
 -- | Generates n random seeds.
-genNseeds :: Int -> SMGen -> [SMGen]
+genNseeds :: Int -> StdGen -> [StdGen]
 genNseeds n = take n . genseeds
 
 -- | Generates an infinite list of random seeds.
-genseeds :: SMGen -> [SMGen]
-genseeds s = let (s1, s2) = splitSMGen s
+genseeds :: StdGen -> [StdGen]
+genseeds s = let (s1, s2) = split s
              in  s1 : genseeds s2
 
 -- | Runs a computation that may returns a result in parallel.

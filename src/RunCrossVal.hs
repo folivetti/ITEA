@@ -19,7 +19,7 @@ import Data.List
 import Data.Ord
 
 import Control.Monad.State
-import System.Random.SplitMix
+import System.Random
 import System.Random.Shuffle
 
 import ITEA.Config
@@ -55,7 +55,7 @@ runITEARegCV :: Fitness Double RegStats                -- ^ Training fitness fun
              -> IO Double
 runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
   -- random seed
-  g <- initSMGen
+  g <- newStdGen
 
   -- run ITEA with given configuration
   let (mutFun, rndTerm)  = withMutation mcfg dim
@@ -72,7 +72,7 @@ runCfg dname fold (mutCfg, pop, gen) = do
   let fname = "datasets/" ++ dname ++ "/" ++ dname ++ "-train-" ++ show 0 ++ ".dat" 
   
   (trainX, trainY) <- parseFile <$> readFile fname
-  g <- initSMGen
+  g <- newStdGen
   
   let nRows = LA.rows trainX
       dim   = LA.cols trainX

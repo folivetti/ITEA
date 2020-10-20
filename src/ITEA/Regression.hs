@@ -22,7 +22,7 @@ import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
 
 import Control.Monad.State
-import System.Random.SplitMix
+import System.Random
 
 -- | Support function for running ITEA
 runITEAReg :: Datasets     -- training and test datasets
@@ -32,7 +32,7 @@ runITEAReg :: Datasets     -- training and test datasets
            -> Int          -- generations
            -> IO ()
 runITEAReg (D tr te) mcfg output nPop nGens =
- do g <- initSMGen
+ do g <- newStdGen
     (trainX, trainY) <- parseFile <$> readFile tr
     (testX,  testY ) <- parseFile <$> readFile te
     let

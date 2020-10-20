@@ -15,14 +15,13 @@ module IT.Random where
 import IT
 
 import System.Random
-import System.Random.SplitMix
 import Control.Monad.State
 import qualified Data.Map.Strict as M
 
 -- * Random expressions generation
  
 -- | The type used for generating random values of 'a'
-type Rnd a = State SMGen a
+type Rnd a = State StdGen a
 
 -- | Creates a random interaction with up to n variables. 
 --   Guaranteed to choose at least one variable.
@@ -104,10 +103,7 @@ sampleTo n | n < 0     = error "Invalid number"
 
 -- | Sample from a range of integers
 sampleRng :: Int -> Int -> Rnd Int
-sampleRng x y = addBias  <$>  (state $ bitmaskWithRejection64 range)
-  where addBias z = fromIntegral z + x
-        range     = fromIntegral (y - x + 1)
--- randomR (x,y)
+sampleRng x y = state $ uniformR (x, y)
 
 -- | Sample from a range of integers excluding 0
 sampleNZRng :: Int -> Int -> Rnd Int
