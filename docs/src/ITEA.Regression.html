@@ -22,7 +22,7 @@ Function to execute ITEA
 </span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Vector</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">V</span></span><span>
 </span><span id="line-23"></span><span>
 </span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.State</span></span><span>
-</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Random.SplitMix</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Random</span></span><span>
 </span><span id="line-26"></span><span>
 </span><span id="line-27"></span><span class="hs-comment">-- | Support function for running ITEA</span><span>
 </span><span id="line-28"></span><span class="annot"><a href="ITEA.Regression.html#runITEAReg"><span class="hs-identifier hs-type">runITEAReg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ITEA.Config.html#Datasets"><span class="hs-identifier hs-type">Datasets</span></a></span><span>     </span><span class="hs-comment">-- training and test datasets</span><span>
@@ -32,79 +32,80 @@ Function to execute ITEA
 </span><span id="line-32"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>          </span><span class="hs-comment">-- generations</span><span>
 </span><span id="line-33"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-34"></span><span id="runITEAReg"><span class="annot"><span class="annottext">runITEAReg :: Datasets -&gt; MutationCfg -&gt; Output -&gt; Int -&gt; Int -&gt; IO ()
-</span><a href="ITEA.Regression.html#runITEAReg"><span class="hs-identifier hs-var hs-var">runITEAReg</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ITEA.Config.html#D"><span class="hs-identifier hs-type">D</span></a></span><span> </span><span id="local-6989586621679112784"><span class="annot"><span class="annottext">tr :: String
-</span><a href="#local-6989586621679112784"><span class="hs-identifier hs-var">tr</span></a></span></span><span> </span><span id="local-6989586621679112783"><span class="annot"><span class="annottext">te :: String
-</span><a href="#local-6989586621679112783"><span class="hs-identifier hs-var">te</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679112782"><span class="annot"><span class="annottext">mcfg :: MutationCfg
-</span><a href="#local-6989586621679112782"><span class="hs-identifier hs-var">mcfg</span></a></span></span><span> </span><span id="local-6989586621679112781"><span class="annot"><span class="annottext">output :: Output
-</span><a href="#local-6989586621679112781"><span class="hs-identifier hs-var">output</span></a></span></span><span> </span><span id="local-6989586621679112780"><span class="annot"><span class="annottext">nPop :: Int
-</span><a href="#local-6989586621679112780"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679112779"><span class="annot"><span class="annottext">nGens :: Int
-</span><a href="#local-6989586621679112779"><span class="hs-identifier hs-var">nGens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-35"></span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679112778"><span class="annot"><span class="annottext">SMGen
-</span><a href="#local-6989586621679112778"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO SMGen
-</span><span class="hs-identifier hs-var">initSMGen</span></span><span>
-</span><span id="line-36"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679112776"><span class="annot"><span class="annottext">trainX :: Matrix Double
-</span><a href="#local-6989586621679112776"><span class="hs-identifier hs-var">trainX</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112775"><span class="annot"><span class="annottext">trainY :: Vector
-</span><a href="#local-6989586621679112775"><span class="hs-identifier hs-var">trainY</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Matrix Double, Vector)
+</span><a href="ITEA.Regression.html#runITEAReg"><span class="hs-identifier hs-var hs-var">runITEAReg</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ITEA.Config.html#D"><span class="hs-identifier hs-type">D</span></a></span><span> </span><span id="local-6989586621679113337"><span class="annot"><span class="annottext">tr :: String
+</span><a href="#local-6989586621679113337"><span class="hs-identifier hs-var">tr</span></a></span></span><span> </span><span id="local-6989586621679113336"><span class="annot"><span class="annottext">te :: String
+</span><a href="#local-6989586621679113336"><span class="hs-identifier hs-var">te</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679113335"><span class="annot"><span class="annottext">mcfg :: MutationCfg
+</span><a href="#local-6989586621679113335"><span class="hs-identifier hs-var">mcfg</span></a></span></span><span> </span><span id="local-6989586621679113334"><span class="annot"><span class="annottext">output :: Output
+</span><a href="#local-6989586621679113334"><span class="hs-identifier hs-var">output</span></a></span></span><span> </span><span id="local-6989586621679113333"><span class="annot"><span class="annottext">nPop :: Int
+</span><a href="#local-6989586621679113333"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679113332"><span class="annot"><span class="annottext">nGens :: Int
+</span><a href="#local-6989586621679113332"><span class="hs-identifier hs-var">nGens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-35"></span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679113331"><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679113331"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen
+forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
+</span><span class="hs-identifier hs-var">newStdGen</span></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679113329"><span class="annot"><span class="annottext">trainX :: Matrix Double
+</span><a href="#local-6989586621679113329"><span class="hs-identifier hs-var">trainX</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679113328"><span class="annot"><span class="annottext">trainY :: Vector
+</span><a href="#local-6989586621679113328"><span class="hs-identifier hs-var">trainY</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Matrix Double, Vector)
 </span><a href="ITEA.Config.html#parseFile"><span class="hs-identifier hs-var">parseFile</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; (Matrix Double, Vector))
 -&gt; IO String -&gt; IO (Matrix Double, Vector)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 </span><span class="hs-identifier hs-var">readFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679112784"><span class="hs-identifier hs-var">tr</span></a></span><span>
-</span><span id="line-37"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679112771"><span class="annot"><span class="annottext">testX :: Matrix Double
-</span><a href="#local-6989586621679112771"><span class="hs-identifier hs-var">testX</span></a></span></span><span class="hs-special">,</span><span>  </span><span id="local-6989586621679112770"><span class="annot"><span class="annottext">testY :: Vector
-</span><a href="#local-6989586621679112770"><span class="hs-identifier hs-var">testY</span></a></span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Matrix Double, Vector)
+</span><a href="#local-6989586621679113337"><span class="hs-identifier hs-var">tr</span></a></span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679113324"><span class="annot"><span class="annottext">testX :: Matrix Double
+</span><a href="#local-6989586621679113324"><span class="hs-identifier hs-var">testX</span></a></span></span><span class="hs-special">,</span><span>  </span><span id="local-6989586621679113323"><span class="annot"><span class="annottext">testY :: Vector
+</span><a href="#local-6989586621679113323"><span class="hs-identifier hs-var">testY</span></a></span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Matrix Double, Vector)
 </span><a href="ITEA.Config.html#parseFile"><span class="hs-identifier hs-var">parseFile</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; (Matrix Double, Vector))
 -&gt; IO String -&gt; IO (Matrix Double, Vector)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 </span><span class="hs-identifier hs-var">readFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679112783"><span class="hs-identifier hs-var">te</span></a></span><span>
+</span><a href="#local-6989586621679113336"><span class="hs-identifier hs-var">te</span></a></span><span>
 </span><span id="line-38"></span><span>    </span><span class="hs-keyword">let</span><span>
-</span><span id="line-39"></span><span>        </span><span id="local-6989586621679112769"><span class="annot"><span class="annottext">xss :: Vector Vector
-</span><a href="#local-6989586621679112769"><span class="hs-identifier hs-var hs-var">xss</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Vector] -&gt; Vector Vector
+</span><span id="line-39"></span><span>        </span><span id="local-6989586621679113322"><span class="annot"><span class="annottext">xss :: Vector Vector
+</span><a href="#local-6989586621679113322"><span class="hs-identifier hs-var hs-var">xss</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Vector] -&gt; Vector Vector
 forall a. [a] -&gt; Vector a
 </span><span class="hs-identifier hs-var">V.fromList</span></span><span> </span><span class="annot"><span class="annottext">([Vector] -&gt; Vector Vector) -&gt; [Vector] -&gt; Vector Vector
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; [Vector]
 forall t. Element t =&gt; Matrix t -&gt; [Vector t]
 </span><span class="hs-identifier hs-var">LA.toColumns</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679112776"><span class="hs-identifier hs-var">trainX</span></a></span><span>
-</span><span id="line-40"></span><span>        </span><span id="local-6989586621679112766"><span class="annot"><span class="annottext">xss' :: Vector Vector
-</span><a href="#local-6989586621679112766"><span class="hs-identifier hs-var hs-var">xss'</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Vector] -&gt; Vector Vector
+</span><a href="#local-6989586621679113329"><span class="hs-identifier hs-var">trainX</span></a></span><span>
+</span><span id="line-40"></span><span>        </span><span id="local-6989586621679113319"><span class="annot"><span class="annottext">xss' :: Vector Vector
+</span><a href="#local-6989586621679113319"><span class="hs-identifier hs-var hs-var">xss'</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Vector] -&gt; Vector Vector
 forall a. [a] -&gt; Vector a
 </span><span class="hs-identifier hs-var">V.fromList</span></span><span> </span><span class="annot"><span class="annottext">([Vector] -&gt; Vector Vector) -&gt; [Vector] -&gt; Vector Vector
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; [Vector]
 forall t. Element t =&gt; Matrix t -&gt; [Vector t]
 </span><span class="hs-identifier hs-var">LA.toColumns</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679112771"><span class="hs-identifier hs-var">testX</span></a></span><span>
-</span><span id="line-41"></span><span>        </span><span id="local-6989586621679112765"><span class="annot"><span class="annottext">fitTrain :: Expr Double -&gt; Maybe (Solution Double RegStats)
-</span><a href="#local-6989586621679112765"><span class="hs-identifier hs-var hs-var">fitTrain</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector Vector
+</span><a href="#local-6989586621679113324"><span class="hs-identifier hs-var">testX</span></a></span><span>
+</span><span id="line-41"></span><span>        </span><span id="local-6989586621679113318"><span class="annot"><span class="annottext">fitTrain :: Expr Double -&gt; Maybe (Solution Double RegStats)
+</span><a href="#local-6989586621679113318"><span class="hs-identifier hs-var hs-var">fitTrain</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector Vector
 -&gt; Vector -&gt; Expr Double -&gt; Maybe (Solution Double RegStats)
 </span><a href="IT.Regression.html#fitnessReg"><span class="hs-identifier hs-var">fitnessReg</span></a></span><span> </span><span class="annot"><span class="annottext">Vector Vector
-</span><a href="#local-6989586621679112769"><span class="hs-identifier hs-var">xss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679112775"><span class="hs-identifier hs-var">trainY</span></a></span><span>    </span><span class="hs-comment">-- create the fitness function</span><span>
-</span><span id="line-42"></span><span>        </span><span id="local-6989586621679112763"><span class="annot"><span class="annottext">fitTest :: Solution Double RegStats -&gt; RegStats
-</span><a href="#local-6989586621679112763"><span class="hs-identifier hs-var hs-var">fitTest</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector Vector -&gt; Vector -&gt; Solution Double RegStats -&gt; RegStats
+</span><a href="#local-6989586621679113322"><span class="hs-identifier hs-var">xss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113328"><span class="hs-identifier hs-var">trainY</span></a></span><span>    </span><span class="hs-comment">-- create the fitness function</span><span>
+</span><span id="line-42"></span><span>        </span><span id="local-6989586621679113316"><span class="annot"><span class="annottext">fitTest :: Solution Double RegStats -&gt; RegStats
+</span><a href="#local-6989586621679113316"><span class="hs-identifier hs-var hs-var">fitTest</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector Vector -&gt; Vector -&gt; Solution Double RegStats -&gt; RegStats
 </span><a href="IT.Regression.html#fitnessTest"><span class="hs-identifier hs-var">fitnessTest</span></a></span><span> </span><span class="annot"><span class="annottext">Vector Vector
-</span><a href="#local-6989586621679112766"><span class="hs-identifier hs-var">xss'</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679112770"><span class="hs-identifier hs-var">testY</span></a></span><span>         </span><span class="hs-comment">-- create the fitness for the test set</span><span>
-</span><span id="line-43"></span><span>        </span><span id="local-6989586621679112761"><span class="annot"><span class="annottext">dim :: Int
-</span><a href="#local-6989586621679112761"><span class="hs-identifier hs-var hs-var">dim</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
+</span><a href="#local-6989586621679113319"><span class="hs-identifier hs-var">xss'</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113323"><span class="hs-identifier hs-var">testY</span></a></span><span>         </span><span class="hs-comment">-- create the fitness for the test set</span><span>
+</span><span id="line-43"></span><span>        </span><span id="local-6989586621679113314"><span class="annot"><span class="annottext">dim :: Int
+</span><a href="#local-6989586621679113314"><span class="hs-identifier hs-var hs-var">dim</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
 forall t. Matrix t -&gt; Int
 </span><span class="hs-identifier hs-var">LA.cols</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679112776"><span class="hs-identifier hs-var">trainX</span></a></span><span>
+</span><a href="#local-6989586621679113329"><span class="hs-identifier hs-var">trainX</span></a></span><span>
 </span><span id="line-44"></span><span>
-</span><span id="line-45"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679112759"><span class="annot"><span class="annottext">mutFun :: Mutation Double
-</span><a href="#local-6989586621679112759"><span class="hs-identifier hs-var">mutFun</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112758"><span class="annot"><span class="annottext">rndTerm :: Rnd (Term Double)
-</span><a href="#local-6989586621679112758"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MutationCfg -&gt; Int -&gt; (Mutation Double, Rnd (Term Double))
+</span><span id="line-45"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679113312"><span class="annot"><span class="annottext">mutFun :: Mutation Double
+</span><a href="#local-6989586621679113312"><span class="hs-identifier hs-var">mutFun</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679113311"><span class="annot"><span class="annottext">rndTerm :: Rnd (Term Double)
+</span><a href="#local-6989586621679113311"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MutationCfg -&gt; Int -&gt; (Mutation Double, Rnd (Term Double))
 </span><a href="ITEA.Config.html#withMutation"><span class="hs-identifier hs-var">withMutation</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
-</span><a href="#local-6989586621679112782"><span class="hs-identifier hs-var">mcfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112761"><span class="hs-identifier hs-var">dim</span></a></span><span>            </span><span class="hs-comment">-- create the mutation function</span><span>
+</span><a href="#local-6989586621679113335"><span class="hs-identifier hs-var">mcfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113314"><span class="hs-identifier hs-var">dim</span></a></span><span>            </span><span class="hs-comment">-- create the mutation function</span><span>
 </span><span id="line-46"></span><span>
-</span><span id="line-47"></span><span>        </span><span id="local-6989586621679112756"><span class="annot"><span class="annottext">p0 :: Rnd (Population Double RegStats)
-</span><a href="#local-6989586621679112756"><span class="hs-identifier hs-var hs-var">p0</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span id="line-47"></span><span>        </span><span id="local-6989586621679113309"><span class="annot"><span class="annottext">p0 :: Rnd (Population Double RegStats)
+</span><a href="#local-6989586621679113309"><span class="hs-identifier hs-var hs-var">p0</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
 -&gt; Int
 -&gt; Int
 -&gt; Rnd (Term Double)
@@ -118,36 +119,36 @@ Int
 -&gt; Fitness a b
 -&gt; Rnd (Population a b)
 </span><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-var">initialPop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112761"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112780"><span class="hs-identifier hs-var">nPop</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Term Double)
-</span><a href="#local-6989586621679112758"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Expr Double -&gt; Maybe (Solution Double RegStats)
-</span><a href="#local-6989586621679112765"><span class="hs-identifier hs-var">fitTrain</span></a></span><span>      </span><span class="hs-comment">-- initialize de population</span><span>
-</span><span id="line-48"></span><span>        </span><span id="local-6989586621679112754"><span class="annot"><span class="annottext">gens :: [Population Double RegStats]
-</span><a href="#local-6989586621679112754"><span class="hs-identifier hs-var hs-var">gens</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rnd (Population Double RegStats)
-</span><a href="#local-6989586621679112756"><span class="hs-identifier hs-var">p0</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Population Double RegStats)
+</span><a href="#local-6989586621679113314"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113333"><span class="hs-identifier hs-var">nPop</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Term Double)
+</span><a href="#local-6989586621679113311"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Expr Double -&gt; Maybe (Solution Double RegStats)
+</span><a href="#local-6989586621679113318"><span class="hs-identifier hs-var">fitTrain</span></a></span><span>      </span><span class="hs-comment">-- initialize de population</span><span>
+</span><span id="line-48"></span><span>        </span><span id="local-6989586621679113307"><span class="annot"><span class="annottext">gens :: [Population Double RegStats]
+</span><a href="#local-6989586621679113307"><span class="hs-identifier hs-var hs-var">gens</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rnd (Population Double RegStats)
+</span><a href="#local-6989586621679113309"><span class="hs-identifier hs-var">p0</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Population Double RegStats)
 -&gt; (Population Double RegStats
-    -&gt; StateT SMGen Identity [Population Double RegStats])
--&gt; StateT SMGen Identity [Population Double RegStats]
+    -&gt; StateT StdGen Identity [Population Double RegStats])
+-&gt; StateT StdGen Identity [Population Double RegStats]
 forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
 </span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Mutation Double
 -&gt; (Expr Double -&gt; Maybe (Solution Double RegStats))
 -&gt; Population Double RegStats
--&gt; StateT SMGen Identity [Population Double RegStats]
+-&gt; StateT StdGen Identity [Population Double RegStats]
 forall a b.
 (NFData a, NFData b) =&gt;
 Mutation a -&gt; Fitness a b -&gt; Population a b -&gt; Rnd [Population a b]
 </span><a href="IT.ITEA.html#itea"><span class="hs-identifier hs-var">itea</span></a></span><span> </span><span class="annot"><span class="annottext">Mutation Double
-</span><a href="#local-6989586621679112759"><span class="hs-identifier hs-var">mutFun</span></a></span><span> </span><span class="annot"><span class="annottext">Expr Double -&gt; Maybe (Solution Double RegStats)
-</span><a href="#local-6989586621679112765"><span class="hs-identifier hs-var">fitTrain</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">StateT SMGen Identity [Population Double RegStats]
--&gt; SMGen -&gt; [Population Double RegStats]
+</span><a href="#local-6989586621679113312"><span class="hs-identifier hs-var">mutFun</span></a></span><span> </span><span class="annot"><span class="annottext">Expr Double -&gt; Maybe (Solution Double RegStats)
+</span><a href="#local-6989586621679113318"><span class="hs-identifier hs-var">fitTrain</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">StateT StdGen Identity [Population Double RegStats]
+-&gt; StdGen -&gt; [Population Double RegStats]
 forall s a. State s a -&gt; s -&gt; a
-</span><span class="hs-operator hs-var">`evalState`</span></span><span> </span><span class="annot"><span class="annottext">SMGen
-</span><a href="#local-6989586621679112778"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="hs-comment">-- evaluate a lazy stream of infinity generations</span><span>
-</span><span id="line-49"></span><span>        </span><span id="local-6989586621679112751"><span class="annot"><span class="annottext">best :: Solution Double RegStats
-</span><a href="#local-6989586621679112751"><span class="hs-identifier hs-var hs-var">best</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Population Double RegStats] -&gt; Solution Double RegStats
+</span><span class="hs-operator hs-var">`evalState`</span></span><span> </span><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679113331"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="hs-comment">-- evaluate a lazy stream of infinity generations</span><span>
+</span><span id="line-49"></span><span>        </span><span id="local-6989586621679113304"><span class="annot"><span class="annottext">best :: Solution Double RegStats
+</span><a href="#local-6989586621679113304"><span class="hs-identifier hs-var hs-var">best</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Population Double RegStats] -&gt; Solution Double RegStats
 </span><a href="ITEA.Config.html#getBest"><span class="hs-identifier hs-var">getBest</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112779"><span class="hs-identifier hs-var">nGens</span></a></span><span> </span><span class="annot"><span class="annottext">[Population Double RegStats]
-</span><a href="#local-6989586621679112754"><span class="hs-identifier hs-var">gens</span></a></span><span>                          </span><span class="hs-comment">-- get the best solution of the first gens generations</span><span>
+</span><a href="#local-6989586621679113332"><span class="hs-identifier hs-var">nGens</span></a></span><span> </span><span class="annot"><span class="annottext">[Population Double RegStats]
+</span><a href="#local-6989586621679113307"><span class="hs-identifier hs-var">gens</span></a></span><span>                          </span><span class="hs-comment">-- get the best solution of the first gens generations</span><span>
 </span><span id="line-50"></span><span>
 </span><span id="line-51"></span><span>    </span><span class="annot"><span class="annottext">Output
 -&gt; [Population Double RegStats]
@@ -155,8 +156,8 @@ forall s a. State s a -&gt; s -&gt; a
 -&gt; (Solution Double RegStats -&gt; RegStats)
 -&gt; IO ()
 </span><a href="ITEA.Config.html#genReports"><span class="hs-identifier hs-var">genReports</span></a></span><span> </span><span class="annot"><span class="annottext">Output
-</span><a href="#local-6989586621679112781"><span class="hs-identifier hs-var">output</span></a></span><span> </span><span class="annot"><span class="annottext">[Population Double RegStats]
-</span><a href="#local-6989586621679112754"><span class="hs-identifier hs-var">gens</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112779"><span class="hs-identifier hs-var">nGens</span></a></span><span> </span><span class="annot"><span class="annottext">Solution Double RegStats -&gt; RegStats
-</span><a href="#local-6989586621679112763"><span class="hs-identifier hs-var">fitTest</span></a></span><span>                       </span><span class="hs-comment">-- create the report</span><span>
+</span><a href="#local-6989586621679113334"><span class="hs-identifier hs-var">output</span></a></span><span> </span><span class="annot"><span class="annottext">[Population Double RegStats]
+</span><a href="#local-6989586621679113307"><span class="hs-identifier hs-var">gens</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113332"><span class="hs-identifier hs-var">nGens</span></a></span><span> </span><span class="annot"><span class="annottext">Solution Double RegStats -&gt; RegStats
+</span><a href="#local-6989586621679113316"><span class="hs-identifier hs-var">fitTest</span></a></span><span>                       </span><span class="hs-comment">-- create the report</span><span>
 </span><span id="line-52"></span></pre></body></html>

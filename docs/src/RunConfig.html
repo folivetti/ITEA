@@ -20,12 +20,12 @@ Main program to run ITEA with a configuration file.
 </span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ITEA.Config.html"><span class="hs-identifier">ITEA.Config</span></a></span><span>
 </span><span id="line-21"></span><span>
 </span><span id="line-22"></span><span class="hs-comment">-- | Read the option 'x' located at section 'cat' from configuration 'cp'.</span><span>
-</span><span id="line-23"></span><span id="local-6989586621679112878"><span class="annot"><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-type">getSetting</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Get_C</span></span><span> </span><span class="annot"><a href="#local-6989586621679112878"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ConfigParser</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SectionSpec</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OptionSpec</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679112878"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-23"></span><span id="local-6989586621679113433"><span class="annot"><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-type">getSetting</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Get_C</span></span><span> </span><span class="annot"><a href="#local-6989586621679113433"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ConfigParser</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SectionSpec</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OptionSpec</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679113433"><span class="hs-identifier hs-type">a</span></a></span></span><span>
 </span><span id="line-24"></span><span id="getSetting"><span class="annot"><span class="annottext">getSetting :: ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
-</span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var hs-var">getSetting</span></a></span></span><span> </span><span id="local-6989586621679112865"><span class="annot"><span class="annottext">cp :: ConfigParser
-</span><a href="#local-6989586621679112865"><span class="hs-identifier hs-var">cp</span></a></span></span><span> </span><span id="local-6989586621679112864"><span class="annot"><span class="annottext">cat :: SectionSpec
-</span><a href="#local-6989586621679112864"><span class="hs-identifier hs-var">cat</span></a></span></span><span> </span><span id="local-6989586621679112863"><span class="annot"><span class="annottext">x :: SectionSpec
-</span><a href="#local-6989586621679112863"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either CPError a -&gt; a
+</span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var hs-var">getSetting</span></a></span></span><span> </span><span id="local-6989586621679113420"><span class="annot"><span class="annottext">cp :: ConfigParser
+</span><a href="#local-6989586621679113420"><span class="hs-identifier hs-var">cp</span></a></span></span><span> </span><span id="local-6989586621679113419"><span class="annot"><span class="annottext">cat :: SectionSpec
+</span><a href="#local-6989586621679113419"><span class="hs-identifier hs-var">cat</span></a></span></span><span> </span><span id="local-6989586621679113418"><span class="annot"><span class="annottext">x :: SectionSpec
+</span><a href="#local-6989586621679113418"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either CPError a -&gt; a
 forall e a. Show e =&gt; Either e a -&gt; a
 </span><span class="hs-identifier hs-var">forceEither</span></span><span> </span><span class="annot"><span class="annottext">(Either CPError a -&gt; a) -&gt; Either CPError a -&gt; a
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -34,17 +34,17 @@ forall a (m :: * -&gt; *).
 (Get_C a, MonadError CPError m) =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; m a
 </span><span class="hs-identifier hs-var">get</span></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112865"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">SectionSpec
-</span><a href="#local-6989586621679112864"><span class="hs-identifier hs-var">cat</span></a></span><span> </span><span class="annot"><span class="annottext">SectionSpec
-</span><a href="#local-6989586621679112863"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><a href="#local-6989586621679113420"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">SectionSpec
+</span><a href="#local-6989586621679113419"><span class="hs-identifier hs-var">cat</span></a></span><span> </span><span class="annot"><span class="annottext">SectionSpec
+</span><a href="#local-6989586621679113418"><span class="hs-identifier hs-var">x</span></a></span><span>
 </span><span id="line-25"></span><span>
 </span><span id="line-26"></span><span class="hs-comment">-- | Read the config file and run the algorithm.</span><span>
 </span><span id="line-27"></span><span class="annot"><a href="RunConfig.html#runWithConfig"><span class="hs-identifier hs-type">runWithConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-28"></span><span id="runWithConfig"><span class="annot"><span class="annottext">runWithConfig :: SectionSpec -&gt; IO ()
-</span><a href="RunConfig.html#runWithConfig"><span class="hs-identifier hs-var hs-var">runWithConfig</span></a></span></span><span> </span><span id="local-6989586621679112858"><span class="annot"><span class="annottext">fname :: SectionSpec
-</span><a href="#local-6989586621679112858"><span class="hs-identifier hs-var">fname</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-29"></span><span>  </span><span id="local-6989586621679112857"><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; IO ConfigParser
+</span><a href="RunConfig.html#runWithConfig"><span class="hs-identifier hs-var hs-var">runWithConfig</span></a></span></span><span> </span><span id="local-6989586621679113413"><span class="annot"><span class="annottext">fname :: SectionSpec
+</span><a href="#local-6989586621679113413"><span class="hs-identifier hs-var">fname</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-29"></span><span>  </span><span id="local-6989586621679113412"><span class="annot"><span class="annottext">ConfigParser
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; IO ConfigParser
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(ConfigParser -&gt; IO ConfigParser)
 -&gt; (Either CPError ConfigParser -&gt; ConfigParser)
@@ -62,77 +62,77 @@ MonadError CPError m =&gt;
 ConfigParser -&gt; SectionSpec -&gt; IO (m ConfigParser)
 </span><span class="hs-identifier hs-var">readfile</span></span><span> </span><span class="annot"><span class="annottext">ConfigParser
 </span><span class="hs-identifier hs-var">emptyCP</span></span><span> </span><span class="annot"><span class="annottext">SectionSpec
-</span><a href="#local-6989586621679112858"><span class="hs-identifier hs-var">fname</span></a></span><span> </span><span>
+</span><a href="#local-6989586621679113413"><span class="hs-identifier hs-var">fname</span></a></span><span> </span><span>
 </span><span id="line-30"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span>
-</span><span id="line-31"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679112852"><span class="annot"><span class="annottext">expmin :: Int
-</span><a href="#local-6989586621679112852"><span class="hs-identifier hs-var">expmin</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112851"><span class="annot"><span class="annottext">expmax :: Int
-</span><a href="#local-6989586621679112851"><span class="hs-identifier hs-var">expmax</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; (Int, Int)
+</span><span id="line-31"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679113407"><span class="annot"><span class="annottext">expmin :: Int
+</span><a href="#local-6989586621679113407"><span class="hs-identifier hs-var">expmin</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679113406"><span class="annot"><span class="annottext">expmax :: Int
+</span><a href="#local-6989586621679113406"><span class="hs-identifier hs-var">expmax</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; (Int, Int)
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;exponents&quot;</span></span><span>
-</span><span id="line-32"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679112850"><span class="annot"><span class="annottext">termmin :: Int
-</span><a href="#local-6989586621679112850"><span class="hs-identifier hs-var">termmin</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679112849"><span class="annot"><span class="annottext">termmax :: Int
-</span><a href="#local-6989586621679112849"><span class="hs-identifier hs-var">termmax</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; (Int, Int)
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;exponents&quot;</span></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679113405"><span class="annot"><span class="annottext">termmin :: Int
+</span><a href="#local-6989586621679113405"><span class="hs-identifier hs-var">termmin</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679113404"><span class="annot"><span class="annottext">termmax :: Int
+</span><a href="#local-6989586621679113404"><span class="hs-identifier hs-var">termmax</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; (Int, Int)
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;termlimit&quot;</span></span><span>
-</span><span id="line-33"></span><span>    </span><span id="local-6989586621679112848"><span class="annot"><span class="annottext">nzExps :: Int
-</span><a href="#local-6989586621679112848"><span class="hs-identifier hs-var hs-var">nzExps</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Int
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;termlimit&quot;</span></span><span>
+</span><span id="line-33"></span><span>    </span><span id="local-6989586621679113403"><span class="annot"><span class="annottext">nzExps :: Int
+</span><a href="#local-6989586621679113403"><span class="hs-identifier hs-var hs-var">nzExps</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Int
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;nonzeroexps&quot;</span></span><span>
-</span><span id="line-34"></span><span>    </span><span id="local-6989586621679112847"><span class="annot"><span class="annottext">tfuncs :: Funcs
-</span><a href="#local-6989586621679112847"><span class="hs-identifier hs-var hs-var">tfuncs</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Funcs
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;nonzeroexps&quot;</span></span><span>
+</span><span id="line-34"></span><span>    </span><span id="local-6989586621679113402"><span class="annot"><span class="annottext">tfuncs :: Funcs
+</span><a href="#local-6989586621679113402"><span class="hs-identifier hs-var hs-var">tfuncs</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Funcs
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;transfunctions&quot;</span></span><span>
-</span><span id="line-35"></span><span>    </span><span id="local-6989586621679112846"><span class="annot"><span class="annottext">trainname :: SectionSpec
-</span><a href="#local-6989586621679112846"><span class="hs-identifier hs-var hs-var">trainname</span></a></span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; SectionSpec
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Mutation&quot;</span></span><span>  </span><span class="annot"><span class="hs-string">&quot;transfunctions&quot;</span></span><span>
+</span><span id="line-35"></span><span>    </span><span id="local-6989586621679113401"><span class="annot"><span class="annottext">trainname :: SectionSpec
+</span><a href="#local-6989586621679113401"><span class="hs-identifier hs-var hs-var">trainname</span></a></span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; SectionSpec
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Dataset&quot;</span></span><span>   </span><span class="annot"><span class="hs-string">&quot;train&quot;</span></span><span>
-</span><span id="line-36"></span><span>    </span><span id="local-6989586621679112845"><span class="annot"><span class="annottext">testname :: SectionSpec
-</span><a href="#local-6989586621679112845"><span class="hs-identifier hs-var hs-var">testname</span></a></span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; SectionSpec
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Dataset&quot;</span></span><span>   </span><span class="annot"><span class="hs-string">&quot;train&quot;</span></span><span>
+</span><span id="line-36"></span><span>    </span><span id="local-6989586621679113400"><span class="annot"><span class="annottext">testname :: SectionSpec
+</span><a href="#local-6989586621679113400"><span class="hs-identifier hs-var hs-var">testname</span></a></span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; SectionSpec
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Dataset&quot;</span></span><span>   </span><span class="annot"><span class="hs-string">&quot;test&quot;</span></span><span>
-</span><span id="line-37"></span><span>    </span><span id="local-6989586621679112844"><span class="annot"><span class="annottext">nPop :: Int
-</span><a href="#local-6989586621679112844"><span class="hs-identifier hs-var hs-var">nPop</span></a></span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Int
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Dataset&quot;</span></span><span>   </span><span class="annot"><span class="hs-string">&quot;test&quot;</span></span><span>
+</span><span id="line-37"></span><span>    </span><span id="local-6989586621679113399"><span class="annot"><span class="annottext">nPop :: Int
+</span><a href="#local-6989586621679113399"><span class="hs-identifier hs-var hs-var">nPop</span></a></span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Int
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Algorithm&quot;</span></span><span> </span><span class="annot"><span class="hs-string">&quot;npop&quot;</span></span><span>
-</span><span id="line-38"></span><span>    </span><span id="local-6989586621679112843"><span class="annot"><span class="annottext">nGens :: Int
-</span><a href="#local-6989586621679112843"><span class="hs-identifier hs-var hs-var">nGens</span></a></span></span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Int
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Algorithm&quot;</span></span><span> </span><span class="annot"><span class="hs-string">&quot;npop&quot;</span></span><span>
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679113398"><span class="annot"><span class="annottext">nGens :: Int
+</span><a href="#local-6989586621679113398"><span class="hs-identifier hs-var hs-var">nGens</span></a></span></span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Int
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Algorithm&quot;</span></span><span> </span><span class="annot"><span class="hs-string">&quot;ngens&quot;</span></span><span>
-</span><span id="line-39"></span><span>    </span><span id="local-6989586621679112842"><span class="annot"><span class="annottext">log :: Output
-</span><a href="#local-6989586621679112842"><span class="hs-identifier hs-var hs-var">log</span></a></span></span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Output
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Algorithm&quot;</span></span><span> </span><span class="annot"><span class="hs-string">&quot;ngens&quot;</span></span><span>
+</span><span id="line-39"></span><span>    </span><span id="local-6989586621679113397"><span class="annot"><span class="annottext">log :: Output
+</span><a href="#local-6989586621679113397"><span class="hs-identifier hs-var hs-var">log</span></a></span></span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; Output
 forall a.
 Get_C a =&gt;
 ConfigParser -&gt; SectionSpec -&gt; SectionSpec -&gt; a
 </span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
-</span><a href="#local-6989586621679112857"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Algorithm&quot;</span></span><span> </span><span class="annot"><span class="hs-string">&quot;log&quot;</span></span><span>
+</span><a href="#local-6989586621679113412"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Algorithm&quot;</span></span><span> </span><span class="annot"><span class="hs-string">&quot;log&quot;</span></span><span>
 </span><span id="line-40"></span><span>
 </span><span id="line-41"></span><span>    </span><span class="hs-comment">-- validate the configurations</span><span>
-</span><span id="line-42"></span><span>    </span><span id="local-6989586621679112841"><span class="annot"><span class="annottext">mutCfg :: MutationCfg
-</span><a href="#local-6989586621679112841"><span class="hs-identifier hs-var hs-var">mutCfg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">UncheckedMutationCfg -&gt; MutationCfg
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679113396"><span class="annot"><span class="annottext">mutCfg :: MutationCfg
+</span><a href="#local-6989586621679113396"><span class="hs-identifier hs-var hs-var">mutCfg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">UncheckedMutationCfg -&gt; MutationCfg
 forall a b. Valid a b =&gt; a -&gt; b
 </span><a href="ITEA.Config.html#validateConfig"><span class="hs-identifier hs-var">validateConfig</span></a></span><span>
 </span><span id="line-43"></span><span>           </span><span class="annot"><span class="annottext">(UncheckedMutationCfg -&gt; MutationCfg)
@@ -140,65 +140,65 @@ forall a b. Valid a b =&gt; a -&gt; b
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>  </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; UncheckedMutationCfg
 </span><a href="ITEA.Config.html#exponents"><span class="hs-identifier hs-var">exponents</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112852"><span class="hs-identifier hs-var">expmin</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112851"><span class="hs-identifier hs-var">expmax</span></a></span><span>
+</span><a href="#local-6989586621679113407"><span class="hs-identifier hs-var">expmin</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113406"><span class="hs-identifier hs-var">expmax</span></a></span><span>
 </span><span id="line-44"></span><span>           </span><span class="annot"><span class="annottext">UncheckedMutationCfg
 -&gt; UncheckedMutationCfg -&gt; UncheckedMutationCfg
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; UncheckedMutationCfg
 </span><a href="ITEA.Config.html#termLimit"><span class="hs-identifier hs-var">termLimit</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112850"><span class="hs-identifier hs-var">termmin</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112849"><span class="hs-identifier hs-var">termmax</span></a></span><span>
+</span><a href="#local-6989586621679113405"><span class="hs-identifier hs-var">termmin</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113404"><span class="hs-identifier hs-var">termmax</span></a></span><span>
 </span><span id="line-45"></span><span>           </span><span class="annot"><span class="annottext">UncheckedMutationCfg
 -&gt; UncheckedMutationCfg -&gt; UncheckedMutationCfg
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; UncheckedMutationCfg
 </span><a href="ITEA.Config.html#nonzeroExps"><span class="hs-identifier hs-var">nonzeroExps</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112848"><span class="hs-identifier hs-var">nzExps</span></a></span><span>
+</span><a href="#local-6989586621679113403"><span class="hs-identifier hs-var">nzExps</span></a></span><span>
 </span><span id="line-46"></span><span>           </span><span class="annot"><span class="annottext">UncheckedMutationCfg
 -&gt; UncheckedMutationCfg -&gt; UncheckedMutationCfg
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Funcs -&gt; UncheckedMutationCfg
 </span><a href="ITEA.Config.html#transFunctions"><span class="hs-identifier hs-var">transFunctions</span></a></span><span> </span><span class="annot"><span class="annottext">Funcs
-</span><a href="#local-6989586621679112847"><span class="hs-identifier hs-var">tfuncs</span></a></span><span>
+</span><a href="#local-6989586621679113402"><span class="hs-identifier hs-var">tfuncs</span></a></span><span>
 </span><span id="line-47"></span><span>
-</span><span id="line-48"></span><span>    </span><span id="local-6989586621679112835"><span class="annot"><span class="annottext">datasetCfg :: Datasets
-</span><a href="#local-6989586621679112835"><span class="hs-identifier hs-var hs-var">datasetCfg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">UncheckedDatasets -&gt; Datasets
+</span><span id="line-48"></span><span>    </span><span id="local-6989586621679113390"><span class="annot"><span class="annottext">datasetCfg :: Datasets
+</span><a href="#local-6989586621679113390"><span class="hs-identifier hs-var hs-var">datasetCfg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">UncheckedDatasets -&gt; Datasets
 forall a b. Valid a b =&gt; a -&gt; b
 </span><a href="ITEA.Config.html#validateConfig"><span class="hs-identifier hs-var">validateConfig</span></a></span><span>
 </span><span id="line-49"></span><span>               </span><span class="annot"><span class="annottext">(UncheckedDatasets -&gt; Datasets) -&gt; UncheckedDatasets -&gt; Datasets
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>  </span><span class="annot"><span class="annottext">SectionSpec -&gt; UncheckedDatasets
 </span><a href="ITEA.Config.html#trainingset"><span class="hs-identifier hs-var">trainingset</span></a></span><span> </span><span class="annot"><span class="annottext">SectionSpec
-</span><a href="#local-6989586621679112846"><span class="hs-identifier hs-var">trainname</span></a></span><span>
+</span><a href="#local-6989586621679113401"><span class="hs-identifier hs-var">trainname</span></a></span><span>
 </span><span id="line-50"></span><span>               </span><span class="annot"><span class="annottext">UncheckedDatasets -&gt; UncheckedDatasets -&gt; UncheckedDatasets
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">SectionSpec -&gt; UncheckedDatasets
 </span><a href="ITEA.Config.html#testset"><span class="hs-identifier hs-var">testset</span></a></span><span> </span><span class="annot"><span class="annottext">SectionSpec
-</span><a href="#local-6989586621679112845"><span class="hs-identifier hs-var">testname</span></a></span><span>
+</span><a href="#local-6989586621679113400"><span class="hs-identifier hs-var">testname</span></a></span><span>
 </span><span id="line-51"></span><span>
 </span><span id="line-52"></span><span>  </span><span class="hs-comment">-- run ITEA with the given configuration</span><span>
 </span><span id="line-53"></span><span>  </span><span class="annot"><span class="annottext">Datasets -&gt; MutationCfg -&gt; Output -&gt; Int -&gt; Int -&gt; IO ()
 </span><a href="ITEA.Regression.html#runITEAReg"><span class="hs-identifier hs-var">runITEAReg</span></a></span><span> </span><span class="annot"><span class="annottext">Datasets
-</span><a href="#local-6989586621679112835"><span class="hs-identifier hs-var">datasetCfg</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
-</span><a href="#local-6989586621679112841"><span class="hs-identifier hs-var">mutCfg</span></a></span><span> </span><span class="annot"><span class="annottext">Output
-</span><a href="#local-6989586621679112842"><span class="hs-identifier hs-var">log</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112844"><span class="hs-identifier hs-var">nPop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679112843"><span class="hs-identifier hs-var">nGens</span></a></span><span>
+</span><a href="#local-6989586621679113390"><span class="hs-identifier hs-var">datasetCfg</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679113396"><span class="hs-identifier hs-var">mutCfg</span></a></span><span> </span><span class="annot"><span class="annottext">Output
+</span><a href="#local-6989586621679113397"><span class="hs-identifier hs-var">log</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113399"><span class="hs-identifier hs-var">nPop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679113398"><span class="hs-identifier hs-var">nGens</span></a></span><span>
 </span><span id="line-54"></span><span>
 </span><span id="line-55"></span><span class="hs-comment">-- | Parse the filename from the system arguments.</span><span>
 </span><span id="line-56"></span><span class="annot"><a href="RunConfig.html#parseConfigFile"><span class="hs-identifier hs-type">parseConfigFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-57"></span><span id="parseConfigFile"><span class="annot"><span class="annottext">parseConfigFile :: [SectionSpec] -&gt; IO ()
-</span><a href="RunConfig.html#parseConfigFile"><span class="hs-identifier hs-var hs-var">parseConfigFile</span></a></span></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679112830"><span class="annot"><span class="annottext">fname :: SectionSpec
-</span><a href="#local-6989586621679112830"><span class="hs-identifier hs-var">fname</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679112829"><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679112829"><span class="hs-identifier hs-var">exist</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">SectionSpec -&gt; IO Bool
+</span><a href="RunConfig.html#parseConfigFile"><span class="hs-identifier hs-var hs-var">parseConfigFile</span></a></span></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679113385"><span class="annot"><span class="annottext">fname :: SectionSpec
+</span><a href="#local-6989586621679113385"><span class="hs-identifier hs-var">fname</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679113384"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679113384"><span class="hs-identifier hs-var">exist</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">SectionSpec -&gt; IO Bool
 </span><span class="hs-identifier hs-var">doesFileExist</span></span><span> </span><span class="annot"><span class="annottext">SectionSpec
-</span><a href="#local-6989586621679112830"><span class="hs-identifier hs-var">fname</span></a></span><span>
+</span><a href="#local-6989586621679113385"><span class="hs-identifier hs-var">fname</span></a></span><span>
 </span><span id="line-58"></span><span>                             </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><a href="#local-6989586621679112829"><span class="hs-identifier hs-var">exist</span></a></span><span> </span><span>
+</span><a href="#local-6989586621679113384"><span class="hs-identifier hs-var">exist</span></a></span><span> </span><span>
 </span><span id="line-59"></span><span>                              </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">SectionSpec -&gt; IO ()
 </span><a href="RunConfig.html#runWithConfig"><span class="hs-identifier hs-var">runWithConfig</span></a></span><span> </span><span class="annot"><span class="annottext">SectionSpec
-</span><a href="#local-6989586621679112830"><span class="hs-identifier hs-var">fname</span></a></span><span>
+</span><a href="#local-6989586621679113385"><span class="hs-identifier hs-var">fname</span></a></span><span>
 </span><span id="line-60"></span><span>                              </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">SectionSpec -&gt; IO ()
 </span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="annot"><span class="hs-string">&quot;Config file does not exist.&quot;</span></span><span>
 </span><span id="line-61"></span><span class="annot"><a href="RunConfig.html#parseConfigFile"><span class="hs-identifier hs-var">parseConfigFile</span></a></span><span> </span><span class="hs-identifier">_</span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SectionSpec -&gt; IO ()
