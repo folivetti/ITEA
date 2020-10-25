@@ -17,6 +17,7 @@ module ITEA.Regression where
 import IT.ITEA
 import IT.Regression
 import ITEA.Config
+import ITEA.Report
 
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V

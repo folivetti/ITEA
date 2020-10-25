@@ -38,7 +38,7 @@ import System.Random
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
-itea :: (NFData a, NFData b) => Mutation a -> Fitness a b -> Population a b -> Rnd [Population a b]
+itea :: NFData a => Mutation a -> Fitness a -> Population a -> Rnd [Population a]
 itea f g p0 = let n = length p0
               in  iterateM (step f g n) p0
 
@@ -47,8 +47,8 @@ initialPop :: Int                -- ^ dimension
            -> Int                -- ^ maxTerms
            -> Int                -- ^ nPop
            -> Rnd (Term a)       -- ^ random term generator
-           -> Fitness a b        -- ^ fitness function
-           -> Rnd (Population a b)
+           -> Fitness a          -- ^ fitness function
+           -> Rnd (Population a)
 initialPop dim maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
   where
     rndExpr = sampleExpr rndTerm
@@ -64,20 +64,20 @@ initialPop dim maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (rep
 -- selection of these combined population with
 -- the same size as the original population.
 --
-tournament :: Population a b -> Int -> Rnd (Population a b)
-tournament p 0 = return []
+tournament :: Population a -> Int -> Rnd (Population a)
+tournament _ 0 = return []
 tournament p n = do pi <- chooseOne p
                     p' <- tournament p (n-1)
                     return $ pi:p'
   where
-    chooseOne :: Population a b -> Rnd (Solution a b)
+    chooseOne :: Population a -> Rnd (Solution a)
     chooseOne p = do let n = length p
                      c1 <- sampleTo (n-1)
                      c2 <- sampleTo (n-1)
                      return $ min (p !! c1) (p !! c2)
 
 -- | Perform one iteration of ITEA
-step :: (NFData a, NFData b) => Mutation a -> Fitness a b -> Int -> Population a b -> Rnd (Population a b)
+step :: NFData a => Mutation a -> Fitness a -> Int -> Population a -> Rnd (Population a)
 step mutFun fitFun nPop pop = do
   children  <- parRndMap nPop (mutFun . _expr) fitFun pop
   if null children

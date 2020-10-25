@@ -17,6 +17,6 @@ executable itea
   ghc-options:         -rtsopts -Wunused-imports -threaded -eventlog -O2 -optc-O3 
   hs-source-dirs:      src
   main-is:             Main.hs
-  other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.Mutation, IT.Algorithms, ITEA.Config, ITEA.Regression, RunConfig, RunCrossVal
+  other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.Mutation, IT.Algorithms, IT.Eval, IT.Metrics, ITEA.Config, ITEA.Report, ITEA.Regression, RunConfig, RunCrossVal 
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5, random, mtl, hmatrix, containers, vector, split, parallel, deepseq, random-shuffle, mltool, directory, monad-extras, clock, ConfigFile, MissingH

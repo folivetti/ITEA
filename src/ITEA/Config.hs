@@ -20,6 +20,8 @@ import System.Clock
 import IT
 import IT.Algorithms
 import IT.Mutation
+import IT.Eval
+import IT.Metrics
 import IT.Regression
 import IT.Random
 
@@ -45,15 +47,15 @@ instance Semigroup (Param a) where
   _ <> p    = p
 instance Monoid (Param a) where
   mempty = None
-  
+
 -- | Groups of transformation functions 
 data Funcs = FLinear | FNonLinear | FTrig | FAll deriving (Read, Show)
 
 -- | Unchecked mutation config 
-data UncheckedMutationCfg = UMCfg { _expLim   :: (Param (Int, Int))
-                                  , _termLim  :: (Param (Int, Int))
+data UncheckedMutationCfg = UMCfg { _expLim   :: Param (Int, Int)
+                                  , _termLim  :: Param (Int, Int)
                                   , _nzExp    :: Param Int
-                                  , _transFun :: (Param Funcs)
+                                  , _transFun :: Param Funcs
                                   }
 
 -- | Validated mutation config 
@@ -91,7 +93,7 @@ instance Valid UncheckedMutationCfg MutationCfg where
       pexpLim   = fromParam . _expLim
       ptermLim  = fromParam . _termLim
       pnzExp    = fromParam . _nzExp
-      ptransFun = fromParam . _transFun      
+      ptransFun = fromParam . _transFun
 
 getMaxTerms (MCfg _ (_, maxTerms) _ _) = maxTerms
 
@@ -133,145 +135,3 @@ instance Valid UncheckedDatasets Datasets where
   validateConfig (UD None _) = error "No training data was set"
   validateConfig (UD _ None) = error "No test data was set"
   validateConfig (UD tr te) = D (fromParam tr) (fromParam te)
-  
--- | Output configuration  
-data Output = Screen | PartialLog String | FullLog String deriving Read
-
--- | Get best solution from all generations
-getBest :: Int  -> [Population Double RegStats] -> Solution Double RegStats
-getBest n p     = minimum $ getAllBests n p
-getAllBests n p = map minimum (take n p) 
-
--- | Statistic type 
-data StatType = Best | Worst | Avg deriving Show
-
-applyStat f n p = map (map f) $ take n p
-
--- | Get all Best/Worst/Avg from every generation.
-getAll :: StatType -> (RegStats -> Double) -> Int -> [[RegStats]] -> [Double]
-getAll Best f n p  = map minimum (applyStat f n p) 
-getAll Worst f n p = map maximum (applyStat f n p)
-getAll Avg   f n p = map mean    (applyStat f n p)
-  where mean xs = sum xs / fromIntegral (length xs)
-
--- | gets all stats at once instead of going through the list multiple times
-getAllStats :: Int -> [[RegStats]] -> [AggStats]
-getAllStats n p = map myfold (take n p)
-  where
-    myfold :: [RegStats] -> AggStats
-    myfold (p:pi) = let a0 = AS p p p
-                        f p4 (AS p1 p2 p3) = AS (best p1 p4) (worst p2 p4) (avg p3 p4)
-                        a1 = foldr f a0 pi
-                        n  = fromIntegral $ length pi + 1
-                     in getAvg a1 n
-                     
-    best  (RS x1 x2 x3 x4 x5) (RS y1 y2 y3 y4 _) = RS (min x1 y1) (min x2 y2) (min x3 y3) (max x4 y4) x5
-    worst (RS x1 x2 x3 x4 x5) (RS y1 y2 y3 y4 _) = RS (max x1 y1) (max x2 y2) (max x3 y3) (min x4 y4) x5
-    avg   (RS x1 x2 x3 x4 x5) (RS y1 y2 y3 y4 _) = RS (x1 + y1) (x2 + y2) (x3 + y3) (x4 + y4) x5
-    getAvg (AS a1 a2 (RS x1 x2 x3 x4 x5))  n = AS  a1 a2 (RS (x1/n) (x2/n) (x3/n) (x4/n) x5)
-
--- | Creates a file if it does not exist
-createIfDoesNotExist fname = do
-  isCreated <- doesFileExist fname
-  h <- if   isCreated
-       then openFile fname AppendMode
-       else openFile fname WriteMode
-  if isCreated then hPutStrLn h "" else hPutStrLn h headReport
-  return h
-
--- | Generates the reports into the output
-genReports :: Output -> [Population Double RegStats] -> Int -> (Solution Double RegStats -> RegStats) -> IO ()
-genReports Screen pop n fitTest = do
-  let best = getBest n pop
-  putStrLn "Best expression applied to the training set:\n"
-  print best
-  putStrLn "Best expression applied to the test set:\n"
-  print (fitTest best)
-  
-genReports (PartialLog dirname) pop n fitTest = do
-  createDirectoryIfMissing True dirname
-  let fname = dirname ++ "/stats.csv"
-  
-  hStats <- createIfDoesNotExist fname
-
-  let best = getBest n pop
-  
-  t0 <- getTime Realtime
-  print best
-  t1 <- getTime Realtime
-
-  let e = _expr best
-    
-  let bestTest = fitTest best
-      stats = concat $ intersperse "," $ [dirname, show (sec t1 - sec t0)] ++ resultsToStr best bestTest      
-  
-  hPutStr hStats stats
-  hClose hStats
-
-genReports (FullLog dirname) pop n fitTest = do
-  createDirectoryIfMissing True dirname
-  let fname = dirname ++ "/stats.csv"
-  
-  hStats <- createIfDoesNotExist fname
-
-  let best = getBest n pop
-  
-  t0 <- getTime Realtime
-  print best
-  t1 <- getTime Realtime
-   
-  let bestTest = fitTest best
-      stats = concat $ intersperse "," $ [dirname, show (sec t1 - sec t0)] ++ resultsToStr best bestTest      
-  
-  hPutStr hStats stats
-  hClose hStats
-  
-  let statTrain = map (map _stat) pop
-      statTest  = map (map fitTest) pop 
-      evoTrain  = getAllStats n statTrain
-      evoTest   = getAllStats n statTest 
-
-  genEvoReport evoTrain (dirname ++ "/train")
-  genEvoReport evoTest  (dirname ++ "/test")
-
-data AggStats = AS { _best  :: RegStats
-                   , _worst :: RegStats
-                   , _avg   :: RegStats
-                   }
-
-data Metric = RMSE | MAE | NMSE | R2 deriving Show
-
-genEvoStream [x] hs = do
-  let zs = map (show . ($ x)) [_rmse, _mae, _nmse, _r2]
-  zipWithM_ hPutStr hs zs
-
-genEvoStream (x:xs) hs = do
-  let zs = map ((++",") . show . ($ x)) [_rmse, _mae, _nmse, _r2]
-  zipWithM_ hPutStr hs zs
-  genEvoStream xs hs
-
--- | Generates evolution report 
-genEvoReport :: [AggStats] -> String -> IO ()
-genEvoReport stats dirname = do
-  let names     = fmap (dirname++) ["Rmse", "Mae", "Nmse", "R2"]
-      nameBest  = fmap (++"Best.csv") names
-      nameWorst = fmap (++"Worst.csv") names
-      nameAvg   = fmap (++"Avg.csv") names
-  hsBest   <- mapM (\n -> openFile n AppendMode) nameBest
-  hsWorst  <- mapM (\n -> openFile n AppendMode) nameWorst
-  hsAvg    <- mapM (\n -> openFile n AppendMode) nameAvg
-  genEvoStream (fmap _best  stats) hsBest
-  genEvoStream (fmap _worst stats) hsWorst
-  genEvoStream (fmap _avg   stats) hsAvg
-  mapM_ hClose hsBest
-  mapM_ hClose hsWorst
-  mapM_ hClose hsAvg
-
--- | converts a result to a String
-resultsToStr :: Solution Double RegStats -> RegStats -> [String]
-resultsToStr train stest = (map show statlist) ++ [show (_expr train)]
-  where 
-    strain = _stat train
-    statlist = [_rmse strain, _rmse stest, _mae strain, _mae stest, _nmse strain, _nmse stest, _r2 strain, _r2 stest]
-
-headReport = "name,time,RMSE_train,RMSE_test,MAE_train,MAE_test,NMSE_train,NMSE_test,r2_train,r2_test,expr"
