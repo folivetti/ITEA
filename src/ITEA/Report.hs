@@ -17,22 +17,13 @@ import System.Directory
 import System.IO
 import System.Clock
 
-import IT
 import IT.Algorithms
-import IT.Mutation
-import IT.Eval
 import IT.Metrics
-import IT.Regression
-import IT.Random
 
-import Data.List.NonEmpty (NonEmpty, NonEmpty((:|)))
+import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
-import qualified Numeric.LinearAlgebra as LA
-import Control.Monad.State
-import qualified MachineLearning as ML
-import Data.List.Split (splitOn)
-import Data.List (intersperse, intercalate)
+import Data.List (intercalate)
 
 -- | Output configuration  
 data Output = Screen | PartialLog String | FullLog String deriving Read
@@ -75,7 +66,8 @@ createIfDoesNotExist headReport fname = do
   if isCreated then hPutStrLn h "" else hPutStrLn h headReport
   return h
 
-interleave (x:|xs) (y:|ys) = getLeft xs ys [x,y]
+interleave :: [a] -> [a] -> [a]
+interleave xs ys = getLeft xs ys []
   where
     getLeft [] ys zs      = zs ++ ys
     getLeft (x:xs) ys zs  = getRight xs ys (x:zs)
@@ -84,7 +76,7 @@ interleave (x:|xs) (y:|ys) = getLeft xs ys [x,y]
 
 
 -- | Generates the reports into the output
-genReports :: Output -> NonEmpty Measure -> [Population Double] -> Int -> (Solution Double -> Maybe (NonEmpty Double)) -> IO ()
+genReports :: Output -> NonEmpty Measure -> [Population Double] -> Int -> (Solution Double -> Maybe [Double]) -> IO ()
 genReports Screen _ pop n fitTest = do
   let best = getBest n pop
   putStrLn "Best expression applied to the training set:\n"
@@ -97,8 +89,8 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   let
     fname      = dirname ++ "/stats.csv"
     mNames     = NE.map _name measures
-    trainNames = NE.map (++"_train") mNames
-    testNames  = NE.map (++"_test") mNames
+    trainNames = NE.toList $ NE.map (++"_train") mNames
+    testNames  = NE.toList $ NE.map (++"_test") mNames
     headReport = intercalate "," (["name", "time"] ++ interleave trainNames testNames ++ ["expr"])
     best       = getBest n pop 
 
@@ -111,7 +103,7 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   let 
     totTime         = show $ sec t1 - sec t0
     n               = length (_fit best)
-    bestTest        = fromMaybe (NE.fromList $ replicate n (1/0)) $ fitTest best
+    bestTest        = fromMaybe (replicate n (1/0)) $ fitTest best
     measuresResults = map show $ interleave (_fit best) bestTest
     stats           = intercalate "," $ [dirname, totTime] ++ measuresResults ++ [show $ _expr best]
 
@@ -171,4 +163,3 @@ genEvoReport stats dirname = do
   mapM_ hClose hsWorst
   mapM_ hClose hsAvg
 -}
-

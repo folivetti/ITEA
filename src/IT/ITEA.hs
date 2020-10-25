@@ -43,7 +43,8 @@ itea f g p0 = let n = length p0
               in  iterateM (step f g n) p0
 
 -- | Generate an Initial Population at Random
-initialPop :: Int                -- ^ dimension
+initialPop :: NFData a
+           => Int                -- ^ dimension
            -> Int                -- ^ maxTerms
            -> Int                -- ^ nPop
            -> Rnd (Term a)       -- ^ random term generator
@@ -88,7 +89,7 @@ step mutFun fitFun nPop pop = do
 
 -- | Runs in parallel the composition of a function that generates random effects with
 -- a function that maybe returns a result.
-parRndMap :: Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
+parRndMap :: NFData c => Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
 parRndMap nPop rndf randFun pop = state stFun
   where
     stFun seed = let seeds         = genNseeds (nPop+1) seed
@@ -112,7 +113,7 @@ genseeds s = let (s1, s2) = split s
              in  s1 : genseeds s2
 
 -- | Runs a computation that may returns a result in parallel.
-parMaybeMap :: Int -> (a -> Maybe b) -> [a] -> [b]
+parMaybeMap :: NFData b => Int -> (a -> Maybe b) -> [a] -> [b]
 parMaybeMap n f pop = catMaybes parmap
   where
     parmap = map f pop `using` parListChunk n rpar

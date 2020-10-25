@@ -1,6 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeApplications #-}
 {-|
 Module      : Example.Regression
 Description : Example of usage for Symbolic Regression
@@ -51,6 +49,5 @@ runITEAReg (D tr te) mcfg output nPop nGens =
 
         p0       = initialPop dim 4 nPop rndTerm fitTrain      -- initialize de population
         gens     = (p0 >>= itea mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
-        best     = getBest nGens gens                          -- get the best solution of the first gens generations
 
     genReports output measures gens nGens fitTest                       -- create the report

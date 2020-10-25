@@ -13,8 +13,6 @@ Definitions of IT data structure and support functions.
 module IT.Eval where
 
 import Data.Semigroup
-import qualified Data.List.NonEmpty as NE
-
 import qualified Data.Vector as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Map.Strict as M
@@ -98,5 +96,5 @@ cleanExpr rss (Expr e) = Expr (cleanExpr' e)
 -- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution Double -> Bool
 notInfNan s = not (isInfinite f || isNaN f)
-  where f = NE.head $ _fit s
+  where f = head $ _fit s
 

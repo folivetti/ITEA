@@ -76,19 +76,3 @@ _precision = Measure "Precision" undefined
 _f1        = Measure "F1" undefined
 _logloss   = Measure "Log-Loss" undefined
 
--- | Displaying the statistics, one per line
-{-
-instance Show RegStats where
-  show (RS r m n r2 w) = stats ++ "\n\n"
-    where
-      stats = unlines $ zipWith (++) names vals
-      names = ["RMSE: ", "MAE: ", "NMSE: ", "r^2: ", "Weights: "]
-      vals  = [show r, show m, show n, show r2, show w]
-
-instance Show ClasStats where
-  show (CS a r p f1 ll lw) = stats ++ "\n\n"
-    where
-      stats = unlines $ zipWith (++) names vals
-      names = ["Acc.: ", "Recall: ", "Prec.: ", "F1: ", "Log-Loss: ", "Weights: "]
-      vals  = [show a, show r, show p, show f1, show ll, show lw]
--}

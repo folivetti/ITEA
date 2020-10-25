@@ -26,8 +26,8 @@ getSetting cp cat x = forceEither $ get cp cat x
 -- | Read the config file and run the algorithm.
 runWithConfig :: String -> IO ()
 runWithConfig fname = do
-  cp <- return . forceEither =<< readfile emptyCP fname 
-  let 
+  cp <- forceEither <$> readfile emptyCP fname
+  let
     (expmin, expmax)   = getSetting cp "Mutation"  "exponents"
     (termmin, termmax) = getSetting cp "Mutation"  "termlimit"
     nzExps             = getSetting cp "Mutation"  "nonzeroexps"
@@ -55,7 +55,7 @@ runWithConfig fname = do
 -- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()
 parseConfigFile [fname] = do exist <- doesFileExist fname
-                             if exist 
+                             if exist
                               then runWithConfig fname
                               else putStrLn "Config file does not exist."
 parseConfigFile _       = putStrLn "Usage: ./itea config config-file-name"

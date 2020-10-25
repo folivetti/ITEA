@@ -1,5 +1,4 @@
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeApplications #-}
 {-|
 Module      : Example.Regression
 Description : Example of usage for Symbolic Regression
@@ -13,23 +12,16 @@ Configuration parsing and report generation.
 -}
 module ITEA.Config where
 
-import System.Directory
-import System.IO
-import System.Clock
-
 import IT
 import IT.Algorithms
 import IT.Mutation
 import IT.Eval
 import IT.Metrics
-import IT.Regression
 import IT.Random
 
 import qualified Numeric.LinearAlgebra as LA
-import Control.Monad.State
 import qualified MachineLearning as ML
 import Data.List.Split (splitOn)
-import Data.List (intersperse)
 
 -- | Class of types that can be validate
 class Monoid a => Valid a b | a -> b, b -> a where

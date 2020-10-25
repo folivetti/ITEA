@@ -16,7 +16,6 @@ import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
 
 import Data.List
-import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
 import Data.Ord
 import Data.Maybe
@@ -53,7 +52,7 @@ validateArgs _ = error "Usage: crossval dataname fold"
 
 -- | Runs a single experiment with a given configuration
 runITEARegCV :: Fitness Double                         -- ^ Training fitness function
-             -> (Solution Double -> Maybe (NonEmpty Double))          -- ^ Test fitness function
+             -> (Solution Double -> Maybe [Double])          -- ^ Test fitness function
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
@@ -68,14 +67,14 @@ runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
       p0                 = initialPop dim 4 nPop rndTerm fitTrain
       gens               = (p0 >>= itea mutFun fitTrain) `evalState` g
       best               = getBest nGens gens
-      result             = fromMaybe (NE.fromList [1/0]) $ fitTest best
-  (return.NE.head) result
+      result             = fromMaybe [1/0] $ fitTest best
+  (return.head) result
 
 
 -- | runs a configuration for a given data set
 runCfg :: String -> Int -> (MutationCfg, Int, Int) -> IO Double
 runCfg dname fold (mutCfg, pop, gen) = do
-  let fname = "datasets/" ++ dname ++ "/" ++ dname ++ "-train-" ++ show 0 ++ ".dat"
+  let fname = "datasets/" ++ dname ++ "/" ++ dname ++ "-train-" ++ show fold ++ ".dat"
 
   (trainX, trainY) <- parseFile <$> readFile fname
   g <- newStdGen
