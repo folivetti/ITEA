@@ -25,6 +25,9 @@ import IT.Metrics
 import IT.Regression
 import IT.Random
 
+import Data.List.NonEmpty (NonEmpty, NonEmpty((:|)))
+import qualified Data.List.NonEmpty as NE
+import Data.Maybe
 import qualified Numeric.LinearAlgebra as LA
 import Control.Monad.State
 import qualified MachineLearning as ML
@@ -39,29 +42,29 @@ getBest :: Int  -> [Population Double] -> Solution Double
 getBest n ps     = minimum $ getAllBests n ps
 getAllBests n ps = map minimum $ take n ps
 
-data AggStats = AS { _best  :: [Double]
-                   , _worst :: [Double]
-                   , _avg   :: [Double]
+data AggStats = AS { _best  :: NonEmpty Double
+                   , _worst :: NonEmpty Double
+                   , _avg   :: NonEmpty Double
                    }
 
 -- | gets all stats at once instead of going through the list multiple times
-getAllStats :: Int -> [[[Double]]] -> [AggStats]
+getAllStats :: Int -> [[NonEmpty Double]] -> [AggStats]
 getAllStats n p = map myfold $ take n p
   where
     combineAS (AS x y z) (AS a b c) = AS (best x a) (worst y b) (avg z c)
 
     nPop = fromIntegral $ length $ head p
 
-    myfold :: [[Double]] -> AggStats
+    myfold :: [NonEmpty Double] -> AggStats
     myfold ps = getAvg
               $ foldr1 combineAS
               $ map (\p -> AS p p p) ps
 
-    best  = zipWith min
-    worst = zipWith max
-    avg   = zipWith (+)
+    best  = NE.zipWith min
+    worst = NE.zipWith max
+    avg   = NE.zipWith (+)
 
-    getAvg (AS a1 a2 a3) = AS a1 a2 (map (/nPop) a3)
+    getAvg (AS a1 a2 a3) = AS a1 a2 (NE.map (/nPop) a3)
 
 -- | Creates a file if it does not exist
 createIfDoesNotExist headReport fname = do
@@ -72,7 +75,7 @@ createIfDoesNotExist headReport fname = do
   if isCreated then hPutStrLn h "" else hPutStrLn h headReport
   return h
 
-interleave xs ys = getLeft xs ys []
+interleave (x:|xs) (y:|ys) = getLeft xs ys [x,y]
   where
     getLeft [] ys zs      = zs ++ ys
     getLeft (x:xs) ys zs  = getRight xs ys (x:zs)
@@ -81,7 +84,7 @@ interleave xs ys = getLeft xs ys []
 
 
 -- | Generates the reports into the output
-genReports :: Output -> [Measure] -> [Population Double] -> Int -> (Solution Double -> Maybe [Double]) -> IO ()
+genReports :: Output -> NonEmpty Measure -> [Population Double] -> Int -> (Solution Double -> Maybe (NonEmpty Double)) -> IO ()
 genReports Screen _ pop n fitTest = do
   let best = getBest n pop
   putStrLn "Best expression applied to the training set:\n"
@@ -93,9 +96,9 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   createDirectoryIfMissing True dirname
   let
     fname      = dirname ++ "/stats.csv"
-    mNames     = map _name measures
-    trainNames = map (++"_train") mNames
-    testNames  = map (++"_test") mNames
+    mNames     = NE.map _name measures
+    trainNames = NE.map (++"_train") mNames
+    testNames  = NE.map (++"_test") mNames
     headReport = intercalate "," (["name", "time"] ++ interleave trainNames testNames ++ ["expr"])
     best       = getBest n pop 
 
@@ -106,10 +109,11 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   t1 <- getTime Realtime
 
   let 
-    totTime  = show $ sec t1 - sec t0
-    bestTest = fitTest best
+    totTime         = show $ sec t1 - sec t0
+    n               = length (_fit best)
+    bestTest        = fromMaybe (NE.fromList $ replicate n (1/0)) $ fitTest best
     measuresResults = map show $ interleave (_fit best) bestTest
-    stats    = intercalate "," $ [dirname, totTime] ++ measuresResults + [show $ _expr best]
+    stats           = intercalate "," $ [dirname, totTime] ++ measuresResults ++ [show $ _expr best]
 
   hPutStr hStats stats
   hClose hStats

@@ -16,8 +16,11 @@ module ITEA.Regression where
 
 import IT.ITEA
 import IT.Regression
+import IT.Metrics
 import ITEA.Config
 import ITEA.Report
+
+import Data.List.NonEmpty
 
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
@@ -39,8 +42,9 @@ runITEAReg (D tr te) mcfg output nPop nGens =
     let
         xss      = V.fromList $ LA.toColumns trainX
         xss'     = V.fromList $ LA.toColumns testX
-        fitTrain = fitnessReg xss trainY    -- create the fitness function
-        fitTest  = fitnessTest xss' testY         -- create the fitness for the test set
+        measures = fromList [_rmse, _mae, _nmse, _r2]
+        fitTrain = evalTrain measures xss trainY    -- create the fitness function
+        fitTest  = evalTest measures xss' testY         -- create the fitness for the test set
         dim      = LA.cols trainX
 
         (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
@@ -49,4 +53,4 @@ runITEAReg (D tr te) mcfg output nPop nGens =
         gens     = (p0 >>= itea mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
         best     = getBest nGens gens                          -- get the best solution of the first gens generations
 
-    genReports output gens nGens fitTest                       -- create the report
+    genReports output measures gens nGens fitTest                       -- create the report

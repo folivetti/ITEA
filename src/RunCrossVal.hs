@@ -16,7 +16,10 @@ import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
 
 import Data.List
+import Data.List.NonEmpty (NonEmpty)
+import qualified Data.List.NonEmpty as NE
 import Data.Ord
+import Data.Maybe
 
 import Control.Monad
 import Control.Monad.State
@@ -28,6 +31,7 @@ import ITEA.Report
 import IT.ITEA
 import IT.Regression
 import IT.Algorithms
+import IT.Metrics
 
 -- | Returns the mutation configuration, population size and number of generations.
 --
@@ -49,7 +53,7 @@ validateArgs _ = error "Usage: crossval dataname fold"
 
 -- | Runs a single experiment with a given configuration
 runITEARegCV :: Fitness Double                         -- ^ Training fitness function
-             -> (Solution Double -> [Double])          -- ^ Test fitness function
+             -> (Solution Double -> Maybe (NonEmpty Double))          -- ^ Test fitness function
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
@@ -64,8 +68,8 @@ runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
       p0                 = initialPop dim 4 nPop rndTerm fitTrain
       gens               = (p0 >>= itea mutFun fitTrain) `evalState` g
       best               = getBest nGens gens
-  (return._rmse.fitTest)  best
-
+      result             = fromMaybe (NE.fromList [1/0]) $ fitTest best
+  (return.NE.head) result
 
 
 -- | runs a configuration for a given data set
@@ -97,9 +101,10 @@ runCfg dname fold (mutCfg, pop, gen) = do
       tvXs  = map (getX.snd) folds
 
       toRegMtx = V.fromList . LA.toColumns
+      criteria = NE.fromList [_rmse]
 
-      fitTrains = zipWith (\x y  -> evalTrain (toRegMtx x) y) trXs trYs
-      fitTests  =  zipWith (\x y -> evalTest (toRegMtx x) y) tvXs tvYs
+      fitTrains = zipWith (\x y  -> evalTrain criteria (toRegMtx x) y) trXs trYs
+      fitTests  =  zipWith (\x y -> evalTest criteria (toRegMtx x) y) tvXs tvYs
 
       average xs = sum xs / fromIntegral (length xs)
 

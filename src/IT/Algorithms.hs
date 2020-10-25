@@ -16,29 +16,30 @@ import IT
 import IT.Random
 import IT.Metrics
 
+import Data.List.NonEmpty as NE
 import Control.DeepSeq
 
 -- | data type containing a solution, its fitness and weight vector 
 --  'a' refers to the type of 'Expr', 'b' refers to a container of statistics.
 data Solution a = Sol { _expr    :: Expr a     -- ^ The IT expression of type a
-                      , _fit     :: [Double]   -- ^ Fitness and other measures for evaluating the expression
+                      , _fit     :: NonEmpty Double   -- ^ Fitness and other measures for evaluating the expression
                       , _weights :: Vector
                       }
 
 instance Show a => Show (Solution a) where
-  show (Sol e f w) = "Expression: " ++ show e ++ "\nFitness: " ++ (show.head) f ++ "\nWeights: " ++  show w
+  show (Sol e f w) = "Expression: " ++ show e ++ "\nFitness: " ++ (show . NE.head) f ++ "\nWeights: " ++  show w
   
 -- | These instances are only to find the best and worst individuals
 -- of a population.
 instance Eq (Solution a) where
   -- | 'Eq' instance to sort a sequence
   -- of solutions by fitness
-  s1 == s2 = (head._fit) s1 == (head._fit) s2
+  s1 == s2 = (NE.head._fit) s1 == (NE.head._fit) s2
 
 instance Ord (Solution a) where
   -- | 'Ord' instance to sort a sequence
   -- of solutions by fitness
-  s1 <= s2 = (head._fit) s1 <= (head._fit) s2
+  s1 <= s2 = (NE.head._fit) s1 <= (NE.head._fit) s2
 
 -- | A population of 'Solution a b'
 type Population a = [Solution a]

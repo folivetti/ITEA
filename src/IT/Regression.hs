@@ -17,6 +17,7 @@ import IT.Algorithms
 import IT.Eval
 import IT.Metrics
 
+import Data.List.NonEmpty as NE
 import qualified Data.Vector.Storable as V
 import qualified Numeric.LinearAlgebra as LA
 
@@ -54,22 +55,22 @@ classify = undefined
 --  run a Linear regression on the evaluated expressions
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
-evalTrain :: [Measure] -> Dataset Double -> Vector -> Expr Double -> Maybe (Solution Double)
+evalTrain :: NonEmpty Measure -> Dataset Double -> Vector -> Expr Double -> Maybe (Solution Double)
 evalTrain measures xss ys expr
   | notInfNan ps = Just ps 
   | otherwise    = Nothing
   where
     zss         = exprToMatrix xss expr
-    fitFun      = _fun . head $ measures
+    fitFun      = _fun . NE.head $ measures
     (ysHat, ws) = tryToRound (fitFun ys) zss $ regress ys expr zss
-    fit         = map ((`uncurry` (ys, ysHat)) . _fun) measures
+    fit         = NE.map ((`uncurry` (ys, ysHat)) . _fun) measures
     ps          = Sol expr fit ws
 
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.
 -- It was: fitnessTest
-evalTest :: [Measure] -> Dataset Double -> Vector -> Solution Double -> Maybe [Double]
+evalTest :: NonEmpty Measure -> Dataset Double -> Vector -> Solution Double -> Maybe (NonEmpty Double)
 evalTest measures xss ys sol 
   | V.length ws /= LA.cols zss = Nothing
   | otherwise                  = Just fit
@@ -77,7 +78,7 @@ evalTest measures xss ys sol
     zss   = exprToMatrix xss (_expr sol)
     ws    = _weights sol
     ysHat = predict zss ws
-    fit   = map ((`uncurry` (ys, ysHat)) . _fun) measures
+    fit   = NE.map ((`uncurry` (ys, ysHat)) . _fun) measures
 
 -- | Experimental: round off floating point to the 1e-10 place.
 roundoff :: RealFrac a => a -> a
