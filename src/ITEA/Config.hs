@@ -33,6 +33,7 @@ data Param a = None | Has a deriving Show
 -- | Extract parameter. This is a partial function.
 fromParam :: Param a -> a
 fromParam (Has x) = x
+fromParam None    = error "fromParam: empty value"
 
 instance Semigroup (Param a) where
   p <> None = p
@@ -40,23 +41,21 @@ instance Semigroup (Param a) where
 instance Monoid (Param a) where
   mempty = None
 
--- | Groups of transformation functions 
-data Funcs = FLinear | FNonLinear | FTrig | FAll deriving (Read, Show)
-
 -- | Unchecked mutation config 
 data UncheckedMutationCfg = UMCfg { _expLim   :: Param (Int, Int)
                                   , _termLim  :: Param (Int, Int)
                                   , _nzExp    :: Param Int
-                                  , _transFun :: Param Funcs
+                                  , _transFun :: Param [String]
+                                  , _measures :: Param [String]
                                   }
 
 -- | Validated mutation config 
-data MutationCfg = MCfg (Int, Int) (Int, Int) Int Funcs deriving Show
+data MutationCfg = MCfg (Int, Int) (Int, Int) Int [String] [String] deriving Show
 
 instance Semigroup UncheckedMutationCfg where
-  (UMCfg p1 p2 p3 p4) <> (UMCfg q1 q2 q3 q4) = UMCfg (p1<>q1) (p2<>q2) (p3<>q3) (p4<>q4)
+  (UMCfg p1 p2 p3 p4 p5) <> (UMCfg q1 q2 q3 q4 q5) = UMCfg (p1<>q1) (p2<>q2) (p3<>q3) (p4<>q4) (p5<>q5)
 instance Monoid UncheckedMutationCfg where
-  mempty = UMCfg mempty mempty mempty mempty
+  mempty = UMCfg mempty mempty mempty mempty mempty
 
 -- | Generates a configuration with only '_expLim' holding a value.
 exponents :: Int -> Int -> UncheckedMutationCfg
@@ -71,23 +70,35 @@ nonzeroExps :: Int -> UncheckedMutationCfg
 nonzeroExps x = mempty { _nzExp = Has x }
 
 -- | Generates a configuration with only '_transFun' holding a value.
-transFunctions :: Funcs -> UncheckedMutationCfg
+transFunctions :: [String] -> UncheckedMutationCfg
 transFunctions  fs  = mempty { _transFun = Has fs }
+
+-- | Generates a configuration with only '_measures' holding a value.
+measures :: [String] -> UncheckedMutationCfg
+measures ms = mempty { _measures = Has ms }
 
 instance Valid UncheckedMutationCfg MutationCfg where
   -- validateConfig :: UncheckedMutationCfg -> MutationCfg
-  validateConfig (UMCfg None _ _ _) = error "No exponent limits set"
-  validateConfig (UMCfg _ None _ _) = error "No expression size limits set"
-  validateConfig (UMCfg _ _ None _) = error "No maximum non-zero exponents set"
-  validateConfig (UMCfg _ _ _ None) = error "No transformation functions chosen"
-  validateConfig c = MCfg (pexpLim c) (ptermLim c) (pnzExp c) (ptransFun c)
+  validateConfig (UMCfg None _ _ _ _) = error "No exponent limits set"
+  validateConfig (UMCfg _ None _ _ _) = error "No expression size limits set"
+  validateConfig (UMCfg _ _ None _ _) = error "No maximum non-zero exponents set"
+  validateConfig (UMCfg _ _ _ None _) = error "No transformation functions chosen"
+  validateConfig (UMCfg _ _ _ (Has []) _) = error "No transformation functions chosen"
+  validateConfig (UMCfg _ _ _ _ None) = error "No error functions chosen"
+  validateConfig (UMCfg _ _ _ _ (Has [])) = error "No error functions chosen"
+  validateConfig c = MCfg (pexpLim c) (ptermLim c) (pnzExp c) (ptransFun c) (pmeasure c)
     where
       pexpLim   = fromParam . _expLim
       ptermLim  = fromParam . _termLim
       pnzExp    = fromParam . _nzExp
       ptransFun = fromParam . _transFun
+      pmeasure  = fromParam . _measures
 
-getMaxTerms (MCfg _ (_, maxTerms) _ _) = maxTerms
+getMaxTerms :: MutationCfg -> Int
+getMaxTerms (MCfg _ (_, maxTerms) _ _ _) = maxTerms
+
+getMeasure :: MutationCfg -> [Measure]
+getMeasure  (MCfg _ _ _ _ m) = map toMeasure m
 
 -- | Parse a numerical csv file into predictors and target variables
 parseFile :: String -> (LA.Matrix Double, Vector)
@@ -97,15 +108,11 @@ parseFile css = ML.splitToXY . LA.fromLists $ map (map read) dat
 
 -- | Creates the mutation function and also returns the random term generator (for initialization)
 withMutation :: MutationCfg -> Int -> (Mutation Double, Rnd (Term Double))
-withMutation (MCfg elim tlim nzExp transfun) dim = (mutFun dim elim tlim rndTerm rndTrans, rndTerm)
+withMutation (MCfg elim tlim nzExp transfun _) dim = (mutFun dim elim tlim rndTerm rndTrans, rndTerm)
   where
-    trans FLinear = regLinear
-    trans FNonLinear = regNonLinear
-    trans FTrig = regTrig
-    trans FAll = regAll
     (minExp, maxExp) = elim
     rndInter = sampleInterMax dim nzExp minExp maxExp
-    rndTrans = sampleTrans (trans transfun)
+    rndTrans = sampleTrans (map toTrans transfun)
     rndTerm  = sampleTerm rndTrans rndInter
 
 -- * Datasets configuration

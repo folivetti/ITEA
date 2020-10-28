@@ -31,6 +31,7 @@ data Output = Screen | PartialLog String | FullLog String deriving Read
 -- | Get best solution from all generations
 getBest :: Int  -> [Population Double] -> Solution Double
 getBest n ps     = minimum $ getAllBests n ps
+getAllBests :: Int -> [Population Double] -> [Solution Double]
 getAllBests n ps = map minimum $ take n ps
 
 data AggStats = AS { _best  :: NonEmpty Double
@@ -49,7 +50,7 @@ getAllStats n p = map myfold $ take n p
     myfold :: [NonEmpty Double] -> AggStats
     myfold ps = getAvg
               $ foldr1 combineAS
-              $ map (\p -> AS p p p) ps
+              $ map (\p_i -> AS p_i p_i p_i) ps
 
     best  = NE.zipWith min
     worst = NE.zipWith max
@@ -58,6 +59,7 @@ getAllStats n p = map myfold $ take n p
     getAvg (AS a1 a2 a3) = AS a1 a2 (NE.map (/nPop) a3)
 
 -- | Creates a file if it does not exist
+createIfDoesNotExist :: String -> FilePath -> IO Handle
 createIfDoesNotExist headReport fname = do
   isCreated <- doesFileExist fname
   h <- if   isCreated
@@ -67,7 +69,7 @@ createIfDoesNotExist headReport fname = do
   return h
 
 interleave :: [a] -> [a] -> [a]
-interleave xs ys = getLeft xs ys []
+interleave xs' ys' = getLeft xs' ys' []
   where
     getLeft [] ys zs      = zs ++ ys
     getLeft (x:xs) ys zs  = getRight xs ys (x:zs)
@@ -102,16 +104,17 @@ genReports (PartialLog dirname) measures pop n fitTest = do
 
   let 
     totTime         = show $ sec t1 - sec t0
-    n               = length (_fit best)
-    bestTest        = fromMaybe (replicate n (1/0)) $ fitTest best
+    nFit            = length (_fit best)
+    bestTest        = fromMaybe (replicate nFit (1/0)) $ fitTest best
     measuresResults = map show $ interleave (_fit best) bestTest
     stats           = intercalate "," $ [dirname, totTime] ++ measuresResults ++ [show $ _expr best]
 
   hPutStr hStats stats
   hClose hStats
 
+genReports (FullLog dirname) _ pop n fitTest = undefined
 {-
-genReports (FullLog dirname) pop n fitTest = do
+ do
   createDirectoryIfMissing True dirname
   let fname = dirname ++ "/stats.csv"
 

@@ -94,10 +94,10 @@ roundoff x
   where thr = 1e-10
 
 -- what to do with you?
+tryToRound :: (Vector -> Double) -> LA.Matrix Double -> (Vector, Vector) -> (Vector, Vector)
 tryToRound f zss (ysHat, ws) =
   let ws'         = V.map roundoff ws
       ysHat'      = predict zss ws'
   in  if abs (f ysHat' - f ysHat) < 0.01
           then (ysHat', ws')
           else (ysHat, ws)
-

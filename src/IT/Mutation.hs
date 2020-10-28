@@ -63,7 +63,9 @@ replaceTerm dim minExp maxExp e = do let n = numberOfTerms e
                                          e' = removeIthTerm i e
                                      t' <- rndReplaceStrength dim t minExp maxExp
                                      return (t' `consTerm` e')
-  where fromJust (Just x) = x
+  where 
+    fromJust (Just x) = x
+    fromJust Nothing  = error "Couldn't get i-th term in replaceTerm"  -- this should never happen
 
 -- | replaces a strength at random
 rndReplaceStrength :: Int -> Term a -> Int -> Int -> Rnd (Term a)
@@ -80,10 +82,11 @@ replaceTrans rndTrans e = do let n = numberOfTerms e
                              tr <- rndTrans
                              return (replace i tr e)
   where
-    change tr' (Term tr i)     = Term tr' i
-    replace 0  tr (Expr [])    = Expr []
-    replace 0  tr (Expr (t:e)) = Expr (change tr t : e)
-    replace i  tr (Expr (t:e)) = t `consTerm` replace (i-1) tr (Expr e)
+    change tr' (Term _ i)       = Term tr' i
+    replace 0  _  (Expr [])     = Expr []
+    replace _  _  (Expr [])     = error "Empty expression in replaceTrans"
+    replace 0  tr (Expr (t:es)) = Expr (change tr t : es)
+    replace i  tr (Expr (t:es)) = t `consTerm` replace (i-1) tr (Expr es)
 
 -- | Combine two interactions with `op` operation (use (+) or (-)
 -- for positive and negative interaction)
@@ -101,11 +104,13 @@ combineInter op minExp maxExp e = do let n = numberOfTerms e
   where
     allZeros (Term _  is) = M.size is == 0
     fromJust (Just x)     = x
+    fromJust Nothing      = error "Couldn't get a term in combineInter"
 
     combineBoth (Term tr1 int1) (Term _ int2) = Term tr1 (M.filter (/=0) $ M.unionWith (\i1 i2 -> minmax (i1 `op` i2)) int1 int2)
     minmax x = min maxExp $ max minExp x
 
 -- | Positive and Negative interaction mutations
+positiveInter, negativeInter :: Int -> Int -> Mutation a
 positiveInter = combineInter (+)
 negativeInter = combineInter (-)
 

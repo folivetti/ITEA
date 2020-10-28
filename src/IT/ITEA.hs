@@ -44,13 +44,12 @@ itea f g p0 = let n = length p0
 
 -- | Generate an Initial Population at Random
 initialPop :: NFData a
-           => Int                -- ^ dimension
-           -> Int                -- ^ maxTerms
+           => Int                -- ^ maxTerms
            -> Int                -- ^ nPop
            -> Rnd (Term a)       -- ^ random term generator
            -> Fitness a          -- ^ fitness function
            -> Rnd (Population a)
-initialPop dim maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
+initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
   where
     rndExpr = sampleExpr rndTerm
 
@@ -67,15 +66,15 @@ initialPop dim maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (rep
 --
 tournament :: Population a -> Int -> Rnd (Population a)
 tournament _ 0 = return []
-tournament p n = do pi <- chooseOne p
-                    p' <- tournament p (n-1)
-                    return $ pi:p'
-  where
-    chooseOne :: Population a -> Rnd (Solution a)
-    chooseOne p = do let n = length p
-                     c1 <- sampleTo (n-1)
-                     c2 <- sampleTo (n-1)
-                     return $ min (p !! c1) (p !! c2)
+tournament p n = do p_i <- chooseOne p
+                    p'  <- tournament p (n-1)
+                    return $ p_i:p'
+
+chooseOne :: Population a -> Rnd (Solution a)
+chooseOne p = do let n = length p
+                 c1 <- sampleTo (n-1)
+                 c2 <- sampleTo (n-1)
+                 return $ min (p !! c1) (p !! c2)
 
 -- | Perform one iteration of ITEA
 step :: NFData a => Mutation a -> Fitness a -> Int -> Population a -> Rnd (Population a)

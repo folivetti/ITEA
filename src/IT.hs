@@ -99,7 +99,7 @@ instance Show a => Show (Term a) where
        showInter es = (intercalate "*" . filter (/="") . map show')
                     $ M.toList es
          where
-           show' (n, 0) = ""
+           show' (_, 0) = ""
            show' (n, 1) = 'x' : show n
            show' (n, e) = ('x' : show n) ++ "^(" ++  show e ++ ")"
 

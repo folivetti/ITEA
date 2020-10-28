@@ -33,6 +33,7 @@ sampleInterMax :: Int               -- ^ problem dimension
 sampleInterMax dim budget minExp maxExp = do es <- sampleInterMax' dim budget minExp maxExp
                                              return $ M.fromList es
 
+sampleInterMax' :: Int -> Int -> Int -> Int -> Rnd [(Int, Int)]
 sampleInterMax' 0   _      _      _      = return []
 sampleInterMax' _   0      _      _      = return []
 sampleInterMax' 1   _      minExp maxExp = do e <- sampleNZRng minExp maxExp
@@ -53,6 +54,7 @@ sampleInter :: Int               -- ^ problem dimension
 sampleInter dim minExp maxExp = do es <- sampleInter' dim minExp maxExp
                                    return $ M.fromList es
 
+sampleInter' :: Int -> Int -> Int -> Rnd [(Int, Int)]
 sampleInter' 0   _      _      = return []
 sampleInter' dim minExp maxExp = do e  <- sampleRng minExp maxExp
                                     es <- sampleInter' (dim-1) minExp maxExp

@@ -43,7 +43,7 @@ createMutCfg (e1,e2) tmax pop = (cfg, pop, 100000 `div` pop)
             $  exponents e1 e2
             <> termLimit 2 tmax
             <> nonzeroExps 1
-            <> transFunctions FAll
+            <> transFunctions ["id","sin","cos", "tanh", "sqrt.abs", "log", "exp"]
 
 -- | Validates the program arguments
 validateArgs :: [String] -> (String, Int)
@@ -64,7 +64,7 @@ runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
 
   -- run ITEA with given configuration
   let (mutFun, rndTerm)  = withMutation mcfg dim
-      p0                 = initialPop dim 4 nPop rndTerm fitTrain
+      p0                 = initialPop 4 nPop rndTerm fitTrain
       gens               = (p0 >>= itea mutFun fitTrain) `evalState` g
       best               = getBest nGens gens
       result             = fromMaybe [1/0] $ fitTest best
@@ -83,11 +83,12 @@ runCfg dname fold (mutCfg, pop, gen) = do
       dim   = LA.cols trainX
 
       -- random 5-cv split
+      cycle' []     = []
       cycle' (x:xs) = xs ++ [x]
-      rndix  = shuffle' [0 .. (nRows-1)] nRows g
-      nRows' = nRows `div` 5
-      idxs   = [take nRows' $ drop (i*nRows') rndix | i <- [0..4]]
-      folds  = take 5 $ map (\(x:xs) -> (concat xs,x)) $ iterate cycle' idxs
+      rndix         = shuffle' [0 .. (nRows-1)] nRows g
+      nRows'        = nRows `div` 5
+      idxs          = [take nRows' $ drop (i*nRows') rndix | i <- [0..4]]
+      folds         = take 5 $ map (\(x:xs) -> (concat xs,x)) $ iterate cycle' idxs
 
       -- tr = training, tv = validation
       getY is = LA.flatten $ LA.asColumn trainY LA.?? (LA.Pos (LA.idxs is), LA.All)

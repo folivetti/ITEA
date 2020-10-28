@@ -14,7 +14,6 @@ module ITEA.Regression where
 
 import IT.ITEA
 import IT.Regression
-import IT.Metrics
 import ITEA.Config
 import ITEA.Report
 
@@ -38,16 +37,16 @@ runITEAReg (D tr te) mcfg output nPop nGens =
     (trainX, trainY) <- parseFile <$> readFile tr
     (testX,  testY ) <- parseFile <$> readFile te
     let
-        xss      = V.fromList $ LA.toColumns trainX
-        xss'     = V.fromList $ LA.toColumns testX
-        measures = fromList [_rmse, _mae, _nmse, _r2]
-        fitTrain = evalTrain measures xss trainY    -- create the fitness function
-        fitTest  = evalTest measures xss' testY         -- create the fitness for the test set
-        dim      = LA.cols trainX
+        xss         = V.fromList $ LA.toColumns trainX
+        xss'        = V.fromList $ LA.toColumns testX
+        measureList = fromList $ getMeasure mcfg -- [_rmse, _mae, _nmse, _r2]
+        fitTrain    = evalTrain measureList xss trainY        -- create the fitness function
+        fitTest     = evalTest measureList xss' testY         -- create the fitness for the test set
+        dim         = LA.cols trainX
 
         (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
 
-        p0       = initialPop dim 4 nPop rndTerm fitTrain      -- initialize de population
+        p0       = initialPop 4 nPop rndTerm fitTrain      -- initialize de population
         gens     = (p0 >>= itea mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
 
-    genReports output measures gens nGens fitTest                       -- create the report
+    genReports output measureList gens nGens fitTest                       -- create the report

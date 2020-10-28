@@ -16,6 +16,7 @@ import Data.Semigroup
 import qualified Data.Vector as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Map.Strict as M
+import Data.Char
 
 import IT
 import IT.Algorithms
@@ -42,7 +43,7 @@ instance IT Double where
   itWeight w = LA.cmap (w*)
 
 -- | Transformation Functions
-regSin, regCos, regTan, regTanh, regSqrt, regAbsSqrt, regLog, regExp :: Transformation Double
+regId, regSin, regCos, regTan, regTanh, regSqrt, regAbsSqrt, regLog, regExp :: Transformation Double
 regSin     = Transformation "sin" sin
 regCos     = Transformation "cos" cos
 regTan     = Transformation "tan" tan
@@ -53,11 +54,25 @@ regAbsSqrt = Transformation "sqrt.abs" (sqrt.abs)
 regLog     = Transformation "log" log
 regExp     = Transformation "exp" exp
 
-regTrig      = [regSin, regCos, regTanh] -- regTan
-regNonLinear = [regExp, regLog, regAbsSqrt] -- regSqrt regExp
+regId      = Transformation "id" id
+
+regAll, regTrig, regNonLinear, regLinear :: [Transformation Double]
+regTrig      = [regSin, regCos, regTanh] 
+regNonLinear = [regExp, regLog, regAbsSqrt] 
 regLinear    = [Transformation "id" id]
 
-regAll = regTrig ++ regNonLinear ++ regLinear
+-- | List of all transformation functions 
+regAll = [regId, regSin, regCos, regTan, regTanh, regSqrt, regAbsSqrt, regLog, regExp]
+
+-- | Convert a string to a Transformation Function
+toTrans :: String -> Transformation Double
+toTrans input
+  | null cmp  = error ("Invalid function name " ++ input)
+  | otherwise = (snd.head) cmp 
+  where
+    cmp    = filter fst $ map isThis regAll
+    input' = map toLower input
+    isThis t@(Transformation name _) = (name == input', t)
 
 -- | A value is invalid if it's wether NaN or Infinite
 isInvalid :: Double -> Bool
@@ -89,12 +104,11 @@ cleanExpr :: Dataset Double -> Expr Double -> Expr Double
 cleanExpr rss (Expr e) = Expr (cleanExpr' e)
   where
     cleanExpr' [] = []
-    cleanExpr' (t:e) = if ((/=[]) . LA.find isInvalid . evalTerm t) rss
-                       then cleanExpr' e
-                       else t : cleanExpr' e
+    cleanExpr' (t:ts) = if ((/=[]) . LA.find isInvalid . evalTerm t) rss
+                       then cleanExpr' ts
+                       else t : cleanExpr' ts
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution Double -> Bool
 notInfNan s = not (isInfinite f || isNaN f)
   where f = head $ _fit s
-
