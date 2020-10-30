@@ -23,7 +23,9 @@ import IT.Metrics
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
-import Data.List (intercalate)
+import Data.List (intercalate, transpose, foldl1', foldl')
+import Control.Monad
+import Control.DeepSeq
 
 -- | Output configuration  
 data Output = Screen | PartialLog String | FullLog String deriving Read
@@ -31,32 +33,9 @@ data Output = Screen | PartialLog String | FullLog String deriving Read
 -- | Get best solution from all generations
 getBest :: Int  -> [Population Double] -> Solution Double
 getBest n ps     = minimum $ getAllBests n ps
+
 getAllBests :: Int -> [Population Double] -> [Solution Double]
 getAllBests n ps = map minimum $ take n ps
-
-data AggStats = AS { _best  :: NonEmpty Double
-                   , _worst :: NonEmpty Double
-                   , _avg   :: NonEmpty Double
-                   }
-
--- | gets all stats at once instead of going through the list multiple times
-getAllStats :: Int -> [[NonEmpty Double]] -> [AggStats]
-getAllStats n p = map myfold $ take n p
-  where
-    combineAS (AS x y z) (AS a b c) = AS (best x a) (worst y b) (avg z c)
-
-    nPop = fromIntegral $ length $ head p
-
-    myfold :: [NonEmpty Double] -> AggStats
-    myfold ps = getAvg
-              $ foldr1 combineAS
-              $ map (\p_i -> AS p_i p_i p_i) ps
-
-    best  = NE.zipWith min
-    worst = NE.zipWith max
-    avg   = NE.zipWith (+)
-
-    getAvg (AS a1 a2 a3) = AS a1 a2 (NE.map (/nPop) a3)
 
 -- | Creates a file if it does not exist
 createIfDoesNotExist :: String -> FilePath -> IO Handle
@@ -94,7 +73,7 @@ genReports (PartialLog dirname) measures pop n fitTest = do
     trainNames = NE.toList $ NE.map (++"_train") mNames
     testNames  = NE.toList $ NE.map (++"_test") mNames
     headReport = intercalate "," (["name", "time"] ++ interleave trainNames testNames ++ ["expr"])
-    best       = getBest n pop 
+    best       = getBest n pop
 
   hStats <- createIfDoesNotExist headReport fname
 
@@ -102,7 +81,7 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   print best -- force evaluation. Don't be lazy.
   t1 <- getTime Realtime
 
-  let 
+  let
     totTime         = show $ sec t1 - sec t0
     nFit            = length (_fit best)
     bestTest        = fromMaybe (replicate nFit (1/0)) $ fitTest best
@@ -112,57 +91,52 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   hPutStr hStats stats
   hClose hStats
 
-genReports (FullLog dirname) _ pop n fitTest = undefined
-{-
- do
-  createDirectoryIfMissing True dirname
-  let fname = dirname ++ "/stats.csv"
+-- map _fit pop :: Generations (Population [Double])
+-- map getBest :: Generations [Double]
+-- transpose :: [Generations Double] -- cada elemento é uma metrica 
+genReports (FullLog dirname) measures pop n fitTest =
+  do
+    let
+        pop'      = take n pop
 
-  hStats <- createIfDoesNotExist fname
+        statsTrain = map (postAgg . foldl' aggregate [] . map (head._fit)) pop'
+        statsTest  = map (postAgg . foldl' aggregate [] . map getTest) pop'
 
-  let best = getBest n pop
+        getTest      = replaceWithNan . fitTest
 
-  t0 <- getTime Realtime
-  print best
-  t1 <- getTime Realtime
+        replaceWithNan Nothing      = 1/0
+        replaceWithNan (Just [])    = 1/0
+        replaceWithNan (Just (x:_)) = x
 
-  let bestTest = fitTest best
-      stats = concat $ intersperse "," $ [dirname, show (sec t1 - sec t0)] ++ resultsToStr best bestTest
+        statsNamesTrain = ["TrainBest", "TrainWorst", "TrainAvg"]
+        statsNamesTest  = ["TestBest", "TestWorse", "TestAvg"]
+        fulldirname     = dirname ++ "/FullLog"
+        fnamesTrain     = map (\s -> fulldirname++"/"++s) statsNamesTrain
+        fnamesTest      = map (\s -> fulldirname++"/"++s) statsNamesTest
 
-  hPutStr hStats stats
-  hClose hStats
+    createDirectoryIfMissing True fulldirname
+    hs <- sequence $ openNext <$> fnamesTrain ++ fnamesTest
+    mapM_ (toFile hs) $ zipWith (++) statsTrain statsTest
+    mapM_ hClose hs
 
-  let statTrain = map (map _stat) pop
-      statTest  = map (map fitTest) pop
-      evoTrain  = getAllStats n statTrain
-      evoTest   = getAllStats n statTest
+    genReports (PartialLog dirname) measures pop n fitTest
 
-  genEvoReport evoTrain (dirname ++ "/train")
-  genEvoReport evoTest  (dirname ++ "/test")
+openNext :: String -> IO Handle
+openNext fname = go [fname ++ "." ++ show n ++ ".csv" | n <- [0..]]
+  where
+    go (fn:fns) = do b <- doesFileExist fn
+                     if b
+                        then go fns
+                        else openFile fn WriteMode
 
-genEvoStream [x] hs = do
-  let zs = map (show . ($ x)) [_rmse, _mae, _nmse, _r2]
-  zipWithM_ hPutStr hs zs
+postAgg :: [Double] -> [Double]
+postAgg [best, worst, tot, count] = [best, worst, tot/count]
 
-genEvoStream (x:xs) hs = do
-  let zs = map ((++",") . show . ($ x)) [_rmse, _mae, _nmse, _r2]
-  zipWithM_ hPutStr hs zs
-  genEvoStream xs hs
+aggregate :: [Double] -> Double -> [Double]
+aggregate [] train = [train,train,train,1]
+aggregate [best, worst, tot, count] train = [min best train, max worst train, tot+train, count+1]
+aggregate _ _ = error "anti pattern in aggregate"
 
--- | Generates evolution report 
-genEvoReport :: [AggStats] -> String -> IO ()
-genEvoReport stats dirname = do
-  let names     = fmap (dirname++) ["Rmse", "Mae", "Nmse", "R2"]
-      nameBest  = fmap (++"Best.csv") names
-      nameWorst = fmap (++"Worst.csv") names
-      nameAvg   = fmap (++"Avg.csv") names
-  hsBest   <- mapM (`openFile` AppendMode) nameBest
-  hsWorst  <- mapM (`openFile` AppendMode) nameWorst
-  hsAvg    <- mapM (`openFile` AppendMode) nameAvg
-  genEvoStream (fmap _best  stats) hsBest
-  genEvoStream (fmap _worst stats) hsWorst
-  genEvoStream (fmap _avg   stats) hsAvg
-  mapM_ hClose hsBest
-  mapM_ hClose hsWorst
-  mapM_ hClose hsAvg
--}
+toFile :: [Handle] -> [Double] -> IO ()
+toFile hs ps = zipWithM_ hPutStrLn hs
+             $ map show ps
