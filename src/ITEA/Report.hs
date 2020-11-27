@@ -91,9 +91,9 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   hPutStr hStats stats
   hClose hStats
 
--- map _fit pop :: Generations (Population [Double])
--- map getBest :: Generations [Double]
--- transpose :: [Generations Double] -- cada elemento é uma metrica 
+-- FullLog is the same as PartialLog plus the best, worst, avg fit for every generation.
+--
+-- TODO: this code is ugly, but it's low priority to fix it.
 genReports (FullLog dirname) measures pop n fitTest =
   do
     let
@@ -121,9 +121,13 @@ genReports (FullLog dirname) measures pop n fitTest =
 
     genReports (PartialLog dirname) measures pop n fitTest
 
+-- | Opens the first file available in the format "name.{i}.csv"
+-- where 'i' follows a sequence from 0 onward.
 openNext :: String -> IO Handle
 openNext fname = go [fname ++ "." ++ show n ++ ".csv" | n <- [0..]]
   where
+    -- this is a partial function applied to an infinite list
+    -- so, what harm can it do?
     go (fn:fns) = do b <- doesFileExist fn
                      if b
                         then go fns
@@ -135,8 +139,8 @@ postAgg [best, worst, tot, count] = [best, worst, tot/count]
 aggregate :: [Double] -> Double -> [Double]
 aggregate [] train = [train,train,train,1]
 aggregate [best, worst, tot, count] train = [min best train, max worst train, tot+train, count+1]
-aggregate _ _ = error "anti pattern in aggregate"
 
+-- | Write a sequence to a sequence of opened files
 toFile :: [Handle] -> [Double] -> IO ()
 toFile hs ps = zipWithM_ hPutStrLn hs
              $ map show ps

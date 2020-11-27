@@ -12,6 +12,9 @@ Definitions of IT data structure and support functions.
 
 module IT.Metrics where
 
+import Data.Semigroup
+import Data.Foldable
+
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector.Storable as V
 
@@ -76,12 +79,55 @@ _nmse = Measure "NMSE" nmse
 _r2   = Measure "R^2" rSq
 
 -- * Classification measures 
+
+-- | Accuracy
+accuracy :: Vector -> Vector -> Double
+accuracy ysHat ys = equals/tot
+  where
+    ys'    = map round $ LA.toList ys
+    ysHat' = map round $ LA.toList ysHat
+    (Sum equals, Sum tot) = foldMap cmp $ zip ysHat' ys'
+    cmp :: (Integer, Integer) -> (Sum Double, Sum Double)
+    cmp (yH, y)
+      | yH == y   = (Sum 1, Sum 1)
+      | otherwise = (Sum 0, Sum 1)
+
+precision ysHat ys = equals/tot
+  where
+    ys'    = map round $ LA.toList ys
+    ysHat' = map round $ LA.toList ysHat
+    (Sum equals, Sum tot) = foldMap cmp $ zip ysHat' ys'
+    cmp :: (Integer, Integer) -> (Sum Double, Sum Double)
+    cmp (1, 1)  = (Sum 1, Sum 1)
+    cmp (1, 0)  = (Sum 0, Sum 1)
+    cmp (yH, y) = (Sum 0, Sum 0)
+
+recall ysHat ys = equals/tot
+  where
+    ys'    = map round $ LA.toList ys
+    ysHat' = map round $ LA.toList ysHat
+    (Sum equals, Sum tot) = foldMap cmp $ zip ysHat' ys'
+    cmp :: (Integer, Integer) -> (Sum Double, Sum Double)
+    cmp (1, 1)  = (Sum 1, Sum 1)
+    cmp (0, 1)  = (Sum 0, Sum 1)
+    cmp (yH, y) = (Sum 0, Sum 0)
+
+f1 ysHat ys = 2*prec*rec/(prec+rec)
+  where
+    prec = precision ysHat ys
+    rec  = recall ysHat ys
+
+logloss :: Vector -> Vector -> Double
+logloss ysHat ys = mean $ -(ys * log ysHat' + (1 - ys)*log(1 - ysHat'))
+  where
+    ysHat' = LA.cmap (min (1.0 - 1e-15) . max 1e-15) ysHat
+
 _accuracy,_recall,_precision,_f1,_logloss :: Measure
-_accuracy  = Measure "Accuracy" undefined
-_recall    = Measure "Recall" undefined
-_precision = Measure "Precision" undefined
-_f1        = Measure "F1" undefined
-_logloss   = Measure "Log-Loss" undefined
+_accuracy  = Measure "Accuracy" accuracy
+_recall    = Measure "Recall" recall
+_precision = Measure "Precision" precision
+_f1        = Measure "F1" f1
+_logloss   = Measure "Log-Loss" logloss
 
 -- | List of all measures
 measureAll :: [Measure]

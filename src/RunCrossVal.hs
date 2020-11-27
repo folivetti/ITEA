@@ -103,8 +103,8 @@ runCfg dname fold (mutCfg, pop, gen) = do
       toRegMtx = V.fromList . LA.toColumns
       criteria = NE.fromList [_rmse]
 
-      fitTrains = zipWith (\x y  -> evalTrain criteria (toRegMtx x) y) trXs trYs
-      fitTests  =  zipWith (\x y -> evalTest criteria (toRegMtx x) y) tvXs tvYs
+      fitTrains = zipWith (\x y  -> evalTrain Regression criteria (toRegMtx x) y) trXs trYs
+      fitTests  =  zipWith (\x y -> evalTest Regression criteria (toRegMtx x) y) tvXs tvYs
 
       average xs = sum xs / fromIntegral (length xs)
 

@@ -16,6 +16,7 @@ import System.Directory
 import Data.ConfigFile
 import Data.Either.Utils
 
+import IT.Regression (Task(..))
 import ITEA.Regression
 import ITEA.Config
 
@@ -35,6 +36,7 @@ runWithConfig fname = do
     perf_mes           = getSetting cp "Mutation"  "measures"
     trainname          = getSetting cp "Dataset"   "train"
     testname           = getSetting cp "Dataset"   "test"
+    task               = getSetting cp "Dataset"   "task"
     nPop               = getSetting cp "Algorithm" "npop"
     nGens              = getSetting cp "Algorithm" "ngens"
     logg               = getSetting cp "Algorithm" "log"
@@ -52,7 +54,10 @@ runWithConfig fname = do
                <> testset testname
 
   -- run ITEA with the given configuration
-  runITEAReg datasetCfg mutCfg logg nPop nGens
+  case task of
+    Regression -> runITEAReg datasetCfg mutCfg logg nPop nGens
+    Classification -> runITEAClass datasetCfg mutCfg logg nPop nGens
+    ClassMult -> runITEAClassMult datasetCfg mutCfg logg nPop nGens
 
 -- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()

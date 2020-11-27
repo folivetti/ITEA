@@ -22,7 +22,7 @@ import Control.DeepSeq
 --  'a' refers to the type of 'Expr', 'b' refers to a container of statistics.
 data Solution a = Sol { _expr    :: Expr a     -- ^ The IT expression of type a
                       , _fit     :: [Double]   -- ^ Fitness and other measures for evaluating the expression
-                      , _weights :: Vector
+                      , _weights :: [Vector]
                       }
 
 instance Show a => Show (Solution a) where
