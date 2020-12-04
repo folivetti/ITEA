@@ -17,11 +17,13 @@ import System.Directory
 import System.IO
 import System.Clock
 
+import IT
 import IT.Algorithms
 import IT.Metrics
 
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
+import qualified Numeric.LinearAlgebra as LA
 import Data.Maybe
 import Data.List (intercalate, transpose, foldl1', foldl')
 import Control.Monad
@@ -86,7 +88,12 @@ genReports (PartialLog dirname) measures pop n fitTest = do
     nFit            = length (_fit best)
     bestTest        = fromMaybe (replicate nFit (1/0)) $ fitTest best
     measuresResults = map show $ interleave (_fit best) bestTest
-    stats           = intercalate "," $ [dirname, totTime] ++ measuresResults ++ [show $ _expr best]
+    exprWithWeight  = w ++ " + " ++ (intercalate " + " $ zipWith insertWeight ws (map show ts))
+    (w:ws)          = map show . LA.toList . head $ _weights best
+    ts              = getListOfTerms (_expr best)
+    insertWeight wi ti = wi ++ "*(" ++ ti ++ ")"
+
+    stats           = intercalate "," $ [dirname, totTime] ++ measuresResults ++ [exprWithWeight]
 
   hPutStr hStats stats
   hClose hStats

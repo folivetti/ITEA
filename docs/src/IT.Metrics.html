@@ -1,0 +1,605 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{-|
+Module      : IT.Regression
+Description : Specific functions for Symbolic Regression
+Copyright   : (c) Fabricio Olivetti de Franca, 2020
+License     : GPL-3
+Maintainer  : fabricio.olivetti@gmail.com
+Stability   : experimental
+Portability : POSIX
+
+Definitions of IT data structure and support functions.
+-}</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">IT.Metrics</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.LinearAlgebra</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LA</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Vector.Storable</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">V</span></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">type</span><span> </span><span id="Vector"><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-var">Vector</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Vector</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- * Performance measures</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">data</span><span> </span><span id="Measure"><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Measure"><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="_name"><span class="annot"><span class="annottext">Measure -&gt; String
+</span><a href="IT.Metrics.html#_name"><span class="hs-identifier hs-var hs-var">_name</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-25"></span><span>                       </span><span class="hs-special">,</span><span> </span><span id="_fun"><span class="annot"><span class="annottext">Measure -&gt; Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#_fun"><span class="hs-identifier hs-var hs-var">_fun</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-comment">-- ^ true -&gt; predicted -&gt; measure </span><span>
+</span><span id="line-26"></span><span>                       </span><span class="hs-special">}</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- | Mean for a vector of doubles</span><span>
+</span><span id="line-29"></span><span class="annot"><a href="IT.Metrics.html#mean"><span class="hs-identifier hs-type">mean</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-30"></span><span id="mean"><span class="annot"><span class="annottext">mean :: Vector -&gt; Double
+</span><a href="IT.Metrics.html#mean"><span class="hs-identifier hs-var hs-var">mean</span></a></span></span><span> </span><span id="local-6989586621679113641"><span class="annot"><span class="annottext">xs :: Vector
+</span><a href="#local-6989586621679113641"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+forall a. (Storable a, Num a) =&gt; Vector a -&gt; a
+</span><span class="hs-identifier hs-var">V.sum</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113641"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector -&gt; Int
+forall a. Storable a =&gt; Vector a -&gt; Int
+</span><span class="hs-identifier hs-var">V.length</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113641"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | Variance for a vector of doubles</span><span>
+</span><span id="line-33"></span><span class="annot"><a href="IT.Metrics.html#var"><span class="hs-identifier hs-type">var</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-34"></span><span id="var"><span class="annot"><span class="annottext">var :: Vector -&gt; Double
+</span><a href="IT.Metrics.html#var"><span class="hs-identifier hs-var hs-var">var</span></a></span></span><span> </span><span id="local-6989586621679113636"><span class="annot"><span class="annottext">xs :: Vector
+</span><a href="#local-6989586621679113636"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113635"><span class="hs-identifier hs-var">sum'</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector -&gt; Int
+forall a. Storable a =&gt; Vector a -&gt; Int
+</span><span class="hs-identifier hs-var">V.length</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113636"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-36"></span><span>    </span><span id="local-6989586621679113634"><span class="annot"><span class="annottext">mu :: Double
+</span><a href="#local-6989586621679113634"><span class="hs-identifier hs-var hs-var">mu</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+</span><a href="IT.Metrics.html#mean"><span class="hs-identifier hs-var">mean</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113636"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-37"></span><span>    </span><span id="local-6989586621679113635"><span class="annot"><span class="annottext">sum' :: Double
+</span><a href="#local-6989586621679113635"><span class="hs-identifier hs-var hs-var">sum'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double) -&gt; Double -&gt; Vector -&gt; Double
+forall b a. Storable b =&gt; (a -&gt; b -&gt; a) -&gt; a -&gt; Vector b -&gt; a
+</span><span class="hs-identifier hs-var">V.foldl</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679113632"><span class="annot"><span class="annottext">s :: Double
+</span><a href="#local-6989586621679113632"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679113631"><span class="annot"><span class="annottext">x :: Double
+</span><a href="#local-6989586621679113631"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113632"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113631"><span class="hs-identifier hs-var">x</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113634"><span class="hs-identifier hs-var">mu</span></a></span><span class="hs-special">)</span><span class="annot"><span class="annottext">Double -&gt; Integer -&gt; Double
+forall a b. (Num a, Integral b) =&gt; a -&gt; b -&gt; a
+</span><span class="hs-operator hs-var">^</span></span><span class="annot"><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113636"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- | generic mean error measure</span><span>
+</span><span id="line-40"></span><span class="annot"><a href="IT.Metrics.html#meanError"><span class="hs-identifier hs-type">meanError</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- ^ a function to be applied to the error terms (abs, square,...)</span><span>
+</span><span id="line-41"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>             </span><span class="hs-comment">-- ^ fitted values</span><span>
+</span><span id="line-42"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>             </span><span class="hs-comment">-- ^ target values</span><span>
+</span><span id="line-43"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-44"></span><span id="meanError"><span class="annot"><span class="annottext">meanError :: (Double -&gt; Double) -&gt; Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#meanError"><span class="hs-identifier hs-var hs-var">meanError</span></a></span></span><span> </span><span id="local-6989586621679113627"><span class="annot"><span class="annottext">op :: Double -&gt; Double
+</span><a href="#local-6989586621679113627"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span id="local-6989586621679113626"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679113626"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113625"><span class="annot"><span class="annottext">ys :: Vector
+</span><a href="#local-6989586621679113625"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+</span><a href="IT.Metrics.html#mean"><span class="hs-identifier hs-var">mean</span></a></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; Double) -&gt; Vector -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Vector -&gt; Vector
+forall a b.
+(Storable a, Storable b) =&gt;
+(a -&gt; b) -&gt; Vector a -&gt; Vector b
+</span><span class="hs-identifier hs-var">V.map</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+</span><a href="#local-6989586621679113627"><span class="hs-identifier hs-var">op</span></a></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; Vector) -&gt; Vector -&gt; Vector
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113626"><span class="hs-identifier hs-var">ysHat</span></a></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Vector
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113625"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- * Common error measures for regression: </span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- MSE, MAE, RMSE, NMSE, r^2</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- | Mean Squared Error</span><span>
+</span><span id="line-50"></span><span class="annot"><a href="IT.Metrics.html#mse"><span class="hs-identifier hs-type">mse</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-51"></span><span id="mse"><span class="annot"><span class="annottext">mse :: Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#mse"><span class="hs-identifier hs-var hs-var">mse</span></a></span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#meanError"><span class="hs-identifier hs-var">meanError</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Integer -&gt; Double
+forall a b. (Num a, Integral b) =&gt; a -&gt; b -&gt; a
+</span><span class="hs-operator hs-var">^</span></span><span class="annot"><span class="hs-number">2</span></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- | Mean Absolute Error</span><span>
+</span><span id="line-54"></span><span class="annot"><a href="IT.Metrics.html#mae"><span class="hs-identifier hs-type">mae</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-55"></span><span id="mae"><span class="annot"><span class="annottext">mae :: Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#mae"><span class="hs-identifier hs-var hs-var">mae</span></a></span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#meanError"><span class="hs-identifier hs-var">meanError</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- | Normalized Mean Squared Error</span><span>
+</span><span id="line-58"></span><span class="annot"><a href="IT.Metrics.html#nmse"><span class="hs-identifier hs-type">nmse</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-59"></span><span id="nmse"><span class="annot"><span class="annottext">nmse :: Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#nmse"><span class="hs-identifier hs-var hs-var">nmse</span></a></span></span><span> </span><span id="local-6989586621679113619"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679113619"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113618"><span class="annot"><span class="annottext">ys :: Vector
+</span><a href="#local-6989586621679113618"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#mse"><span class="hs-identifier hs-var">mse</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113619"><span class="hs-identifier hs-var">ysHat</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113618"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+</span><a href="IT.Metrics.html#var"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113618"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- | Root of the Mean Squared Error </span><span>
+</span><span id="line-62"></span><span class="annot"><a href="IT.Metrics.html#rmse"><span class="hs-identifier hs-type">rmse</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-63"></span><span id="rmse"><span class="annot"><span class="annottext">rmse :: Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#rmse"><span class="hs-identifier hs-var hs-var">rmse</span></a></span></span><span> </span><span id="local-6989586621679113616"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679113616"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113615"><span class="annot"><span class="annottext">ys :: Vector
+</span><a href="#local-6989586621679113615"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">sqrt</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#mse"><span class="hs-identifier hs-var">mse</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113616"><span class="hs-identifier hs-var">ysHat</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113615"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- | R^2 </span><span>
+</span><span id="line-66"></span><span class="annot"><a href="IT.Metrics.html#rSq"><span class="hs-identifier hs-type">rSq</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-67"></span><span id="rSq"><span class="annot"><span class="annottext">rSq :: Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#rSq"><span class="hs-identifier hs-var hs-var">rSq</span></a></span></span><span> </span><span id="local-6989586621679113612"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679113612"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113611"><span class="annot"><span class="annottext">ys :: Vector
+</span><a href="#local-6989586621679113611"><span class="hs-identifier hs-var">ys</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113610"><span class="hs-identifier hs-var">r</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113609"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-69"></span><span>    </span><span id="local-6989586621679113608"><span class="annot"><span class="annottext">ym :: Double
+</span><a href="#local-6989586621679113608"><span class="hs-identifier hs-var hs-var">ym</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+</span><a href="IT.Metrics.html#mean"><span class="hs-identifier hs-var">mean</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113611"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-70"></span><span>    </span><span id="local-6989586621679113609"><span class="annot"><span class="annottext">t :: Double
+</span><a href="#local-6989586621679113609"><span class="hs-identifier hs-var hs-var">t</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+</span><a href="#local-6989586621679113607"><span class="hs-identifier hs-var">sumOfSq</span></a></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; Double) -&gt; Vector -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Vector -&gt; Vector
+forall a b.
+(Storable a, Storable b) =&gt;
+(a -&gt; b) -&gt; Vector a -&gt; Vector b
+</span><span class="hs-identifier hs-var">V.map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679113606"><span class="annot"><span class="annottext">yi :: Double
+</span><a href="#local-6989586621679113606"><span class="hs-identifier hs-var">yi</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113606"><span class="hs-identifier hs-var">yi</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113608"><span class="hs-identifier hs-var">ym</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113611"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-71"></span><span>    </span><span id="local-6989586621679113610"><span class="annot"><span class="annottext">r :: Double
+</span><a href="#local-6989586621679113610"><span class="hs-identifier hs-var hs-var">r</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+</span><a href="#local-6989586621679113607"><span class="hs-identifier hs-var">sumOfSq</span></a></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; Double) -&gt; Vector -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113611"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Vector
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113612"><span class="hs-identifier hs-var">ysHat</span></a></span><span>
+</span><span id="line-72"></span><span>    </span><span id="local-6989586621679113607"><span class="annot"><span class="annottext">sumOfSq :: Vector -&gt; Double
+</span><a href="#local-6989586621679113607"><span class="hs-identifier hs-var hs-var">sumOfSq</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double) -&gt; Double -&gt; Vector -&gt; Double
+forall b a. Storable b =&gt; (a -&gt; b -&gt; a) -&gt; a -&gt; Vector b -&gt; a
+</span><span class="hs-identifier hs-var">V.foldl</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679113605"><span class="annot"><span class="annottext">s :: Double
+</span><a href="#local-6989586621679113605"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679113604"><span class="annot"><span class="annottext">di :: Double
+</span><a href="#local-6989586621679113604"><span class="hs-identifier hs-var">di</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113605"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113604"><span class="hs-identifier hs-var">di</span></a></span><span class="annot"><span class="annottext">Double -&gt; Integer -&gt; Double
+forall a b. (Num a, Integral b) =&gt; a -&gt; b -&gt; a
+</span><span class="hs-operator hs-var">^</span></span><span class="annot"><span class="hs-number">2</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-number">0</span></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- * Regression measures </span><span>
+</span><span id="line-75"></span><span class="annot"><a href="IT.Metrics.html#_rmse"><span class="hs-identifier hs-type">_rmse</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Metrics.html#_mae"><span class="hs-identifier hs-type">_mae</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Metrics.html#_nmse"><span class="hs-identifier hs-type">_nmse</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Metrics.html#_r2"><span class="hs-identifier hs-type">_r2</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span>
+</span><span id="line-76"></span><span id="_rmse"><span class="annot"><span class="annottext">_rmse :: Measure
+</span><a href="IT.Metrics.html#_rmse"><span class="hs-identifier hs-var hs-var">_rmse</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;RMSE&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#rmse"><span class="hs-identifier hs-var">rmse</span></a></span><span>
+</span><span id="line-77"></span><span id="_mae"><span class="annot"><span class="annottext">_mae :: Measure
+</span><a href="IT.Metrics.html#_mae"><span class="hs-identifier hs-var hs-var">_mae</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;MAE&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#mae"><span class="hs-identifier hs-var">mae</span></a></span><span>
+</span><span id="line-78"></span><span id="_nmse"><span class="annot"><span class="annottext">_nmse :: Measure
+</span><a href="IT.Metrics.html#_nmse"><span class="hs-identifier hs-var hs-var">_nmse</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;NMSE&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#nmse"><span class="hs-identifier hs-var">nmse</span></a></span><span>
+</span><span id="line-79"></span><span id="_r2"><span class="annot"><span class="annottext">_r2 :: Measure
+</span><a href="IT.Metrics.html#_r2"><span class="hs-identifier hs-var hs-var">_r2</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;R^2&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#rSq"><span class="hs-identifier hs-var">rSq</span></a></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- * Classification measures </span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- | Accuracy</span><span>
+</span><span id="line-84"></span><span class="annot"><a href="IT.Metrics.html#accuracy"><span class="hs-identifier hs-type">accuracy</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-85"></span><span id="accuracy"><span class="annot"><span class="annottext">accuracy :: Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#accuracy"><span class="hs-identifier hs-var hs-var">accuracy</span></a></span></span><span> </span><span id="local-6989586621679113598"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679113598"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113597"><span class="annot"><span class="annottext">ys :: Vector
+</span><a href="#local-6989586621679113597"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113596"><span class="hs-identifier hs-var">equals</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113595"><span class="hs-identifier hs-var">tot</span></a></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-87"></span><span>    </span><span id="local-6989586621679113594"><span class="annot"><span class="annottext">ys' :: [Integer]
+</span><a href="#local-6989586621679113594"><span class="hs-identifier hs-var hs-var">ys'</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Integer) -&gt; [Double] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Integer
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">([Double] -&gt; [Integer]) -&gt; [Double] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; [Double]
+forall a. Storable a =&gt; Vector a -&gt; [a]
+</span><span class="hs-identifier hs-var">LA.toList</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113597"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-88"></span><span>    </span><span id="local-6989586621679113591"><span class="annot"><span class="annottext">ysHat' :: [Integer]
+</span><a href="#local-6989586621679113591"><span class="hs-identifier hs-var hs-var">ysHat'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Integer) -&gt; [Double] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Integer
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">([Double] -&gt; [Integer]) -&gt; [Double] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; [Double]
+forall a. Storable a =&gt; Vector a -&gt; [a]
+</span><span class="hs-identifier hs-var">LA.toList</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113598"><span class="hs-identifier hs-var">ysHat</span></a></span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span id="local-6989586621679113596"><span class="annot"><span class="annottext">equals :: Double
+</span><a href="#local-6989586621679113596"><span class="hs-identifier hs-var">equals</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span id="local-6989586621679113595"><span class="annot"><span class="annottext">tot :: Double
+</span><a href="#local-6989586621679113595"><span class="hs-identifier hs-var">tot</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Integer, Integer) -&gt; (Sum Double, Sum Double))
+-&gt; [(Integer, Integer)] -&gt; (Sum Double, Sum Double)
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">(Integer, Integer) -&gt; (Sum Double, Sum Double)
+</span><a href="#local-6989586621679113588"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span class="annot"><span class="annottext">([(Integer, Integer)] -&gt; (Sum Double, Sum Double))
+-&gt; [(Integer, Integer)] -&gt; (Sum Double, Sum Double)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Integer] -&gt; [Integer] -&gt; [(Integer, Integer)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[Integer]
+</span><a href="#local-6989586621679113591"><span class="hs-identifier hs-var">ysHat'</span></a></span><span> </span><span class="annot"><span class="annottext">[Integer]
+</span><a href="#local-6989586621679113594"><span class="hs-identifier hs-var">ys'</span></a></span><span>
+</span><span id="line-90"></span><span>    </span><span class="annot"><a href="#local-6989586621679113588"><span class="hs-identifier hs-type">cmp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span>    </span><span id="local-6989586621679113588"><span class="annot"><span class="annottext">cmp :: (Integer, Integer) -&gt; (Sum Double, Sum Double)
+</span><a href="#local-6989586621679113588"><span class="hs-identifier hs-var hs-var">cmp</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679113587"><span class="annot"><span class="annottext">yH :: Integer
+</span><a href="#local-6989586621679113587"><span class="hs-identifier hs-var">yH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679113586"><span class="annot"><span class="annottext">y :: Integer
+</span><a href="#local-6989586621679113586"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-92"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679113587"><span class="hs-identifier hs-var">yH</span></a></span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679113586"><span class="hs-identifier hs-var">y</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span id="precision"><span class="annot"><span class="annottext">precision :: Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#precision"><span class="hs-identifier hs-var hs-var">precision</span></a></span></span><span> </span><span id="local-6989586621679113584"><span class="annot"><span class="annottext">ysHat :: Vector a
+</span><a href="#local-6989586621679113584"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113583"><span class="annot"><span class="annottext">ys :: Vector a
+</span><a href="#local-6989586621679113583"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113582"><span class="hs-identifier hs-var">equals</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113581"><span class="hs-identifier hs-var">tot</span></a></span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-97"></span><span>    </span><span id="local-6989586621679113580"><span class="annot"><span class="annottext">ys' :: [Integer]
+</span><a href="#local-6989586621679113580"><span class="hs-identifier hs-var hs-var">ys'</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; Integer) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Integer
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [Integer]) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; [a]
+forall a. Storable a =&gt; Vector a -&gt; [a]
+</span><span class="hs-identifier hs-var">LA.toList</span></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113583"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-98"></span><span>    </span><span id="local-6989586621679113579"><span class="annot"><span class="annottext">ysHat' :: [Integer]
+</span><a href="#local-6989586621679113579"><span class="hs-identifier hs-var hs-var">ysHat'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; Integer) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Integer
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [Integer]) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; [a]
+forall a. Storable a =&gt; Vector a -&gt; [a]
+</span><span class="hs-identifier hs-var">LA.toList</span></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113584"><span class="hs-identifier hs-var">ysHat</span></a></span><span>
+</span><span id="line-99"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span id="local-6989586621679113582"><span class="annot"><span class="annottext">equals :: Double
+</span><a href="#local-6989586621679113582"><span class="hs-identifier hs-var">equals</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span id="local-6989586621679113581"><span class="annot"><span class="annottext">tot :: Double
+</span><a href="#local-6989586621679113581"><span class="hs-identifier hs-var">tot</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Integer, Integer) -&gt; (Sum Double, Sum Double))
+-&gt; [(Integer, Integer)] -&gt; (Sum Double, Sum Double)
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">(Integer, Integer) -&gt; (Sum Double, Sum Double)
+</span><a href="#local-6989586621679113578"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span class="annot"><span class="annottext">([(Integer, Integer)] -&gt; (Sum Double, Sum Double))
+-&gt; [(Integer, Integer)] -&gt; (Sum Double, Sum Double)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Integer] -&gt; [Integer] -&gt; [(Integer, Integer)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[Integer]
+</span><a href="#local-6989586621679113579"><span class="hs-identifier hs-var">ysHat'</span></a></span><span> </span><span class="annot"><span class="annottext">[Integer]
+</span><a href="#local-6989586621679113580"><span class="hs-identifier hs-var">ys'</span></a></span><span>
+</span><span id="line-100"></span><span>    </span><span class="annot"><a href="#local-6989586621679113578"><span class="hs-identifier hs-type">cmp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>    </span><span id="local-6989586621679113578"><span class="annot"><span class="annottext">cmp :: (Integer, Integer) -&gt; (Sum Double, Sum Double)
+</span><a href="#local-6989586621679113578"><span class="hs-identifier hs-var hs-var">cmp</span></a></span></span><span> </span><span class="hs-special">(</span><span class="hs-number">1</span><span class="hs-special">,</span><span> </span><span class="hs-number">1</span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><a href="#local-6989586621679113578"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-number">1</span><span class="hs-special">,</span><span> </span><span class="hs-number">0</span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>    </span><span class="annot"><a href="#local-6989586621679113578"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679113577"><span class="annot"><span class="annottext">yH :: Integer
+</span><a href="#local-6989586621679113577"><span class="hs-identifier hs-var">yH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679113576"><span class="annot"><span class="annottext">y :: Integer
+</span><a href="#local-6989586621679113576"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span id="recall"><span class="annot"><span class="annottext">recall :: Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#recall"><span class="hs-identifier hs-var hs-var">recall</span></a></span></span><span> </span><span id="local-6989586621679113574"><span class="annot"><span class="annottext">ysHat :: Vector a
+</span><a href="#local-6989586621679113574"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113573"><span class="annot"><span class="annottext">ys :: Vector a
+</span><a href="#local-6989586621679113573"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113572"><span class="hs-identifier hs-var">equals</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113571"><span class="hs-identifier hs-var">tot</span></a></span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-107"></span><span>    </span><span id="local-6989586621679113570"><span class="annot"><span class="annottext">ys' :: [Integer]
+</span><a href="#local-6989586621679113570"><span class="hs-identifier hs-var hs-var">ys'</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; Integer) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Integer
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [Integer]) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; [a]
+forall a. Storable a =&gt; Vector a -&gt; [a]
+</span><span class="hs-identifier hs-var">LA.toList</span></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113573"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-108"></span><span>    </span><span id="local-6989586621679113569"><span class="annot"><span class="annottext">ysHat' :: [Integer]
+</span><a href="#local-6989586621679113569"><span class="hs-identifier hs-var hs-var">ysHat'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; Integer) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Integer
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [Integer]) -&gt; [a] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; [a]
+forall a. Storable a =&gt; Vector a -&gt; [a]
+</span><span class="hs-identifier hs-var">LA.toList</span></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113574"><span class="hs-identifier hs-var">ysHat</span></a></span><span>
+</span><span id="line-109"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span id="local-6989586621679113572"><span class="annot"><span class="annottext">equals :: Double
+</span><a href="#local-6989586621679113572"><span class="hs-identifier hs-var">equals</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span id="local-6989586621679113571"><span class="annot"><span class="annottext">tot :: Double
+</span><a href="#local-6989586621679113571"><span class="hs-identifier hs-var">tot</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Integer, Integer) -&gt; (Sum Double, Sum Double))
+-&gt; [(Integer, Integer)] -&gt; (Sum Double, Sum Double)
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">(Integer, Integer) -&gt; (Sum Double, Sum Double)
+</span><a href="#local-6989586621679113568"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span class="annot"><span class="annottext">([(Integer, Integer)] -&gt; (Sum Double, Sum Double))
+-&gt; [(Integer, Integer)] -&gt; (Sum Double, Sum Double)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Integer] -&gt; [Integer] -&gt; [(Integer, Integer)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[Integer]
+</span><a href="#local-6989586621679113569"><span class="hs-identifier hs-var">ysHat'</span></a></span><span> </span><span class="annot"><span class="annottext">[Integer]
+</span><a href="#local-6989586621679113570"><span class="hs-identifier hs-var">ys'</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span class="annot"><a href="#local-6989586621679113568"><span class="hs-identifier hs-type">cmp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Sum</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>    </span><span id="local-6989586621679113568"><span class="annot"><span class="annottext">cmp :: (Integer, Integer) -&gt; (Sum Double, Sum Double)
+</span><a href="#local-6989586621679113568"><span class="hs-identifier hs-var hs-var">cmp</span></a></span></span><span> </span><span class="hs-special">(</span><span class="hs-number">1</span><span class="hs-special">,</span><span> </span><span class="hs-number">1</span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>    </span><span class="annot"><a href="#local-6989586621679113568"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-number">0</span><span class="hs-special">,</span><span> </span><span class="hs-number">1</span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-113"></span><span>    </span><span class="annot"><a href="#local-6989586621679113568"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679113567"><span class="annot"><span class="annottext">yH :: Integer
+</span><a href="#local-6989586621679113567"><span class="hs-identifier hs-var">yH</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679113566"><span class="annot"><span class="annottext">y :: Integer
+</span><a href="#local-6989586621679113566"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Sum Double
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span id="f1"><span class="annot"><span class="annottext">f1 :: Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#f1"><span class="hs-identifier hs-var hs-var">f1</span></a></span></span><span> </span><span id="local-6989586621679113564"><span class="annot"><span class="annottext">ysHat :: Vector a
+</span><a href="#local-6989586621679113564"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113563"><span class="annot"><span class="annottext">ys :: Vector a
+</span><a href="#local-6989586621679113563"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-number">2</span></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113561"><span class="hs-identifier hs-var">prec</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113560"><span class="hs-identifier hs-var">rec</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113561"><span class="hs-identifier hs-var">prec</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679113560"><span class="hs-identifier hs-var">rec</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-117"></span><span>    </span><span id="local-6989586621679113561"><span class="annot"><span class="annottext">prec :: Double
+</span><a href="#local-6989586621679113561"><span class="hs-identifier hs-var hs-var">prec</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Vector a -&gt; Double
+forall a a.
+(RealFrac a, Storable a, RealFrac a, Storable a) =&gt;
+Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#precision"><span class="hs-identifier hs-var">precision</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113564"><span class="hs-identifier hs-var">ysHat</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113563"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-118"></span><span>    </span><span id="local-6989586621679113560"><span class="annot"><span class="annottext">rec :: Double
+</span><a href="#local-6989586621679113560"><span class="hs-identifier hs-var hs-var">rec</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector a -&gt; Vector a -&gt; Double
+forall a a.
+(RealFrac a, Storable a, RealFrac a, Storable a) =&gt;
+Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#recall"><span class="hs-identifier hs-var">recall</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113564"><span class="hs-identifier hs-var">ysHat</span></a></span><span> </span><span class="annot"><span class="annottext">Vector a
+</span><a href="#local-6989586621679113563"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="annot"><a href="IT.Metrics.html#logloss"><span class="hs-identifier hs-type">logloss</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-121"></span><span id="logloss"><span class="annot"><span class="annottext">logloss :: Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#logloss"><span class="hs-identifier hs-var hs-var">logloss</span></a></span></span><span> </span><span id="local-6989586621679113558"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679113558"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679113557"><span class="annot"><span class="annottext">ys :: Vector
+</span><a href="#local-6989586621679113557"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
+</span><a href="IT.Metrics.html#mean"><span class="hs-identifier hs-var">mean</span></a></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; Double) -&gt; Vector -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">-</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113557"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Vector
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">log</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113555"><span class="hs-identifier hs-var">ysHat'</span></a></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Vector
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Vector
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113557"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Vector
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span class="annot"><span class="annottext">Vector -&gt; Vector
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">log</span></span><span class="hs-special">(</span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Vector
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113555"><span class="hs-identifier hs-var">ysHat'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-123"></span><span>    </span><span id="local-6989586621679113555"><span class="annot"><span class="annottext">ysHat' :: Vector
+</span><a href="#local-6989586621679113555"><span class="hs-identifier hs-var hs-var">ysHat'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Vector -&gt; Vector
+forall b (c :: * -&gt; *) e.
+(Element b, Container c e) =&gt;
+(e -&gt; b) -&gt; c e -&gt; c b
+</span><span class="hs-identifier hs-var">LA.cmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">min</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-number">1.0</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="hs-number">1e-15</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; (Double -&gt; Double) -&gt; Double -&gt; Double
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">max</span></span><span> </span><span class="annot"><span class="hs-number">1e-15</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679113558"><span class="hs-identifier hs-var">ysHat</span></a></span><span>
+</span><span id="line-124"></span><span>
+</span><span id="line-125"></span><span class="annot"><a href="IT.Metrics.html#_accuracy"><span class="hs-identifier hs-type">_accuracy</span></a></span><span class="hs-special">,</span><span class="annot"><a href="IT.Metrics.html#_recall"><span class="hs-identifier hs-type">_recall</span></a></span><span class="hs-special">,</span><span class="annot"><a href="IT.Metrics.html#_precision"><span class="hs-identifier hs-type">_precision</span></a></span><span class="hs-special">,</span><span class="annot"><a href="IT.Metrics.html#_f1"><span class="hs-identifier hs-type">_f1</span></a></span><span class="hs-special">,</span><span class="annot"><a href="IT.Metrics.html#_logloss"><span class="hs-identifier hs-type">_logloss</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span>
+</span><span id="line-126"></span><span id="_accuracy"><span class="annot"><span class="annottext">_accuracy :: Measure
+</span><a href="IT.Metrics.html#_accuracy"><span class="hs-identifier hs-var hs-var">_accuracy</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Accuracy&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#accuracy"><span class="hs-identifier hs-var">accuracy</span></a></span><span>
+</span><span id="line-127"></span><span id="_recall"><span class="annot"><span class="annottext">_recall :: Measure
+</span><a href="IT.Metrics.html#_recall"><span class="hs-identifier hs-var hs-var">_recall</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Recall&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+forall a a.
+(RealFrac a, Storable a, RealFrac a, Storable a) =&gt;
+Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#recall"><span class="hs-identifier hs-var">recall</span></a></span><span>
+</span><span id="line-128"></span><span id="_precision"><span class="annot"><span class="annottext">_precision :: Measure
+</span><a href="IT.Metrics.html#_precision"><span class="hs-identifier hs-var hs-var">_precision</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Precision&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+forall a a.
+(RealFrac a, Storable a, RealFrac a, Storable a) =&gt;
+Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#precision"><span class="hs-identifier hs-var">precision</span></a></span><span>
+</span><span id="line-129"></span><span id="_f1"><span class="annot"><span class="annottext">_f1 :: Measure
+</span><a href="IT.Metrics.html#_f1"><span class="hs-identifier hs-var hs-var">_f1</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;F1&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+forall a a.
+(RealFrac a, RealFrac a, Storable a, Storable a) =&gt;
+Vector a -&gt; Vector a -&gt; Double
+</span><a href="IT.Metrics.html#f1"><span class="hs-identifier hs-var">f1</span></a></span><span>
+</span><span id="line-130"></span><span id="_logloss"><span class="annot"><span class="annottext">_logloss :: Measure
+</span><a href="IT.Metrics.html#_logloss"><span class="hs-identifier hs-var hs-var">_logloss</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Vector -&gt; Vector -&gt; Double) -&gt; Measure
+</span><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-var">Measure</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;Log-Loss&quot;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
+</span><a href="IT.Metrics.html#logloss"><span class="hs-identifier hs-var">logloss</span></a></span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- | List of all measures</span><span>
+</span><span id="line-133"></span><span class="annot"><a href="IT.Metrics.html#measureAll"><span class="hs-identifier hs-type">measureAll</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-134"></span><span id="measureAll"><span class="annot"><span class="annottext">measureAll :: [Measure]
+</span><a href="IT.Metrics.html#measureAll"><span class="hs-identifier hs-var hs-var">measureAll</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_rmse"><span class="hs-identifier hs-var">_rmse</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_mae"><span class="hs-identifier hs-var">_mae</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_nmse"><span class="hs-identifier hs-var">_nmse</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_r2"><span class="hs-identifier hs-var">_r2</span></a></span><span>
+</span><span id="line-135"></span><span>             </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_accuracy"><span class="hs-identifier hs-var">_accuracy</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_recall"><span class="hs-identifier hs-var">_recall</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_precision"><span class="hs-identifier hs-var">_precision</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_f1"><span class="hs-identifier hs-var">_f1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="IT.Metrics.html#_logloss"><span class="hs-identifier hs-var">_logloss</span></a></span><span>
+</span><span id="line-136"></span><span>             </span><span class="hs-special">]</span><span>
+</span><span id="line-137"></span><span>
+</span><span id="line-138"></span><span class="hs-comment">-- | Read a string into a measure</span><span>
+</span><span id="line-139"></span><span class="annot"><a href="IT.Metrics.html#toMeasure"><span class="hs-identifier hs-type">toMeasure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span>
+</span><span id="line-140"></span><span id="toMeasure"><span class="annot"><span class="annottext">toMeasure :: String -&gt; Measure
+</span><a href="IT.Metrics.html#toMeasure"><span class="hs-identifier hs-var hs-var">toMeasure</span></a></span></span><span> </span><span id="local-6989586621679113543"><span class="annot"><span class="annottext">input :: String
+</span><a href="#local-6989586621679113543"><span class="hs-identifier hs-var">input</span></a></span></span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">[(Bool, Measure)] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[(Bool, Measure)]
+</span><a href="#local-6989586621679113541"><span class="hs-identifier hs-var">cmp</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Measure
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-string">&quot;Invalid measure: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113543"><span class="hs-identifier hs-var">input</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Bool, Measure) -&gt; Measure
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span class="annot"><span class="annottext">((Bool, Measure) -&gt; Measure)
+-&gt; ([(Bool, Measure)] -&gt; (Bool, Measure))
+-&gt; [(Bool, Measure)]
+-&gt; Measure
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">[(Bool, Measure)] -&gt; (Bool, Measure)
+forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(Bool, Measure)]
+</span><a href="#local-6989586621679113541"><span class="hs-identifier hs-var">cmp</span></a></span><span>
+</span><span id="line-143"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-144"></span><span>    </span><span id="local-6989586621679113541"><span class="annot"><span class="annottext">cmp :: [(Bool, Measure)]
+</span><a href="#local-6989586621679113541"><span class="hs-identifier hs-var hs-var">cmp</span></a></span></span><span>                       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Bool, Measure) -&gt; Bool) -&gt; [(Bool, Measure)] -&gt; [(Bool, Measure)]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">(Bool, Measure) -&gt; Bool
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">([(Bool, Measure)] -&gt; [(Bool, Measure)])
+-&gt; [(Bool, Measure)] -&gt; [(Bool, Measure)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(Measure -&gt; (Bool, Measure)) -&gt; [Measure] -&gt; [(Bool, Measure)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Measure -&gt; (Bool, Measure)
+</span><a href="#local-6989586621679113538"><span class="hs-identifier hs-var">isThis</span></a></span><span> </span><span class="annot"><span class="annottext">[Measure]
+</span><a href="IT.Metrics.html#measureAll"><span class="hs-identifier hs-var">measureAll</span></a></span><span>
+</span><span id="line-145"></span><span>    </span><span id="local-6989586621679113538"><span class="annot"><span class="annottext">isThis :: Measure -&gt; (Bool, Measure)
+</span><a href="#local-6989586621679113538"><span class="hs-identifier hs-var hs-var">isThis</span></a></span></span><span> </span><span id="local-6989586621679113537"><span class="annot"><span class="annottext">m :: Measure
+</span><a href="#local-6989586621679113537"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span> </span><span id="local-6989586621679113536"><span class="annot"><span class="annottext">name :: String
+</span><a href="#local-6989586621679113536"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113536"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679113543"><span class="hs-identifier hs-var">input</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Measure
+</span><a href="#local-6989586621679113537"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-146"></span></pre></body></html>

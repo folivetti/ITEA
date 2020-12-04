@@ -1,0 +1,414 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{-|
+Module      : IT.Regression
+Description : Specific functions for Symbolic Regression
+Copyright   : (c) Fabricio Olivetti de Franca, 2020
+License     : GPL-3
+Maintainer  : fabricio.olivetti@gmail.com
+Stability   : experimental
+Portability : POSIX
+
+Definitions of IT data structure and support functions.
+-}</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">IT.Eval</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Semigroup</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Vector</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">VV</span></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.LinearAlgebra</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LA</span></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map.Strict</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">M</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.html"><span class="hs-identifier">IT</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Algorithms.html"><span class="hs-identifier">IT.Algorithms</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- | IT Instance for regression evals an expression to</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- sum(w_i * term_i) + w0</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- with</span><span>
+</span><span id="line-27"></span><span class="hs-comment">--      term_i = f_i(p_i(xs))</span><span>
+</span><span id="line-28"></span><span class="hs-comment">--  and p_i(xs) = prod(x^eij)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="IT.html#IT"><span class="hs-identifier hs-type">IT</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-comment">--itTimes :: Dataset Double -&gt; Interaction -&gt; Column Double</span><span>
+</span><span id="line-31"></span><span>  </span><span id="local-6989586621679114342"><span class="annot"><span class="annottext">itTimes :: Dataset Double -&gt; Interaction -&gt; Column Double
+</span><a href="IT.html#itTimes"><span class="hs-identifier hs-var hs-var hs-var hs-var">itTimes</span></a></span></span><span> </span><span id="local-6989586621679114340"><span class="annot"><span class="annottext">vs :: Dataset Double
+</span><a href="#local-6989586621679114340"><span class="hs-identifier hs-var">vs</span></a></span></span><span> </span><span id="local-6989586621679114339"><span class="annot"><span class="annottext">m :: Interaction
+</span><a href="#local-6989586621679114339"><span class="hs-identifier hs-var">m</span></a></span></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Int
+forall a. Vector a -&gt; Int
+</span><span class="hs-identifier hs-var">VV.length</span></span><span> </span><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679114340"><span class="hs-identifier hs-var">vs</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Column Double
+forall a. Storable a =&gt; [a] -&gt; Vector a
+</span><span class="hs-identifier hs-var">LA.fromList</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Column Double -&gt; Column Double)
+-&gt; Column Double -&gt; Interaction -&gt; Column Double
+forall k a b. (k -&gt; a -&gt; b -&gt; b) -&gt; b -&gt; Map k a -&gt; b
+</span><span class="hs-identifier hs-var">M.foldrWithKey</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Column Double -&gt; Column Double
+forall b. Integral b =&gt; Int -&gt; b -&gt; Column Double -&gt; Column Double
+</span><a href="#local-6989586621679114335"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Column Double
+</span><a href="#local-6989586621679114334"><span class="hs-identifier hs-var">vzero</span></a></span><span> </span><span class="annot"><span class="annottext">Interaction
+</span><a href="#local-6989586621679114339"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-35"></span><span>      </span><span id="local-6989586621679114334"><span class="annot"><span class="annottext">vzero :: Column Double
+</span><a href="#local-6989586621679114334"><span class="hs-identifier hs-var hs-var">vzero</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679114333"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Double] -&gt; Column Double
+forall a. Storable a =&gt; Int -&gt; [a] -&gt; Vector a
+</span><span class="hs-operator hs-var">LA.|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; [Double]
+forall a. a -&gt; [a]
+</span><span class="hs-identifier hs-var">repeat</span></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span>
+</span><span id="line-36"></span><span>      </span><span id="local-6989586621679114335"><span class="annot"><span class="annottext">f :: Int -&gt; b -&gt; Column Double -&gt; Column Double
+</span><a href="#local-6989586621679114335"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679114330"><span class="annot"><span class="annottext">ix :: Int
+</span><a href="#local-6989586621679114330"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679114329"><span class="annot"><span class="annottext">p :: b
+</span><a href="#local-6989586621679114329"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679114328"><span class="annot"><span class="annottext">v :: Column Double
+</span><a href="#local-6989586621679114328"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Column Double
+</span><a href="#local-6989586621679114328"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Column Double -&gt; Column Double -&gt; Column Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Column Double -&gt; Column Double
+forall b (c :: * -&gt; *) e.
+(Element b, Container c e) =&gt;
+(e -&gt; b) -&gt; c e -&gt; c b
+</span><span class="hs-identifier hs-var">LA.cmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; b -&gt; Double
+forall a b. (Fractional a, Integral b) =&gt; a -&gt; b -&gt; a
+</span><span class="hs-operator hs-var">^^</span></span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679114329"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679114340"><span class="hs-identifier hs-var">vs</span></a></span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Int -&gt; Column Double
+forall a. Vector a -&gt; Int -&gt; a
+</span><span class="hs-operator hs-var">VV.!</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679114330"><span class="hs-identifier hs-var">ix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>      </span><span id="local-6989586621679114333"><span class="annot"><span class="annottext">n :: IndexOf Vector
+</span><a href="#local-6989586621679114333"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Column Double -&gt; IndexOf Vector
+forall (c :: * -&gt; *) t. Container c t =&gt; c t -&gt; IndexOf c
+</span><span class="hs-identifier hs-var">LA.size</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679114340"><span class="hs-identifier hs-var">vs</span></a></span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Int -&gt; Column Double
+forall a. Vector a -&gt; Int -&gt; a
+</span><span class="hs-operator hs-var">VV.!</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-comment">--itAdd :: [Column Double] -&gt; Column Double</span><span>
+</span><span id="line-40"></span><span>  </span><span id="local-6989586621679114322"><span class="annot"><span class="annottext">itAdd :: [Column Double] -&gt; Column Double
+</span><a href="IT.html#itAdd"><span class="hs-identifier hs-var hs-var hs-var hs-var">itAdd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Sum (Column Double) -&gt; Column Double
+forall a. Sum a -&gt; a
+</span><span class="hs-identifier hs-var hs-var">getSum</span></span><span> </span><span class="annot"><span class="annottext">(Sum (Column Double) -&gt; Column Double)
+-&gt; ([Column Double] -&gt; Sum (Column Double))
+-&gt; [Column Double]
+-&gt; Column Double
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Column Double -&gt; Sum (Column Double))
+-&gt; [Column Double] -&gt; Sum (Column Double)
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">Column Double -&gt; Sum (Column Double)
+forall a. a -&gt; Sum a
+</span><span class="hs-identifier hs-var">Sum</span></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-comment">--itWeight :: Double -&gt; Column Double -&gt; Column Double</span><span>
+</span><span id="line-43"></span><span>  </span><span id="local-6989586621679114316"><span class="annot"><span class="annottext">itWeight :: Double -&gt; Column Double -&gt; Column Double
+</span><a href="IT.html#itWeight"><span class="hs-identifier hs-var hs-var hs-var hs-var">itWeight</span></a></span></span><span> </span><span id="local-6989586621679114314"><span class="annot"><span class="annottext">w :: Double
+</span><a href="#local-6989586621679114314"><span class="hs-identifier hs-var">w</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Column Double -&gt; Column Double
+forall b (c :: * -&gt; *) e.
+(Element b, Container c e) =&gt;
+(e -&gt; b) -&gt; c e -&gt; c b
+</span><span class="hs-identifier hs-var">LA.cmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679114314"><span class="hs-identifier hs-var">w</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- | Transformation Functions</span><span>
+</span><span id="line-46"></span><span class="annot"><a href="IT.Eval.html#regId"><span class="hs-identifier hs-type">regId</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regSin"><span class="hs-identifier hs-type">regSin</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regCos"><span class="hs-identifier hs-type">regCos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regTan"><span class="hs-identifier hs-type">regTan</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regTanh"><span class="hs-identifier hs-type">regTanh</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regSqrt"><span class="hs-identifier hs-type">regSqrt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regAbsSqrt"><span class="hs-identifier hs-type">regAbsSqrt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regLog"><span class="hs-identifier hs-type">regLog</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regExp"><span class="hs-identifier hs-type">regExp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-47"></span><span id="regSin"><span class="annot"><span class="annottext">regSin :: Transformation Double
+</span><a href="IT.Eval.html#regSin"><span class="hs-identifier hs-var hs-var">regSin</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;sin&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">sin</span></span><span>
+</span><span id="line-48"></span><span id="regCos"><span class="annot"><span class="annottext">regCos :: Transformation Double
+</span><a href="IT.Eval.html#regCos"><span class="hs-identifier hs-var hs-var">regCos</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;cos&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">cos</span></span><span>
+</span><span id="line-49"></span><span id="regTan"><span class="annot"><span class="annottext">regTan :: Transformation Double
+</span><a href="IT.Eval.html#regTan"><span class="hs-identifier hs-var hs-var">regTan</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;tan&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">tan</span></span><span>
+</span><span id="line-50"></span><span id="regTanh"><span class="annot"><span class="annottext">regTanh :: Transformation Double
+</span><a href="IT.Eval.html#regTanh"><span class="hs-identifier hs-var hs-var">regTanh</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;tanh&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">tanh</span></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span id="regSqrt"><span class="annot"><span class="annottext">regSqrt :: Transformation Double
+</span><a href="IT.Eval.html#regSqrt"><span class="hs-identifier hs-var hs-var">regSqrt</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;sqrt&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">sqrt</span></span><span>
+</span><span id="line-53"></span><span id="regAbsSqrt"><span class="annot"><span class="annottext">regAbsSqrt :: Transformation Double
+</span><a href="IT.Eval.html#regAbsSqrt"><span class="hs-identifier hs-var hs-var">regAbsSqrt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;sqrt.abs&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">sqrt</span></span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; (Double -&gt; Double) -&gt; Double -&gt; Double
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span id="regLog"><span class="annot"><span class="annottext">regLog :: Transformation Double
+</span><a href="IT.Eval.html#regLog"><span class="hs-identifier hs-var hs-var">regLog</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;log&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">log</span></span><span>
+</span><span id="line-55"></span><span id="regExp"><span class="annot"><span class="annottext">regExp :: Transformation Double
+</span><a href="IT.Eval.html#regExp"><span class="hs-identifier hs-var hs-var">regExp</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;exp&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">exp</span></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span id="regId"><span class="annot"><span class="annottext">regId :: Transformation Double
+</span><a href="IT.Eval.html#regId"><span class="hs-identifier hs-var hs-var">regId</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;id&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="annot"><a href="IT.Eval.html#regAll"><span class="hs-identifier hs-type">regAll</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regTrig"><span class="hs-identifier hs-type">regTrig</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regNonLinear"><span class="hs-identifier hs-type">regNonLinear</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Eval.html#regLinear"><span class="hs-identifier hs-type">regLinear</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span>
+</span><span id="line-60"></span><span id="regTrig"><span class="annot"><span class="annottext">regTrig :: [Transformation Double]
+</span><a href="IT.Eval.html#regTrig"><span class="hs-identifier hs-var hs-var">regTrig</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regSin"><span class="hs-identifier hs-var">regSin</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regCos"><span class="hs-identifier hs-var">regCos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regTanh"><span class="hs-identifier hs-var">regTanh</span></a></span><span class="hs-special">]</span><span> </span><span>
+</span><span id="line-61"></span><span id="regNonLinear"><span class="annot"><span class="annottext">regNonLinear :: [Transformation Double]
+</span><a href="IT.Eval.html#regNonLinear"><span class="hs-identifier hs-var hs-var">regNonLinear</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regExp"><span class="hs-identifier hs-var">regExp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regLog"><span class="hs-identifier hs-var">regLog</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regAbsSqrt"><span class="hs-identifier hs-var">regAbsSqrt</span></a></span><span class="hs-special">]</span><span> </span><span>
+</span><span id="line-62"></span><span id="regLinear"><span class="annot"><span class="annottext">regLinear :: [Transformation Double]
+</span><a href="IT.Eval.html#regLinear"><span class="hs-identifier hs-var hs-var">regLinear</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; (Double -&gt; Double) -&gt; Transformation Double
+forall a. String -&gt; (a -&gt; a) -&gt; Transformation a
+</span><a href="IT.html#Transformation"><span class="hs-identifier hs-var">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;id&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span class="hs-special">]</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | List of all transformation functions </span><span>
+</span><span id="line-65"></span><span id="regAll"><span class="annot"><span class="annottext">regAll :: [Transformation Double]
+</span><a href="IT.Eval.html#regAll"><span class="hs-identifier hs-var hs-var">regAll</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regId"><span class="hs-identifier hs-var">regId</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regSin"><span class="hs-identifier hs-var">regSin</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regCos"><span class="hs-identifier hs-var">regCos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regTan"><span class="hs-identifier hs-var">regTan</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regTanh"><span class="hs-identifier hs-var">regTanh</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regSqrt"><span class="hs-identifier hs-var">regSqrt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regAbsSqrt"><span class="hs-identifier hs-var">regAbsSqrt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regLog"><span class="hs-identifier hs-var">regLog</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation Double
+</span><a href="IT.Eval.html#regExp"><span class="hs-identifier hs-var">regExp</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- | Convert a string to a Transformation Function</span><span>
+</span><span id="line-68"></span><span class="annot"><a href="IT.Eval.html#toTrans"><span class="hs-identifier hs-type">toTrans</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-69"></span><span id="toTrans"><span class="annot"><span class="annottext">toTrans :: String -&gt; Transformation Double
+</span><a href="IT.Eval.html#toTrans"><span class="hs-identifier hs-var hs-var">toTrans</span></a></span></span><span> </span><span id="local-6989586621679114289"><span class="annot"><span class="annottext">input :: String
+</span><a href="#local-6989586621679114289"><span class="hs-identifier hs-var">input</span></a></span></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">[(Bool, Transformation Double)] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[(Bool, Transformation Double)]
+</span><a href="#local-6989586621679114287"><span class="hs-identifier hs-var">cmp</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Transformation Double
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-string">&quot;Invalid function name &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679114289"><span class="hs-identifier hs-var">input</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Bool, Transformation Double) -&gt; Transformation Double
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span class="annot"><span class="annottext">((Bool, Transformation Double) -&gt; Transformation Double)
+-&gt; ([(Bool, Transformation Double)]
+    -&gt; (Bool, Transformation Double))
+-&gt; [(Bool, Transformation Double)]
+-&gt; Transformation Double
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">[(Bool, Transformation Double)] -&gt; (Bool, Transformation Double)
+forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(Bool, Transformation Double)]
+</span><a href="#local-6989586621679114287"><span class="hs-identifier hs-var">cmp</span></a></span><span> </span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-73"></span><span>    </span><span id="local-6989586621679114287"><span class="annot"><span class="annottext">cmp :: [(Bool, Transformation Double)]
+</span><a href="#local-6989586621679114287"><span class="hs-identifier hs-var hs-var">cmp</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Bool, Transformation Double) -&gt; Bool)
+-&gt; [(Bool, Transformation Double)]
+-&gt; [(Bool, Transformation Double)]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">(Bool, Transformation Double) -&gt; Bool
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">([(Bool, Transformation Double)]
+ -&gt; [(Bool, Transformation Double)])
+-&gt; [(Bool, Transformation Double)]
+-&gt; [(Bool, Transformation Double)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(Transformation Double -&gt; (Bool, Transformation Double))
+-&gt; [Transformation Double] -&gt; [(Bool, Transformation Double)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Transformation Double -&gt; (Bool, Transformation Double)
+forall a. Transformation a -&gt; (Bool, Transformation a)
+</span><a href="#local-6989586621679114284"><span class="hs-identifier hs-var">isThis</span></a></span><span> </span><span class="annot"><span class="annottext">[Transformation Double]
+</span><a href="IT.Eval.html#regAll"><span class="hs-identifier hs-var">regAll</span></a></span><span>
+</span><span id="line-74"></span><span>    </span><span id="local-6989586621679114283"><span class="annot"><span class="annottext">input' :: String
+</span><a href="#local-6989586621679114283"><span class="hs-identifier hs-var hs-var">input'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
+</span><span class="hs-identifier hs-var">toLower</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679114289"><span class="hs-identifier hs-var">input</span></a></span><span>
+</span><span id="line-75"></span><span>    </span><span id="local-6989586621679114284"><span class="annot"><span class="annottext">isThis :: Transformation a -&gt; (Bool, Transformation a)
+</span><a href="#local-6989586621679114284"><span class="hs-identifier hs-var hs-var">isThis</span></a></span></span><span> </span><span id="local-6989586621679114281"><span class="annot"><span class="annottext">t :: Transformation a
+</span><a href="#local-6989586621679114281"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span> </span><span id="local-6989586621679114280"><span class="annot"><span class="annottext">name :: String
+</span><a href="#local-6989586621679114280"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679114280"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679114283"><span class="hs-identifier hs-var">input'</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation a
+</span><a href="#local-6989586621679114281"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- | A value is invalid if it's wether NaN or Infinite</span><span>
+</span><span id="line-78"></span><span class="annot"><a href="IT.Eval.html#isInvalid"><span class="hs-identifier hs-type">isInvalid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-79"></span><span id="isInvalid"><span class="annot"><span class="annottext">isInvalid :: Double -&gt; Bool
+</span><a href="IT.Eval.html#isInvalid"><span class="hs-identifier hs-var hs-var">isInvalid</span></a></span></span><span> </span><span id="local-6989586621679114278"><span class="annot"><span class="annottext">x :: Double
+</span><a href="#local-6989586621679114278"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><span class="hs-identifier hs-var">isNaN</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679114278"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><span class="hs-identifier hs-var">isInfinite</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679114278"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- | a set of points is valid if none of its values are invalid and</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- the maximum abosolute value is below 1e150 (to avoid overflow)</span><span>
+</span><span id="line-83"></span><span class="annot"><a href="IT.Eval.html#isValid"><span class="hs-identifier hs-type">isValid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-84"></span><span id="isValid"><span class="annot"><span class="annottext">isValid :: [Double] -&gt; Bool
+</span><a href="IT.Eval.html#isValid"><span class="hs-identifier hs-var hs-var">isValid</span></a></span></span><span> </span><span id="local-6989586621679114273"><span class="annot"><span class="annottext">xs :: [Double]
+</span><a href="#local-6989586621679114273"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Double -&gt; Bool) -&gt; [Double] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Bool
+</span><a href="IT.Eval.html#isInvalid"><span class="hs-identifier hs-var">isInvalid</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679114273"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Double] -&gt; Double
+forall (t :: * -&gt; *) a. (Foldable t, Ord a) =&gt; t a -&gt; a
+</span><span class="hs-identifier hs-var">maximum</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; [Double] -&gt; [Double]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679114273"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="hs-number">1e150</span></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-comment">{- TO BE TESTED
+ -- &amp;&amp; var &gt; 1e-4
+  where
+    mu  = sum(xs) / n
+    var = (*(1/n)) . sum $ map (\x -&gt; (x-mu)*(x-mu)) xs
+    n   = fromIntegral (length xs)
+-}</span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- | evaluate an expression to a set of samples </span><span>
+</span><span id="line-95"></span><span class="hs-comment">--</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- (1 LA.|||) adds a bias dimension</span><span>
+</span><span id="line-97"></span><span class="annot"><a href="IT.Eval.html#exprToMatrix"><span class="hs-identifier hs-type">exprToMatrix</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.html#Dataset"><span class="hs-identifier hs-type">Dataset</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-98"></span><span id="exprToMatrix"><span class="annot"><span class="annottext">exprToMatrix :: Dataset Double -&gt; Expr Double -&gt; Matrix Double
+</span><a href="IT.Eval.html#exprToMatrix"><span class="hs-identifier hs-var hs-var">exprToMatrix</span></a></span></span><span> </span><span id="local-6989586621679114266"><span class="annot"><span class="annottext">rss :: Dataset Double
+</span><a href="#local-6989586621679114266"><span class="hs-identifier hs-var">rss</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span id="local-6989586621679114264"><span class="annot"><span class="annottext">e :: [Term Double]
+</span><a href="#local-6989586621679114264"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Matrix Double -&gt; Matrix Double
+forall t. Element t =&gt; Matrix t -&gt; Matrix t -&gt; Matrix t
+</span><span class="hs-operator hs-var">LA.|||</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Matrix Double)
+-&gt; ([Column Double] -&gt; Matrix Double)
+-&gt; [Column Double]
+-&gt; Matrix Double
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Column Double] -&gt; Matrix Double
+forall t. Element t =&gt; [Vector t] -&gt; Matrix t
+</span><span class="hs-identifier hs-var">LA.fromColumns</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Column Double]
+</span><a href="#local-6989586621679114261"><span class="hs-identifier hs-var">zss</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-100"></span><span>    </span><span id="local-6989586621679114261"><span class="annot"><span class="annottext">zss :: [Column Double]
+</span><a href="#local-6989586621679114261"><span class="hs-identifier hs-var hs-var">zss</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Term Double -&gt; Column Double) -&gt; [Term Double] -&gt; [Column Double]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Term Double -&gt; Dataset Double -&gt; Column Double
+forall a.
+(Storable a, Container Vector a, IT a) =&gt;
+Term a -&gt; Dataset a -&gt; Column a
+</span><a href="IT.html#evalTerm"><span class="hs-operator hs-var">`evalTerm`</span></a></span><span> </span><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679114266"><span class="hs-identifier hs-var">rss</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Term Double]
+</span><a href="#local-6989586621679114264"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- | Clean the expression by removing the invalid teerms</span><span>
+</span><span id="line-103"></span><span class="annot"><a href="IT.Eval.html#cleanExpr"><span class="hs-identifier hs-type">cleanExpr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.html#Dataset"><span class="hs-identifier hs-type">Dataset</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-104"></span><span id="cleanExpr"><span class="annot"><span class="annottext">cleanExpr :: Dataset Double -&gt; Expr Double -&gt; Expr Double
+</span><a href="IT.Eval.html#cleanExpr"><span class="hs-identifier hs-var hs-var">cleanExpr</span></a></span></span><span> </span><span id="local-6989586621679114258"><span class="annot"><span class="annottext">rss :: Dataset Double
+</span><a href="#local-6989586621679114258"><span class="hs-identifier hs-var">rss</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span id="local-6989586621679114257"><span class="annot"><span class="annottext">e :: [Term Double]
+</span><a href="#local-6989586621679114257"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Term Double] -&gt; Expr Double
+forall a. [Term a] -&gt; Expr a
+</span><a href="IT.html#Expr"><span class="hs-identifier hs-var">Expr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Term Double] -&gt; [Term Double]
+</span><a href="#local-6989586621679114256"><span class="hs-identifier hs-var">cleanExpr'</span></a></span><span> </span><span class="annot"><span class="annottext">[Term Double]
+</span><a href="#local-6989586621679114257"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679114256"><span class="annot"><span class="annottext">cleanExpr' :: [Term Double] -&gt; [Term Double]
+</span><a href="#local-6989586621679114256"><span class="hs-identifier hs-var hs-var">cleanExpr'</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><a href="#local-6989586621679114256"><span class="hs-identifier hs-var">cleanExpr'</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679114255"><span class="annot"><span class="annottext">t :: Term Double
+</span><a href="#local-6989586621679114255"><span class="hs-identifier hs-var">t</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679114254"><span class="annot"><span class="annottext">ts :: [Term Double]
+</span><a href="#local-6989586621679114254"><span class="hs-identifier hs-var">ts</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; [Int] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([Int] -&gt; Bool)
+-&gt; (Dataset Double -&gt; [Int]) -&gt; Dataset Double -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Bool) -&gt; Column Double -&gt; [IndexOf Vector]
+forall (c :: * -&gt; *) e.
+Container c e =&gt;
+(e -&gt; Bool) -&gt; c e -&gt; [IndexOf c]
+</span><span class="hs-identifier hs-var">LA.find</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Bool
+</span><a href="IT.Eval.html#isInvalid"><span class="hs-identifier hs-var">isInvalid</span></a></span><span> </span><span class="annot"><span class="annottext">(Column Double -&gt; [Int])
+-&gt; (Dataset Double -&gt; Column Double) -&gt; Dataset Double -&gt; [Int]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Term Double -&gt; Dataset Double -&gt; Column Double
+forall a.
+(Storable a, Container Vector a, IT a) =&gt;
+Term a -&gt; Dataset a -&gt; Column a
+</span><a href="IT.html#evalTerm"><span class="hs-identifier hs-var">evalTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Term Double
+</span><a href="#local-6989586621679114255"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679114258"><span class="hs-identifier hs-var">rss</span></a></span><span>
+</span><span id="line-108"></span><span>                       </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[Term Double] -&gt; [Term Double]
+</span><a href="#local-6989586621679114256"><span class="hs-identifier hs-var">cleanExpr'</span></a></span><span> </span><span class="annot"><span class="annottext">[Term Double]
+</span><a href="#local-6989586621679114254"><span class="hs-identifier hs-var">ts</span></a></span><span>
+</span><span id="line-109"></span><span>                       </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Term Double
+</span><a href="#local-6989586621679114255"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Term Double -&gt; [Term Double] -&gt; [Term Double]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Term Double] -&gt; [Term Double]
+</span><a href="#local-6989586621679114256"><span class="hs-identifier hs-var">cleanExpr'</span></a></span><span> </span><span class="annot"><span class="annottext">[Term Double]
+</span><a href="#local-6989586621679114254"><span class="hs-identifier hs-var">ts</span></a></span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- | Checks if the fitness of a solution is not Inf nor NaN.</span><span>
+</span><span id="line-112"></span><span class="annot"><a href="IT.Eval.html#notInfNan"><span class="hs-identifier hs-type">notInfNan</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-113"></span><span id="notInfNan"><span class="annot"><span class="annottext">notInfNan :: Solution Double -&gt; Bool
+</span><a href="IT.Eval.html#notInfNan"><span class="hs-identifier hs-var hs-var">notInfNan</span></a></span></span><span> </span><span id="local-6989586621679114250"><span class="annot"><span class="annottext">s :: Solution Double
+</span><a href="#local-6989586621679114250"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><span class="hs-identifier hs-var">isInfinite</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679114249"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><span class="hs-identifier hs-var">isNaN</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679114249"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679114249"><span class="annot"><span class="annottext">f :: Double
+</span><a href="#local-6989586621679114249"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Double
+forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">([Double] -&gt; Double) -&gt; [Double] -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Solution Double -&gt; [Double]
+forall a. Solution a -&gt; [Double]
+</span><a href="IT.Algorithms.html#_fit"><span class="hs-identifier hs-var hs-var">_fit</span></a></span><span> </span><span class="annot"><span class="annottext">Solution Double
+</span><a href="#local-6989586621679114250"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-115"></span></pre></body></html>
