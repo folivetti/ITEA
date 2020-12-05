@@ -38,18 +38,18 @@ import System.Random
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
-itea :: (NFData a, NFData b) => Mutation a -> Fitness a b -> Population a b -> Rnd [Population a b]
+itea :: NFData a => Mutation a -> Fitness a -> Population a -> Rnd [Population a]
 itea f g p0 = let n = length p0
               in  iterateM (step f g n) p0
 
 -- | Generate an Initial Population at Random
-initialPop :: Int                -- ^ dimension
-           -> Int                -- ^ maxTerms
+initialPop :: NFData a
+           => Int                -- ^ maxTerms
            -> Int                -- ^ nPop
            -> Rnd (Term a)       -- ^ random term generator
-           -> Fitness a b        -- ^ fitness function
-           -> Rnd (Population a b)
-initialPop dim maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
+           -> Fitness a          -- ^ fitness function
+           -> Rnd (Population a)
+initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
   where
     rndExpr = sampleExpr rndTerm
 
@@ -64,20 +64,20 @@ initialPop dim maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (rep
 -- selection of these combined population with
 -- the same size as the original population.
 --
-tournament :: Population a b -> Int -> Rnd (Population a b)
-tournament p 0 = return []
-tournament p n = do pi <- chooseOne p
-                    p' <- tournament p (n-1)
-                    return $ pi:p'
-  where
-    chooseOne :: Population a b -> Rnd (Solution a b)
-    chooseOne p = do let n = length p
-                     c1 <- sampleTo (n-1)
-                     c2 <- sampleTo (n-1)
-                     return $ min (p !! c1) (p !! c2)
+tournament :: Population a -> Int -> Rnd (Population a)
+tournament _ 0 = return []
+tournament p n = do p_i <- chooseOne p
+                    p'  <- tournament p (n-1)
+                    return $ p_i:p'
+
+chooseOne :: Population a -> Rnd (Solution a)
+chooseOne p = do let n = length p
+                 c1 <- sampleTo (n-1)
+                 c2 <- sampleTo (n-1)
+                 return $ min (p !! c1) (p !! c2)
 
 -- | Perform one iteration of ITEA
-step :: (NFData a, NFData b) => Mutation a -> Fitness a b -> Int -> Population a b -> Rnd (Population a b)
+step :: NFData a => Mutation a -> Fitness a -> Int -> Population a -> Rnd (Population a)
 step mutFun fitFun nPop pop = do
   children  <- parRndMap nPop (mutFun . _expr) fitFun pop
   if null children
@@ -88,7 +88,7 @@ step mutFun fitFun nPop pop = do
 
 -- | Runs in parallel the composition of a function that generates random effects with
 -- a function that maybe returns a result.
-parRndMap :: Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
+parRndMap :: NFData c => Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
 parRndMap nPop rndf randFun pop = state stFun
   where
     stFun seed = let seeds         = genNseeds (nPop+1) seed
@@ -112,7 +112,7 @@ genseeds s = let (s1, s2) = split s
              in  s1 : genseeds s2
 
 -- | Runs a computation that may returns a result in parallel.
-parMaybeMap :: Int -> (a -> Maybe b) -> [a] -> [b]
+parMaybeMap :: NFData b => Int -> (a -> Maybe b) -> [a] -> [b]
 parMaybeMap n f pop = catMaybes parmap
   where
     parmap = map f pop `using` parListChunk n rpar

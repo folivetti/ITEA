@@ -16,6 +16,7 @@ import System.Directory
 import Data.ConfigFile
 import Data.Either.Utils
 
+import IT.Regression (Task(..))
 import ITEA.Regression
 import ITEA.Config
 
@@ -26,17 +27,19 @@ getSetting cp cat x = forceEither $ get cp cat x
 -- | Read the config file and run the algorithm.
 runWithConfig :: String -> IO ()
 runWithConfig fname = do
-  cp <- return . forceEither =<< readfile emptyCP fname 
-  let 
+  cp <- forceEither <$> readfile emptyCP fname
+  let
     (expmin, expmax)   = getSetting cp "Mutation"  "exponents"
     (termmin, termmax) = getSetting cp "Mutation"  "termlimit"
     nzExps             = getSetting cp "Mutation"  "nonzeroexps"
     tfuncs             = getSetting cp "Mutation"  "transfunctions"
+    perf_mes           = getSetting cp "Mutation"  "measures"
     trainname          = getSetting cp "Dataset"   "train"
     testname           = getSetting cp "Dataset"   "test"
+    task               = getSetting cp "Dataset"   "task"
     nPop               = getSetting cp "Algorithm" "npop"
     nGens              = getSetting cp "Algorithm" "ngens"
-    log                = getSetting cp "Algorithm" "log"
+    logg               = getSetting cp "Algorithm" "log"
 
     -- validate the configurations
     mutCfg =  validateConfig
@@ -44,18 +47,22 @@ runWithConfig fname = do
            <> termLimit termmin termmax
            <> nonzeroExps nzExps
            <> transFunctions tfuncs
+           <> measures perf_mes 
 
     datasetCfg =  validateConfig
                $  trainingset trainname
                <> testset testname
 
   -- run ITEA with the given configuration
-  runITEAReg datasetCfg mutCfg log nPop nGens
+  case task of
+    Regression -> runITEAReg datasetCfg mutCfg logg nPop nGens
+    Classification -> runITEAClass datasetCfg mutCfg logg nPop nGens
+    ClassMult -> runITEAClassMult datasetCfg mutCfg logg nPop nGens
 
 -- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()
 parseConfigFile [fname] = do exist <- doesFileExist fname
-                             if exist 
+                             if exist
                               then runWithConfig fname
                               else putStrLn "Config file does not exist."
 parseConfigFile _       = putStrLn "Usage: ./itea config config-file-name"

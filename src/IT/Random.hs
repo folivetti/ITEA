@@ -19,7 +19,7 @@ import Control.Monad.State
 import qualified Data.Map.Strict as M
 
 -- * Random expressions generation
- 
+
 -- | The type used for generating random values of 'a'
 type Rnd a = State StdGen a
 
@@ -32,18 +32,18 @@ sampleInterMax :: Int               -- ^ problem dimension
                -> Rnd Interaction   -- ^ Random interaction generator
 sampleInterMax dim budget minExp maxExp = do es <- sampleInterMax' dim budget minExp maxExp
                                              return $ M.fromList es
-                                          
+
+sampleInterMax' :: Int -> Int -> Int -> Int -> Rnd [(Int, Int)]
 sampleInterMax' 0   _      _      _      = return []
-sampleInterMax' dim 0      minExp maxExp = return []
-sampleInterMax' 1   budget minExp maxExp = do e <- sampleNZRng minExp maxExp
-                                              return $ [(0,e)]
+sampleInterMax' _   0      _      _      = return []
+sampleInterMax' 1   _      minExp maxExp = do e <- sampleNZRng minExp maxExp
+                                              return [(0,e)]
 sampleInterMax' dim budget minExp maxExp = do b <- toss
                                               if b
                                               then do e  <- sampleNZRng minExp maxExp
                                                       es <- sampleInterMax' (dim-1) (budget-1) minExp maxExp
-                                                      return $ ((dim-1,e):es)
-                                              else do es <- sampleInterMax' (dim-1) budget minExp maxExp
-                                                      return $ es
+                                                      return ((dim-1,e):es)
+                                              else sampleInterMax' (dim-1) budget minExp maxExp
 
 -- | Sample a random interaction given the problem dimension and 
 -- the minimum and maximum exponents
@@ -53,34 +53,34 @@ sampleInter :: Int               -- ^ problem dimension
             -> Rnd Interaction   -- ^ Random interaction generator
 sampleInter dim minExp maxExp = do es <- sampleInter' dim minExp maxExp
                                    return $ M.fromList es
-                                
+
+sampleInter' :: Int -> Int -> Int -> Rnd [(Int, Int)]
 sampleInter' 0   _      _      = return []
 sampleInter' dim minExp maxExp = do e  <- sampleRng minExp maxExp
                                     es <- sampleInter' (dim-1) minExp maxExp
                                     if e==0
                                     then return es
                                     else return ((dim-1,e):es)
-                                          
-                                          
+
+
 -- | Samples a random transformation function from a provided list of functions
 sampleTrans :: [Transformation a]      -- ^ choices of transformation functions
             -> Rnd (Transformation a)  -- ^ Random generator
-sampleTrans ts = sampleFromList ts
+sampleTrans = sampleFromList 
 
 -- | Samples a random term using a random transformation and a random interaction generators.
 sampleTerm :: Rnd (Transformation a)  -- ^ random transformation function
            -> Rnd Interaction         -- ^ random interaction function
            -> Rnd (Term a)            -- ^ Random generator
 sampleTerm rndTrans rndInter = do t <- rndTrans
-                                  i <- rndInter
-                                  return $ Term t i
+                                  Term t <$> rndInter
 
 -- | Create a random expression with exactly n terms
 sampleExpr :: Rnd (Term a)         -- ^ random term function
            -> Int                  -- ^ number of terms
            -> Rnd (Expr a)         -- ^ Random generator
 sampleExpr _ 0            = return (Expr [])
-sampleExpr rndTerm nTerms = do t <- rndTerm 
+sampleExpr rndTerm nTerms = do t <- rndTerm
                                e <- sampleExpr rndTerm (nTerms-1)
                                return $ t `consTerm` e
 
@@ -108,7 +108,7 @@ sampleRng x y = state $ uniformR (x, y)
 -- | Sample from a range of integers excluding 0
 sampleNZRng :: Int -> Int -> Rnd Int
 sampleNZRng x y = do z <- sampleRng x y
-                     if z == 0 
+                     if z == 0
                      then sampleNZRng x y
                      else return z
 

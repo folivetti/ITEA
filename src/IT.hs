@@ -84,38 +84,38 @@ evalExprToList (Expr es) xs = map (\t -> evalTerm t xs) es
 -- applying the weight and summing the results.
 evalExpr :: (Storable a, LA.Container LA.Vector a, IT a) => Expr a -> Dataset a -> [Double] -> Column a
 evalExpr es xs ws = itAdd $ zipWith itWeight ws (evalExprToList es xs)
-  
+
 -- 'Show' and 'Eq' instances
 -- obs.: maybe this makes more sense specifically for each instance of IT
 instance (Show a) => Show (Expr a) where
   show (Expr es) = intercalate " + " $ map show es
 
 instance Show a => Show (Term a) where
-   show (Term tr i)   = show tr ++ "(" ++ showInter i ++ ")" 
+   show (Term tr i)   = show tr ++ "(" ++ showInter i ++ ")"
      where
        -- String representation of an interaction term.
        -- TODO: replace variable names with provided labels
        showInter :: M.Map Int Int -> String
-       showInter es = (intercalate "*" . filter (/="") . map show') 
+       showInter es = (intercalate "*" . filter (/="") . map show')
                     $ M.toList es
-         where 
-           show' (n, 0) = ""
+         where
+           show' (_, 0) = ""
            show' (n, 1) = 'x' : show n
            show' (n, e) = ('x' : show n) ++ "^(" ++  show e ++ ")"
 
 instance Show a => Show (Transformation a) where
   show (Transformation s _) = s
 
-          
+
 -- | Two terms are equal if their interactions are equal
 -- this instance is used for the mutation operation to avoid adding 
 -- two interactions with the same value on the same expression. 
 instance Eq (Term a) where
-  (Term tr1 i1) == (Term tr2 i2) = (i1 == i2)
+  (Term _ i1) == (Term _ i2) = i1 == i2
 
 instance Eq (Transformation a) where
   (Transformation s1 _) == (Transformation s2 _) = s1==s2
-  
+
 -- * Utility functions
 
 -- | Remove duplicated terms.
