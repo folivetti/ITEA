@@ -7,4 +7,4 @@ clr.fit(Z[:,:-1], Z[:,-1])
 yhat = clr.predict(Z[:,:-1])
 
 mse = np.square(yhat - Z[:,-1]).mean()
-print(np.sqrt(mse))
+print("Fitness should be approx.: ", np.sqrt(mse))

@@ -4,6 +4,20 @@
 
 **ITEA** is a fast and simple mutation-based Evolutionary Algorithm developed in Haskell. Check out the API [documentation](https://folivetti.github.io/ITEA/) if you want to extend the code.
 
+## Dependencies
+
+For Haskell-only:
+
+- BlAS
+- LAPACK
+- GSL
+
+For Python wrapper:
+
+- Numpy
+- Pandas
+- Scikit-Learn
+
 ## Installation
 
 1. Install the Haskell Stack tool following the instructions at [https://docs.haskellstack.org/en/stable/README/](https://docs.haskellstack.org/en/stable/README/).
@@ -11,6 +25,8 @@
 2. Clone the repository with `git clone https://github.com/folivetti/ITEA.git`.
 
 3. In the repository root directory run `stack build` (and wait patiently).
+
+If using `nix`, edit `stack.yaml` and change `nix: enable: false` to `true`.
 
 ## Running
 
