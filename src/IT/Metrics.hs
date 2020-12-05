@@ -79,6 +79,12 @@ _nmse = Measure "NMSE" nmse
 _r2   = Measure "R^2" rSq
 
 -- * Classification measures 
+_accuracy,_recall,_precision,_f1,_logloss :: Measure
+_accuracy  = Measure "Accuracy" accuracy
+_recall    = Measure "Recall" recall
+_precision = Measure "Precision" precision
+_f1        = Measure "F1" f1
+_logloss   = Measure "Log-Loss" logloss
 
 -- | Accuracy
 accuracy :: Vector -> Vector -> Double
@@ -122,12 +128,7 @@ logloss ysHat ys = mean $ -(ys * log ysHat' + (1 - ys)*log(1 - ysHat'))
   where
     ysHat' = LA.cmap (min (1.0 - 1e-15) . max 1e-15) ysHat
 
-_accuracy,_recall,_precision,_f1,_logloss :: Measure
-_accuracy  = Measure "Accuracy" accuracy
-_recall    = Measure "Recall" recall
-_precision = Measure "Precision" precision
-_f1        = Measure "F1" f1
-_logloss   = Measure "Log-Loss" logloss
+
 
 -- | List of all measures
 measureAll :: [Measure]

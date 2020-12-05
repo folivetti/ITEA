@@ -22,12 +22,14 @@ The config file is split into three sections where you can set different hyperpa
 [Dataset]
 train = path and name of the training set
 test  = path and name of the test set
+task  = Regression
 
 [Mutation]
 exponents      = (-3, 3) 
 termlimit      = (2, 15)
 nonzeroexps    = 10
-transfunctions = FAll
+transfunctions = ["id", "sin", "cos", "tanh", "sqrt.abs", "log", "exp"]
+measures       = ["RMSE", "NMSE", "MAE", "R^2"]
 
 [Algorithm]
 npop  = 100
@@ -35,7 +37,7 @@ ngens = 1000
 log   = PartialLog "path and name of the output file"
 ```
 
-The `transfunctions` parameter accepts the values `FLinear` (only the `id` function), `FNonLinear` (`exp, log, abs.sqrt` functions), `FTrig` (`sin, cos, tanh` functions) and `FAll` in order to use every transformation function currently available.
+The `task` parameter can be set to `Regression` or `Classification`, `transfunctions` accepts a list of transformation functions supported (see `src/IT/Eval.hs` block "Transformation Functions"), `measures` accepts a list of error (minimization) functions to use in the report generator (see 'src/IT/Metrics.hs` blocks "Regression measures" and "Classification measures").
 
 Run the algorithm with the command:
 
