@@ -45,6 +45,8 @@ stack run config <conf-file>
 
 where <conf-file> is the path and name of the config file.
 
+As an alternative an unsafe Python wrapper (`itea.py`) is included that works alike the scikit-learn library. An example of its usage can be found in the `example.py` file.
+
 ## Interaction-Transformation
 
 Interaction-Transformation (IT) is a representation proposed in [1](https://www.sciencedirect.com/science/article/pii/S0020025516308635?casa_token=NSH9KVyjs84AAAAA:tDVSPVS8P15nHb8rZvLiW4klNp-nVew1QsKwsxz2YhpxZu2oyhUBJvkufKB8VK8Q6hJIaDr87oo) to avoid some redundancy in the search space of Symbolic Regression.
