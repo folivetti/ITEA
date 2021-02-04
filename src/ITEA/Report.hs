@@ -25,18 +25,17 @@ import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
 import qualified Numeric.LinearAlgebra as LA
 import Data.Maybe
-import Data.List (intercalate, transpose, foldl1', foldl')
+import Data.List (intercalate, foldl')
 import Control.Monad
-import Control.DeepSeq
 
 -- | Output configuration  
 data Output = Screen | PartialLog String | FullLog String deriving Read
 
 -- | Get best solution from all generations
-getBest :: Int  -> [Population Double] -> Solution Double
+getBest :: Int  -> [Population] -> Solution
 getBest n ps     = minimum $ getAllBests n ps
 
-getAllBests :: Int -> [Population Double] -> [Solution Double]
+getAllBests :: Int -> [Population] -> [Solution]
 getAllBests n ps = map minimum $ take n ps
 
 -- | Creates a file if it does not exist
@@ -59,7 +58,7 @@ interleave xs' ys' = getLeft xs' ys' []
 
 
 -- | Generates the reports into the output
-genReports :: Output -> NonEmpty Measure -> [Population Double] -> Int -> (Solution Double -> Maybe [Double]) -> IO ()
+genReports :: Output -> NonEmpty Measure -> [Population] -> Int -> (Solution -> Maybe [Double]) -> IO ()
 genReports Screen _ pop n fitTest = do
   let best = getBest n pop
   putStrLn "Best expression applied to the training set:\n"
@@ -71,13 +70,16 @@ genReports (PartialLog dirname) measures pop n fitTest = do
   createDirectoryIfMissing True dirname
   let
     fname      = dirname ++ "/stats.csv"
+    fnameExpr  = dirname ++ "/exprs.csv"
     mNames     = NE.map _name measures
     trainNames = NE.toList $ NE.map (++"_train") mNames
     testNames  = NE.toList $ NE.map (++"_test") mNames
-    headReport = intercalate "," (["name", "time"] ++ interleave trainNames testNames ++ ["expr"])
+    headReport = intercalate "," (["name", "time"] ++ interleave trainNames testNames)
+    headExpr   = intercalate "," ["expr", "weights", "python"]
     best       = getBest n pop
 
-  hStats <- createIfDoesNotExist headReport fname
+  hStats     <- createIfDoesNotExist headReport fname
+  hStatsExpr <- createIfDoesNotExist headExpr fnameExpr
 
   t0 <- getTime Realtime
   print best -- force evaluation. Don't be lazy.
@@ -88,15 +90,16 @@ genReports (PartialLog dirname) measures pop n fitTest = do
     nFit            = length (_fit best)
     bestTest        = fromMaybe (replicate nFit (1/0)) $ fitTest best
     measuresResults = map show $ interleave (_fit best) bestTest
-    exprWithWeight  = w ++ " + " ++ (intercalate " + " $ zipWith insertWeight ws (map show ts))
-    (w:ws)          = map show . LA.toList . head $ _weights best
-    ts              = getListOfTerms (_expr best)
-    insertWeight wi ti = wi ++ "*(" ++ ti ++ ")"
+    exprWithWeight  = "\"" ++ show expr ++ "\",\"" ++ show ws ++ "\",\"" ++ toPython expr ws ++ "\"" 
+    ws              = LA.toList . head $ _weights best
+    expr            = _expr best
 
     stats           = intercalate "," $ [dirname, totTime] ++ measuresResults ++ [exprWithWeight]
 
-  hPutStr hStats stats
+  hPutStrLn hStats stats
+  hPutStrLn hStatsExpr exprWithWeight
   hClose hStats
+  hClose hStatsExpr
 
 -- FullLog is the same as PartialLog plus the best, worst, avg fit for every generation.
 --
@@ -135,6 +138,7 @@ openNext fname = go [fname ++ "." ++ show n ++ ".csv" | n <- [0..]]
   where
     -- this is a partial function applied to an infinite list
     -- so, what harm can it do?
+    go []       = error "end of inifinity stream"
     go (fn:fns) = do b <- doesFileExist fn
                      if b
                         then go fns
@@ -142,10 +146,12 @@ openNext fname = go [fname ++ "." ++ show n ++ ".csv" | n <- [0..]]
 
 postAgg :: [Double] -> [Double]
 postAgg [best, worst, tot, count] = [best, worst, tot/count]
+postAgg _ = error "wrong parameters count"
 
 aggregate :: [Double] -> Double -> [Double]
 aggregate [] train = [train,train,train,1]
 aggregate [best, worst, tot, count] train = [min best train, max worst train, tot+train, count+1]
+aggregate _ _ = error "wrong parameters count in aggregate"
 
 -- | Write a sequence to a sequence of opened files
 toFile :: [Handle] -> [Double] -> IO ()

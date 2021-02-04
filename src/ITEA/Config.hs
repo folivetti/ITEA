@@ -15,7 +15,6 @@ module ITEA.Config where
 import IT
 import IT.Algorithms
 import IT.Mutation
-import IT.Eval
 import IT.Metrics
 import IT.Random
 
@@ -45,12 +44,12 @@ instance Monoid (Param a) where
 data UncheckedMutationCfg = UMCfg { _expLim   :: Param (Int, Int)
                                   , _termLim  :: Param (Int, Int)
                                   , _nzExp    :: Param Int
-                                  , _transFun :: Param [String]
+                                  , _transFun :: Param [Transformation]
                                   , _measures :: Param [String]
                                   }
 
 -- | Validated mutation config 
-data MutationCfg = MCfg (Int, Int) (Int, Int) Int [String] [String] deriving Show
+data MutationCfg = MCfg (Int, Int) (Int, Int) Int [Transformation] [String] deriving Show
 
 instance Semigroup UncheckedMutationCfg where
   (UMCfg p1 p2 p3 p4 p5) <> (UMCfg q1 q2 q3 q4 q5) = UMCfg (p1<>q1) (p2<>q2) (p3<>q3) (p4<>q4) (p5<>q5)
@@ -70,7 +69,7 @@ nonzeroExps :: Int -> UncheckedMutationCfg
 nonzeroExps x = mempty { _nzExp = Has x }
 
 -- | Generates a configuration with only '_transFun' holding a value.
-transFunctions :: [String] -> UncheckedMutationCfg
+transFunctions :: [Transformation] -> UncheckedMutationCfg
 transFunctions  fs  = mempty { _transFun = Has fs }
 
 -- | Generates a configuration with only '_measures' holding a value.
@@ -107,12 +106,12 @@ parseFile css = ML.splitToXY . LA.fromLists $ map (map read) dat
     dat = map (splitOn ",") $ lines css
 
 -- | Creates the mutation function and also returns the random term generator (for initialization)
-withMutation :: MutationCfg -> Int -> (Mutation Double, Rnd (Term Double))
+withMutation :: MutationCfg -> Int -> (Mutation, Rnd Term)
 withMutation (MCfg elim tlim nzExp transfun _) dim = (mutFun dim elim tlim rndTerm rndTrans, rndTerm)
   where
     (minExp, maxExp) = elim
     rndInter = sampleInterMax dim nzExp minExp maxExp
-    rndTrans = sampleTrans (map toTrans transfun)
+    rndTrans = sampleTrans transfun -- (map read transfun)
     rndTerm  = sampleTerm rndTrans rndInter
 
 -- * Datasets configuration

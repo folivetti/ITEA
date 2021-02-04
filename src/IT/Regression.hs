@@ -80,7 +80,7 @@ classifyMult ys zss
 --  run a Linear regression on the evaluated expressions
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
-evalTrain :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Expr Double -> Maybe (Solution Double)
+evalTrain :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Expr -> Maybe Solution
 evalTrain task measures xss ys expr =
 --  | notInfNan ps = Just ps 
 --  | otherwise    = Nothing
@@ -102,7 +102,7 @@ evalTrain task measures xss ys expr =
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.
 -- It was: fitnessTest
-evalTest :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Solution Double -> Maybe [Double]
+evalTest :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Solution -> Maybe [Double]
 evalTest task measures xss ys sol 
   | V.length (head ws) /= LA.cols zss = Nothing
   | otherwise                  = Just fit
@@ -131,3 +131,4 @@ tryToRound f zss (ysHat, (ws:_)) =
   in  if abs (f ysHat' - f ysHat) < 0.01
           then (ysHat', [ws'])
           else (ysHat, [ws])
+tryToRound _ _ _ = error "empty weight list"

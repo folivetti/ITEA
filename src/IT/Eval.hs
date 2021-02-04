@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 Module      : IT.Regression
 Description : Specific functions for Symbolic Regression
@@ -12,76 +13,99 @@ Definitions of IT data structure and support functions.
 
 module IT.Eval where
 
+import Foreign.Storable
 import Data.Semigroup
-import qualified Data.Vector as VV
+import qualified Data.Vector as V
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Map.Strict as M
-import Data.Char
 
 import IT
 import IT.Algorithms
 
--- | IT Instance for regression evals an expression to
--- sum(w_i * term_i) + w0
--- with
---      term_i = f_i(p_i(xs))
---  and p_i(xs) = prod(x^eij)
-instance IT Double where
-  --itTimes :: Dataset Double -> Interaction -> Column Double
-  itTimes vs m
-    | VV.length vs == 0 = LA.fromList []
-    | otherwise         = M.foldrWithKey f vzero m
-    where
-      vzero    = n LA.|> repeat 1
-      f ix p v = v * LA.cmap (^^p) (vs VV.! ix)
-      n        = LA.size (vs VV.! 0)
+-- * Transformation evaluation
+transform :: Floating a => Transformation -> a -> a
+transform Id      = id
+transform Sin     = sin
+transform Cos     = cos
+transform Tan     = tan
+transform Tanh    = tanh
+transform Sqrt    = sqrt
+transform SqrtAbs = sqrt.abs
+transform Exp     = exp
+transform Log     = log
 
-  --itAdd :: [Column Double] -> Column Double
-  itAdd = getSum . foldMap Sum
+derivative :: Floating a => Transformation -> a -> a
+derivative Id      = const 1
+derivative Sin     = cos
+derivative Cos     = negate.sin
+derivative Tan     = recip . (^2) . cos
+derivative Tanh    = (1-) . (^2) . tanh
+derivative Sqrt    = recip . (2*) . sqrt
+derivative SqrtAbs = \x -> x / (2* (abs x)**1.5)
+derivative Exp     = exp
+derivative Log     = recip
 
-  --itWeight :: Double -> Column Double -> Column Double
-  itWeight w = LA.cmap (w*)
-
--- | Transformation Functions
-regId, regSin, regCos, regTan, regTanh, regSqrt, regAbsSqrt, regLog, regExp :: Transformation Double
-regSin     = Transformation "sin" sin
-regCos     = Transformation "cos" cos
-regTan     = Transformation "tan" tan
-regTanh    = Transformation "tanh" tanh
-
-regSqrt    = Transformation "sqrt" sqrt
-regAbsSqrt = Transformation "sqrt.abs" (sqrt.abs)
-regLog     = Transformation "log" log
-regExp     = Transformation "exp" exp
-
-regId      = Transformation "id" id
-
-regAll, regTrig, regNonLinear, regLinear :: [Transformation Double]
-regTrig      = [regSin, regCos, regTanh] 
-regNonLinear = [regExp, regLog, regAbsSqrt] 
-regLinear    = [Transformation "id" id]
-
--- | List of all transformation functions 
-regAll = [regId, regSin, regCos, regTan, regTanh, regSqrt, regAbsSqrt, regLog, regExp]
-
--- | Convert a string to a Transformation Function
-toTrans :: String -> Transformation Double
-toTrans input
-  | null cmp  = error ("Invalid function name " ++ input)
-  | otherwise = (snd.head) cmp 
+-- Interaction of dataset xss with strengths ks
+-- ps = xss ** ks
+monomial :: Dataset Double -> Interaction -> Column Double
+monomial xss ks
+  | V.length xss == 0 = LA.fromList []
+  | otherwise         = M.foldrWithKey monoProduct 1 ks
   where
-    cmp    = filter fst $ map isThis regAll
-    input' = map toLower input
-    isThis t@(Transformation name _) = (name == input', t)
+    --vzero               = LA.fromList $ replicate n 1
+    --n                   = LA.size (xss V.! 0)
+    monoProduct ix k ps = ps * LA.cmap (^^k) (xss V.! ix)
+
+-- | to evaluate a term we apply the transformation function
+-- to the result of 'itTimes'.
+evalTerm :: Term -> Dataset Double -> Column Double
+evalTerm (Term t ks) xss = LA.cmap t' (monomial xss ks)
+  where t' = transform t
+
+-- | evaluates the expression into a list of terms
+-- in case the evaluated values are needed
+evalExprToList :: Expr -> Dataset Double -> [Column Double]
+evalExprToList terms xs = map (`evalTerm` xs) terms
+
+-- | evaluates an expression by evaluating the terms into a list
+-- applying the weight and summing the results.
+evalExpr :: Expr -> Dataset Double -> [Double] -> Column Double
+evalExpr terms xss ws = sum weightedTerms
+  where
+    weightedTerms = zipWith multWeight ws (evalExprToList terms xss)
+    multWeight w  = LA.cmap (w*)
+
+-- w1 t1(p1(x)) + w2 t2(p2(x))
+-- w1 t1'(p1(x))p1'(x) + w2 t2'(p2(x))p2'(x)
+evalTermDiff :: Term -> Dataset Double -> Int -> Column Double 
+evalTermDiff (Term t ks) xss ix 
+  | M.member ix ks = LA.fromList $ replicate n 0
+  | otherwise      = it * p'
+  where
+    p  = monomial xss ks
+    p' = monomial xss (M.update dec ix ks)
+    t' = derivative t
+    it = LA.cmap t' p
+    n  = LA.size (xss V.! 0)
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
+
+evalDiff :: Expr -> Dataset Double -> [Double] -> Int -> Column Double
+evalDiff terms xss ws ix = sum weightedTerms
+  where
+    weightedTerms = zipWith multWeight ws (map (\t -> evalTermDiff t xss ix) terms)
+    multWeight w  = LA.cmap (w*)
+
 
 -- | A value is invalid if it's wether NaN or Infinite
 isInvalid :: Double -> Bool
-isInvalid x = isNaN x || isInfinite x
+isInvalid x = isNaN x || isInfinite x || abs x >= 1e150
 
 -- | a set of points is valid if none of its values are invalid and
 -- the maximum abosolute value is below 1e150 (to avoid overflow)
 isValid :: [Double] -> Bool
-isValid xs = not (any isInvalid xs) && (maximum (map abs xs) < 1e150)
+isValid xs = not (any isInvalid xs)
 
 {- TO BE TESTED
  -- && var > 1e-4
@@ -94,21 +118,19 @@ isValid xs = not (any isInvalid xs) && (maximum (map abs xs) < 1e150)
 -- | evaluate an expression to a set of samples 
 --
 -- (1 LA.|||) adds a bias dimension
-exprToMatrix :: Dataset Double -> Expr Double -> LA.Matrix Double
-exprToMatrix rss (Expr e) = ((1 LA.|||) . LA.fromColumns) zss
+exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
+exprToMatrix xss = intercept . LA.fromColumns . map (`evalTerm` xss)
   where
-    zss = map (`evalTerm` rss) e
+    intercept = (1 LA.|||)
 
 -- | Clean the expression by removing the invalid teerms
-cleanExpr :: Dataset Double -> Expr Double -> Expr Double
-cleanExpr rss (Expr e) = Expr (cleanExpr' e)
-  where
-    cleanExpr' [] = []
-    cleanExpr' (t:ts) = if ((/=[]) . LA.find isInvalid . evalTerm t) rss
-                       then cleanExpr' ts
-                       else t : cleanExpr' ts
+cleanExpr :: Dataset Double -> Expr -> Expr
+cleanExpr xss [] = []
+cleanExpr xss (term:terms) = if ((not . null) . LA.find isInvalid . evalTerm term)  xss
+                                then cleanExpr xss terms
+                                else term : cleanExpr xss terms 
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
-notInfNan :: Solution Double -> Bool
+notInfNan :: Solution -> Bool
 notInfNan s = not (isInfinite f || isNaN f)
   where f = head $ _fit s

@@ -17,40 +17,41 @@ import IT.Random
 import IT.Metrics
 
 import Control.DeepSeq
+import qualified Numeric.LinearAlgebra as LA
 
 -- | data type containing a solution, its fitness and weight vector 
 --  'a' refers to the type of 'Expr', 'b' refers to a container of statistics.
-data Solution a = Sol { _expr    :: Expr a     -- ^ The IT expression of type a
-                      , _fit     :: [Double]   -- ^ Fitness and other measures for evaluating the expression
-                      , _weights :: [Vector]
-                      }
+data Solution = Sol { _expr    :: Expr     -- ^ The IT expression of type a
+                    , _fit     :: [Double] -- ^ Fitness and other measures for evaluating the expression
+                    , _weights :: [Vector]
+                    }
 
-instance Show a => Show (Solution a) where
-  show (Sol e f w) = "Expression: " ++ show e ++ "\nFitness: " ++ (show . head) f ++ "\nWeights: " ++  show w
+instance Show Solution where
+  show (Sol e f w) = "Expression: " ++ toExprStr e (LA.toList $ head w) ++ "\nFitness: " ++ (show . head) f ++ "\nWeights: " ++  show w
   
 -- | These instances are only to find the best and worst individuals
 -- of a population.
-instance Eq (Solution a) where
+instance Eq Solution where
   -- | 'Eq' instance to sort a sequence
   -- of solutions by fitness
   s1 == s2 = (head._fit) s1 == (head._fit) s2
 
-instance Ord (Solution a) where
+instance Ord Solution where
   -- | 'Ord' instance to sort a sequence
   -- of solutions by fitness
   s1 <= s2 = (head._fit) s1 <= (head._fit) s2
 
 -- | A population of 'Solution a b'
-type Population a = [Solution a]
+type Population = [Solution]
 
-instance NFData a => NFData (Solution a) where
+instance NFData Solution where
   rnf _ = ()
 
 -- | 'Fitness' function that takes a list of expressions and 
 -- returns an evaluated population. 
 -- This function is a good candidate for parallelization.
 --type Fitness    a b = [Expr a] -> Population a b -- (Expr a, Double, b)
-type Fitness    a = Expr a -> Maybe (Solution a)
+type Fitness = Expr -> Maybe Solution
 
 -- | 'Mutation' function with signature 'Solution a b -> Rnd (Solution a b)'
-type Mutation   a   = Expr a -> Rnd (Expr a)
+type Mutation = Expr -> Rnd Expr

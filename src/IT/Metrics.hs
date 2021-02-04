@@ -13,7 +13,6 @@ Definitions of IT data structure and support functions.
 module IT.Metrics where
 
 import Data.Semigroup
-import Data.Foldable
 
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector.Storable as V
@@ -98,6 +97,7 @@ accuracy ysHat ys = equals/tot
       | yH == y   = (Sum 1, Sum 1)
       | otherwise = (Sum 0, Sum 1)
 
+precision :: Vector -> Vector -> Double
 precision ysHat ys = equals/tot
   where
     ys'    = map round $ LA.toList ys
@@ -106,18 +106,21 @@ precision ysHat ys = equals/tot
     cmp :: (Integer, Integer) -> (Sum Double, Sum Double)
     cmp (1, 1)  = (Sum 1, Sum 1)
     cmp (1, 0)  = (Sum 0, Sum 1)
-    cmp (yH, y) = (Sum 0, Sum 0)
+    cmp (_, _) = (Sum 0, Sum 0)
 
+recall :: Vector -> Vector -> Double
 recall ysHat ys = equals/tot
   where
     ys'    = map round $ LA.toList ys
     ysHat' = map round $ LA.toList ysHat
     (Sum equals, Sum tot) = foldMap cmp $ zip ysHat' ys'
+
     cmp :: (Integer, Integer) -> (Sum Double, Sum Double)
     cmp (1, 1)  = (Sum 1, Sum 1)
     cmp (0, 1)  = (Sum 0, Sum 1)
-    cmp (yH, y) = (Sum 0, Sum 0)
+    cmp (_, _) = (Sum 0, Sum 0)
 
+f1 :: Vector -> Vector -> Double
 f1 ysHat ys = 2*prec*rec/(prec+rec)
   where
     prec = precision ysHat ys
