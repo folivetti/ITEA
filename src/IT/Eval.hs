@@ -10,14 +10,15 @@ Portability : POSIX
 
 Definitions of IT data structure and support functions.
 -}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module IT.Eval where
 
 import Foreign.Storable
-import Data.Semigroup
 import qualified Data.Vector as V
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Map.Strict as M
+import Numeric.Interval hiding (null)
 
 import IT
 import IT.Algorithms
@@ -97,6 +98,39 @@ evalDiff terms xss ws ix = sum weightedTerms
     weightedTerms = zipWith multWeight ws (map (\t -> evalTermDiff t xss ix) terms)
     multWeight w  = LA.cmap (w*)
 
+evalImage :: Expr -> [Interval Double] -> [Double] -> Interval Double
+evalImage terms domains ws = sum weightedTerms
+  where
+    weightedTerms = zipWith (*) (map singleton ws) (map (evalTermInterval domains) terms)
+
+evalTermInterval :: [Interval Double] -> Term -> Interval Double
+evalTermInterval domains (Term t ks) = transform t (monomialInterval domains ks)
+
+monomialInterval :: [Interval Double] -> Interaction -> Interval Double 
+monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains 
+  where
+    monoProduct (ix, x) img 
+      | ix `M.member` ks = img * (x ** get ix)
+      | otherwise        = img
+    get ix = fromIntegral (ks M.! ix)
+
+evalDiffImage :: Expr -> [Interval Double] -> [Double] -> Int -> Interval Double
+evalDiffImage terms domains ws ix = sum weightedTerms
+  where
+    weightedTerms = zipWith (*) (map singleton ws) (map (evalTermDiffInterval domains ix) terms)
+
+evalTermDiffInterval :: [Interval Double] -> Int -> Term -> Interval Double 
+evalTermDiffInterval domains ix (Term t ks)
+  | M.member ix ks = singleton 0
+  | otherwise      = it * p'
+  where
+    p  = monomialInterval domains ks
+    p' = monomialInterval domains (M.update dec ix ks)
+    t' = derivative t
+    it = t' p
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
 
 -- | A value is invalid if it's wether NaN or Infinite
 isInvalid :: Double -> Bool
