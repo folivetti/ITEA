@@ -48,6 +48,7 @@ derivative Log     = recip
 
 -- Interaction of dataset xss with strengths ks
 -- ps = xss ** ks
+-- it is faster to go through the nonzero strengths, since we can query a column in O(1)
 monomial :: Dataset Double -> Interaction -> Column Double
 monomial xss ks
   | V.length xss == 0 = LA.fromList []
@@ -57,29 +58,38 @@ monomial xss ks
     --n                   = LA.size (xss V.! 0)
     monoProduct ix k ps = ps * LA.cmap (^^k) (xss V.! ix)
 
+-- | Interaction of the domain interval
+-- it is faster to fold through the list of domains and checking whether we 
+-- have a nonzero strength.
+monomialInterval :: [Interval Double] -> Interaction -> Interval Double 
+monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains 
+  where
+    monoProduct (ix, x) img 
+      | ix `M.member` ks = img * (x ** get ix)
+      | otherwise        = img
+    get ix = fromIntegral (ks M.! ix)
+    
 -- | to evaluate a term we apply the transformation function
--- to the result of 'itTimes'.
-evalTerm :: Term -> Dataset Double -> Column Double
-evalTerm (Term t ks) xss = LA.cmap t' (monomial xss ks)
+-- to the interaction monomial
+evalTerm :: Dataset Double -> Term -> Column Double
+evalTerm xss (Term t ks) = LA.cmap t' (monomial xss ks)
   where t' = transform t
 
--- | evaluates the expression into a list of terms
--- in case the evaluated values are needed
-evalExprToList :: Expr -> Dataset Double -> [Column Double]
-evalExprToList terms xs = map (`evalTerm` xs) terms
+-- | apply the transformation function to the interaction monomial
+evalTermInterval :: [Interval Double] -> Term -> Interval Double
+evalTermInterval domains (Term t ks) = transform t (monomialInterval domains ks)
 
--- | evaluates an expression by evaluating the terms into a list
--- applying the weight and summing the results.
-evalExpr :: Expr -> Dataset Double -> [Double] -> Column Double
-evalExpr terms xss ws = sum weightedTerms
-  where
-    weightedTerms = zipWith multWeight ws (evalExprToList terms xss)
-    multWeight w  = LA.cmap (w*)
-
+-- | The partial derivative of a term w.r.t. the variable ix is:
+-- 
+-- If ix exists in the interaction, the derivative is:
+--      derivative t (monomial xss ks) * (monomial xss ks') 
+--      ks' is the same as ks but with the strength of ix decremented by one
+-- Otherwise it is equal to 0
+--
 -- w1 t1(p1(x)) + w2 t2(p2(x))
 -- w1 t1'(p1(x))p1'(x) + w2 t2'(p2(x))p2'(x)
-evalTermDiff :: Term -> Dataset Double -> Int -> Column Double 
-evalTermDiff (Term t ks) xss ix 
+evalTermDiff :: Int -> Dataset Double -> Term -> Column Double 
+evalTermDiff ix xss (Term t ks)
   | M.member ix ks = LA.fromList $ replicate n 0
   | otherwise      = it * p'
   where
@@ -91,36 +101,9 @@ evalTermDiff (Term t ks) xss ix
 
     dec 1 = Nothing
     dec k = Just (k-1)
-
-evalDiff :: Expr -> Dataset Double -> [Double] -> Int -> Column Double
-evalDiff terms xss ws ix = sum weightedTerms
-  where
-    weightedTerms = zipWith multWeight ws (map (\t -> evalTermDiff t xss ix) terms)
-    multWeight w  = LA.cmap (w*)
-
-evalImage :: Expr -> [Interval Double] -> [Double] -> Interval Double
-evalImage terms domains ws = sum weightedTerms
-  where
-    weightedTerms = zipWith (*) (map singleton ws) (map (evalTermInterval domains) terms)
-
-evalTermInterval :: [Interval Double] -> Term -> Interval Double
-evalTermInterval domains (Term t ks) = transform t (monomialInterval domains ks)
-
-monomialInterval :: [Interval Double] -> Interaction -> Interval Double 
-monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains 
-  where
-    monoProduct (ix, x) img 
-      | ix `M.member` ks = img * (x ** get ix)
-      | otherwise        = img
-    get ix = fromIntegral (ks M.! ix)
-
-evalDiffImage :: Expr -> [Interval Double] -> [Double] -> Int -> Interval Double
-evalDiffImage terms domains ws ix = sum weightedTerms
-  where
-    weightedTerms = zipWith (*) (map singleton ws) (map (evalTermDiffInterval domains ix) terms)
-
-evalTermDiffInterval :: [Interval Double] -> Int -> Term -> Interval Double 
-evalTermDiffInterval domains ix (Term t ks)
+    
+evalTermDiffInterval :: Int -> [Interval Double] -> Term -> Interval Double 
+evalTermDiffInterval ix domains (Term t ks)
   | M.member ix ks = singleton 0
   | otherwise      = it * p'
   where
@@ -131,6 +114,35 @@ evalTermDiffInterval domains ix (Term t ks)
 
     dec 1 = Nothing
     dec k = Just (k-1)
+        
+-- | evaluates an expression by evaluating the terms into a list
+-- applying the weight and summing the results.
+evalGeneric :: (Dataset Double -> Term -> Column Double) -> Dataset Double -> Expr -> [Double] -> Column Double
+evalGeneric f xss terms ws = sum weightedTerms
+  where
+    weightedTerms = zipWith multWeight ws (map (f xss) terms)
+    multWeight w  = LA.cmap (w*)
+    
+evalExpr :: Dataset Double -> Expr -> [Double] -> Column Double
+evalExpr = evalGeneric evalTerm
+
+evalDiff :: Int -> Dataset Double -> Expr -> [Double] -> Column Double
+evalDiff ix = evalGeneric (evalTermDiff ix)
+
+-- | Returns the estimate of the image of the funcion with Interval Arithmetic
+--
+-- this requires a different implementation from `evalGeneric`
+evalImageGeneric :: ([Interval Double] -> Term -> Interval Double) -> [Interval Double]-> Expr -> [Double] -> Interval Double
+evalImageGeneric f domains terms ws = sum weightedTerms
+  where
+    weightedTerms = zipWith (*) (map singleton ws) (map (f domains) terms)
+    
+evalImage :: [Interval Double] -> Expr -> [Double] -> Interval Double
+evalImage = evalImageGeneric evalTermInterval
+
+evalDiffImage :: Int -> [Interval Double] -> Expr -> [Double] -> Interval Double
+evalDiffImage ix = evalImageGeneric (evalTermDiffInterval ix)
+
 
 -- | A value is invalid if it's wether NaN or Infinite
 isInvalid :: Double -> Bool
@@ -141,26 +153,18 @@ isInvalid x = isNaN x || isInfinite x || abs x >= 1e150
 isValid :: [Double] -> Bool
 isValid xs = not (any isInvalid xs)
 
-{- TO BE TESTED
- -- && var > 1e-4
-  where
-    mu  = sum(xs) / n
-    var = (*(1/n)) . sum $ map (\x -> (x-mu)*(x-mu)) xs
-    n   = fromIntegral (length xs)
--}
-
 -- | evaluate an expression to a set of samples 
 --
 -- (1 LA.|||) adds a bias dimension
 exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
-exprToMatrix xss = intercept . LA.fromColumns . map (`evalTerm` xss)
+exprToMatrix xss = intercept . LA.fromColumns . map (evalTerm xss)
   where
     intercept = (1 LA.|||)
 
 -- | Clean the expression by removing the invalid teerms
 cleanExpr :: Dataset Double -> Expr -> Expr
 cleanExpr xss [] = []
-cleanExpr xss (term:terms) = if ((not . null) . LA.find isInvalid . evalTerm term)  xss
+cleanExpr xss (term:terms) = if not . null $ LA.find isInvalid $ evalTerm xss term
                                 then cleanExpr xss terms
                                 else term : cleanExpr xss terms 
 

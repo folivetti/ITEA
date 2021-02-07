@@ -16,6 +16,7 @@ import IT
 import IT.Algorithms
 import IT.Eval
 import IT.Metrics
+import IT.Shape
 
 import Data.Maybe
 import Data.List
@@ -80,8 +81,8 @@ classifyMult ys zss
 --  run a Linear regression on the evaluated expressions
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
-evalTrain :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Expr -> Maybe Solution
-evalTrain task measures xss ys expr =
+evalTrain :: Task -> NonEmpty Measure -> Constraint -> Dataset Double -> Vector -> Expr -> Maybe Solution
+evalTrain task measures cnstrFun xss ys expr =
 --  | notInfNan ps = Just ps 
 --  | otherwise    = Nothing
   case res of
@@ -96,7 +97,8 @@ evalTrain task measures xss ys expr =
                     ClassMult      -> classifyMult ys zss
     (ysHat, ws) = fromJust res
     fit         = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
-    ps          = Sol expr fit ws
+    ws'         = V.toList $ head ws
+    ps          = Sol expr fit (cnstrFun expr ws') (exprLength expr ws') ws
 
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since

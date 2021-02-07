@@ -23,11 +23,23 @@ import qualified Numeric.LinearAlgebra as LA
 --  'a' refers to the type of 'Expr', 'b' refers to a container of statistics.
 data Solution = Sol { _expr    :: Expr     -- ^ The IT expression of type a
                     , _fit     :: [Double] -- ^ Fitness and other measures for evaluating the expression
-                    , _weights :: [Vector]
+                    , _constr  :: Double   -- ^ Amount of Shape Constraint violation associated with the expression
+                    , _len     :: Int      -- ^ Expression size as per https://github.com/EpistasisLab/regression-benchmark/blob/dev/CONTRIBUTING.md
+                    , _weights :: [Vector] -- ^ Weights associated with the expression (they count towards the length)
                     }
 
 instance Show Solution where
-  show (Sol e f w) = "Expression: " ++ toExprStr e (LA.toList $ head w) ++ "\nFitness: " ++ (show . head) f ++ "\nWeights: " ++  show w
+  show (Sol e f c l w) = concat ["Expression: "  , expr,    "\n"
+                                , "Fitness: "    , fit,     "\n"
+                                , "Weights: "    , weights, "\n"
+                                , "Constraints: ", constr,  "\n"
+                                , "Length: "     , len,     "\n"]
+    where
+      expr    = toExprStr e (LA.toList $ head w)
+      fit     = (show . head) f
+      weights = show w
+      constr  = show c
+      len     = show l
   
 -- | These instances are only to find the best and worst individuals
 -- of a population.
@@ -52,6 +64,8 @@ instance NFData Solution where
 -- This function is a good candidate for parallelization.
 --type Fitness    a b = [Expr a] -> Population a b -- (Expr a, Double, b)
 type Fitness = Expr -> Maybe Solution
+
+type Constraint = Expr -> [Double] -> Double
 
 -- | 'Mutation' function with signature 'Solution a b -> Rnd (Solution a b)'
 type Mutation = Expr -> Rnd Expr
