@@ -14,6 +14,8 @@ module ITEA.Regression where
 
 import IT.ITEA
 import IT.Regression
+import IT.Shape
+
 import ITEA.Config
 import ITEA.Report
 
@@ -40,7 +42,7 @@ runITEAReg (D tr te) mcfg output nPop nGens =
         xss         = V.fromList $ LA.toColumns trainX
         xss'        = V.fromList $ LA.toColumns testX
         measureList = fromList $ getMeasure mcfg -- [_rmse, _mae, _nmse, _r2]
-        fitTrain    = evalTrain Regression measureList xss trainY        -- create the fitness function
+        fitTrain    = evalTrain Regression measureList unconstrained xss trainY        -- create the fitness function
         fitTest     = evalTest Regression measureList xss' testY         -- create the fitness for the test set
         dim         = LA.cols trainX
 
@@ -65,7 +67,7 @@ runITEAClass (D tr te) mcfg output nPop nGens =
         xss         = V.fromList $ LA.toColumns trainX
         xss'        = V.fromList $ LA.toColumns testX
         measureList = fromList $ getMeasure mcfg -- [_rmse, _mae, _nmse, _r2]
-        fitTrain    = evalTrain Classification measureList xss trainY        -- create the fitness function
+        fitTrain    = evalTrain Classification measureList unconstrained xss trainY        -- create the fitness function
         fitTest     = evalTest Classification measureList xss' testY         -- create the fitness for the test set
         dim         = LA.cols trainX
 
@@ -90,7 +92,7 @@ runITEAClassMult (D tr te) mcfg output nPop nGens =
         xss         = V.fromList $ LA.toColumns trainX
         xss'        = V.fromList $ LA.toColumns testX
         measureList = fromList $ getMeasure mcfg -- [_rmse, _mae, _nmse, _r2]
-        fitTrain    = evalTrain ClassMult measureList xss trainY        -- create the fitness function
+        fitTrain    = evalTrain ClassMult measureList unconstrained xss trainY        -- create the fitness function
         fitTest     = evalTest ClassMult measureList xss' testY         -- create the fitness for the test set
         dim         = LA.cols trainX
 
