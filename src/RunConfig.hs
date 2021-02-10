@@ -17,8 +17,12 @@ import Data.ConfigFile
 import Data.Either.Utils
 
 import IT.Regression (Task(..))
+import IT.Shape
 import ITEA.Regression
 import ITEA.Config
+
+
+data Alg = ITEA | FI2POP deriving (Show, Read)
 
 -- | Read the option 'x' located at section 'cat' from configuration 'cp'.
 getSetting :: Get_C a => ConfigParser -> SectionSpec -> OptionSpec -> a
@@ -34,12 +38,19 @@ runWithConfig fname = do
     nzExps             = getSetting cp "Mutation"  "nonzeroexps"
     tfuncs             = getSetting cp "Mutation"  "transfunctions"
     perf_mes           = getSetting cp "Mutation"  "measures"
-    trainname          = getSetting cp "Dataset"   "train"
-    testname           = getSetting cp "Dataset"   "test"
-    task               = getSetting cp "Dataset"   "task"
-    nPop               = getSetting cp "Algorithm" "npop"
-    nGens              = getSetting cp "Algorithm" "ngens"
-    logg               = getSetting cp "Algorithm" "log"
+    
+    trainname          = getSetting cp "IO"   "train"
+    testname           = getSetting cp "IO"   "test"
+    task               = getSetting cp "IO"   "task"
+    logg               = getSetting cp "IO"   "log"
+    
+    nPop               = getSetting cp "Algorithm"   "npop"
+    nGens              = getSetting cp "Algorithm"   "ngens"
+    alg                = getSetting cp "Algorithm"   "algorithm"
+    
+    penalty            = getSetting cp "Constraints" "penalty"
+    shapes             = getSetting cp "Constraints" "shapes"
+    domains            = getSetting cp "Constraints" "domains"
 
     -- validate the configurations
     mutCfg =  validateConfig
@@ -54,10 +65,9 @@ runWithConfig fname = do
                <> testset testname
 
   -- run ITEA with the given configuration
-  case task of
-    Regression -> runITEAReg datasetCfg mutCfg logg nPop nGens
-    Classification -> runITEAClass datasetCfg mutCfg logg nPop nGens
-    ClassMult -> runITEAClassMult datasetCfg mutCfg logg nPop nGens
+  case alg of
+    ITEA   -> runITEA datasetCfg mutCfg logg nPop nGens task penalty shapes domains
+    FI2POP -> runFI2POP datasetCfg mutCfg logg nPop nGens task penalty shapes domains
 
 -- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()

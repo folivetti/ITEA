@@ -115,3 +115,27 @@ getIthTerm ix terms = if ix >= length terms
 -- | return the interactions of a term
 getInteractions :: Term -> Interaction
 getInteractions (Term _ ks) = ks
+
+-- | returns the length of an expression as in https://github.com/EpistasisLab/regression-benchmark/blob/dev/CONTRIBUTING.md
+exprLength :: Expr -> [Double] -> Int
+exprLength terms (b:ws) = biasTerm + addSymbs + weightSymbs + totTerms
+  where
+    nonNullTerms = filter ((/=0).fst) $ zip ws terms
+    ws'          = map fst nonNullTerms
+    terms'       = map snd nonNullTerms
+    biasTerm     = if b==0 then 0 else 2
+    weightSymbs  = 2 * length (filter (/=1) ws')
+    addSymbs     = length terms' - 1
+    totTerms     = sum (map termLength terms)
+    
+termLength :: Term -> Int
+termLength (Term Id ks) = interactionLength ks
+termLength (Term _  ks) = 1 + interactionLength ks
+
+interactionLength :: Interaction -> Int
+interactionLength ks = mulSymbs + termSymbs + powSymbs
+  where
+    elems     = filter (/=0) $ M.elems ks
+    mulSymbs  = length elems - 1
+    termSymbs = length elems
+    powSymbs  = 2 * length (filter (/=1) elems)

@@ -20,7 +20,7 @@ This library also provides some generic mutation function builders.
 -}
 module IT.ITEA where
 
-import IT -- (itea, addTerm, dropTerm)
+import IT  
 import IT.Algorithms
 import IT.Random
 
@@ -56,6 +56,7 @@ initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replica
     -- return a random list of random expressions
     rndIndividual () = do n <- sampleRng 1 maxTerms
                           nub <$> rndExpr n
+                          
 
 -- | Tournament Selection
 --

@@ -26,6 +26,7 @@ import System.Random
 import System.Random.Shuffle
 
 import IT
+import IT.Shape
 import ITEA.Config
 import ITEA.Report
 import IT.ITEA
@@ -104,7 +105,7 @@ runCfg dname fold (mutCfg, pop, gen) = do
       toRegMtx = V.fromList . LA.toColumns
       criteria = NE.fromList [_rmse]
 
-      fitTrains = zipWith (\x y  -> evalTrain Regression criteria (toRegMtx x) y) trXs trYs
+      fitTrains = zipWith (\x y  -> evalTrain Regression criteria unconstrained NoPenalty (toRegMtx x) y) trXs trYs
       fitTests  =  zipWith (\x y -> evalTest Regression criteria (toRegMtx x) y) tvXs tvYs
 
       average xs = sum xs / fromIntegral (length xs)

@@ -16,6 +16,7 @@ import IT
 import IT.Algorithms
 import IT.Eval
 import IT.Metrics
+import IT.Shape
 
 import Data.Maybe
 import Data.List
@@ -33,6 +34,9 @@ data Task = Regression | Classification | ClassMult
 
 type FitFun = Vector -> Vector -> Double
 
+data Penalty = NoPenalty | Len Double | Shape Double deriving (Show, Read)
+                  
+                    
 -- | Predict a linear model
 predict :: LA.Matrix Double -> Vector -> Vector
 predict xs w = xs LA.#> w
@@ -80,8 +84,8 @@ classifyMult ys zss
 --  run a Linear regression on the evaluated expressions
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
-evalTrain :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Expr -> Maybe Solution
-evalTrain task measures xss ys expr =
+evalTrain :: Task -> NonEmpty Measure -> Constraint -> Penalty -> Dataset Double -> Vector -> Expr -> Maybe Solution
+evalTrain task measures cnstrFun penalty xss ys expr =
 --  | notInfNan ps = Just ps 
 --  | otherwise    = Nothing
   case res of
@@ -96,7 +100,14 @@ evalTrain task measures xss ys expr =
                     ClassMult      -> classifyMult ys zss
     (ysHat, ws) = fromJust res
     fit         = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
-    ps          = Sol expr fit ws
+    ws'         = V.toList $ head ws
+    len         = exprLength expr ws'
+    cnst        = cnstrFun expr ws'
+    pnlty       = case penalty of
+                    NoPenalty -> 0.0
+                    Len c     -> c * fromIntegral len
+                    Shape c   -> c*cnst
+    ps          = Sol expr fit cnst len pnlty ws
 
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since

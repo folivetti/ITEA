@@ -74,7 +74,9 @@ rndReplaceStrength dim (Term tf ps) minExp maxExp =
   do p <- sampleRng minExp maxExp
      i <- sampleTo (dim-1)
      let ps' = M.filter (/=0) $ M.insert i p ps
-     return (Term tf ps')
+     if M.size ps' == 0
+       then return (Term tf ps)
+       else return (Term tf ps')
 
 -- | replaces a random transformation function
 replaceTrans :: Rnd Transformation -> Mutation
