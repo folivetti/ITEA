@@ -21,7 +21,7 @@ import Data.List (nub)
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
 fi2pop :: Mutation -> Fitness -> (Population, Population) -> Rnd [(Population, Population)]
-fi2pop f g (feas0, infeas0) = let n = length feas0 + length infeas0
+fi2pop f g (feas0, infeas0) = let n = length feas0 -- + length infeas0
                               in  iterateM (step2pop f g n) (feas0, infeas0)
 
 splitPop :: Population -> (Population, Population)
@@ -41,6 +41,7 @@ step2pop mutFun fitFun nPop (feas, infeas) = do
   childrenF <- parRndMap nPop (mutFun . _expr) fitFun feas
   childrenI <- parRndMap nPop (mutFun . _expr) fitFun infeas
   let (feas', infeas') = splitPop (childrenF ++ childrenI)
+{-
       nFeas            = max (length feas) (length feas')
       nInfeas          = max (length infeas) (length infeas')
   nextFeas <- if null feas'
@@ -49,5 +50,8 @@ step2pop mutFun fitFun nPop (feas, infeas) = do
   nextInfeas <- if null infeas'
                   then tournament infeas nInfeas
                   else tournament (infeas ++ infeas') (min nInfeas nPop)
+-}
+  nextFeas <- tournament (feas ++ feas') nPop
+  nextInfeas <- tournament (infeas ++ infeas') nPop  
   return (nextFeas, nextInfeas)
 

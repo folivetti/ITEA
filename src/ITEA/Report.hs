@@ -94,7 +94,7 @@ genReports (PartialLog dirname) measures pop n fitTest = do
     ws              = LA.toList . head $ _weights best
     expr            = _expr best
 
-    stats           = intercalate "," $ [dirname, totTime] ++ measuresResults ++ [exprWithWeight]
+    stats           = intercalate "," $ [dirname, totTime] ++ measuresResults
 
   hPutStrLn hStats stats
   hPutStrLn hStatsExpr exprWithWeight
