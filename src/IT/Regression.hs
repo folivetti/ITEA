@@ -84,8 +84,10 @@ classifyMult ys zss
 --  run a Linear regression on the evaluated expressions
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
+
 evalTrain :: Task -> NonEmpty Measure -> Constraint -> Penalty -> Dataset Double -> Vector -> Expr -> Maybe Solution
 evalTrain task measures cnstrFun penalty xss ys expr =
+
 --  | notInfNan ps = Just ps 
 --  | otherwise    = Nothing
   case res of
@@ -101,6 +103,7 @@ evalTrain task measures cnstrFun penalty xss ys expr =
     (ysHat, ws) = fromJust res
     fit         = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
     ws'         = V.toList $ head ws
+
     len         = exprLength expr ws'
     cnst        = cnstrFun expr ws'
     pnlty       = case penalty of
@@ -108,6 +111,7 @@ evalTrain task measures cnstrFun penalty xss ys expr =
                     Len c     -> c * fromIntegral len
                     Shape c   -> c*cnst
     ps          = Sol expr fit cnst len pnlty ws
+
 
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since

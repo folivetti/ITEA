@@ -49,9 +49,11 @@ runITEA (D tr te) mcfg output nPop nGens task penalty shapes domains =
     let
         xss         = V.fromList $ LA.toColumns trainX
         xss'        = V.fromList $ LA.toColumns testX
+
         measureList = fromList $ getMeasure mcfg
         fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss trainY        -- create the fitness function
         fitTest     = evalTest task measureList xss' testY         -- create the fitness for the test set
+
         dim         = LA.cols trainX
 
         (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
@@ -78,9 +80,11 @@ runFI2POP (D tr te) mcfg output nPop nGens task penalty shapes domains =
     let
         xss         = V.fromList $ LA.toColumns trainX
         xss'        = V.fromList $ LA.toColumns testX
+
         measureList = fromList $ getMeasure mcfg
         fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss trainY        -- create the fitness function
         fitTest     = evalTest task measureList xss' testY         -- create the fitness for the test set
+
         dim         = LA.cols trainX
 
         (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
@@ -89,3 +93,4 @@ runFI2POP (D tr te) mcfg output nPop nGens task penalty shapes domains =
         gens     = map fst $ (p0 >>= fi2pop mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
 
     genReports output measureList gens nGens fitTest                       -- create the report    
+

@@ -70,3 +70,4 @@ fromShapes shapes (Just domains) = constraintFrom (map toFun shapes)
     toFun (DiffImg ix (lo, hi)) = violationImg (evalDiffImage ix) domains' (lo ... hi) 
     toFun (NonIncreasing ix)    = violationNonIncreasing ix domains' 
     toFun (NonDecreasing ix)    = violationNonDecreasing ix domains' 
+
