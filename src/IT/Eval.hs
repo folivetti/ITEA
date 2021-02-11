@@ -47,7 +47,7 @@ derivative Exp     = exp
 derivative Log     = recip
 
 sndDerivative :: Floating a => Transformation -> a -> a
-sndDerivative Id      = const 1
+sndDerivative Id      = const 0
 sndDerivative Sin     = negate.sin
 sndDerivative Cos     = negate.cos
 sndDerivative Tan     = \x -> 2 * tan x * (cos x) ** (-2)
