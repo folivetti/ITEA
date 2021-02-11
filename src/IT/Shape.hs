@@ -21,7 +21,9 @@ import Numeric.Interval
 
 type ImgFun = [Interval Double] -> Expr -> [Double] -> Interval Double
 
-data Shape   = Image (Double, Double) | DiffImg Int (Double, Double) | NonIncreasing Int | NonDecreasing Int
+data Shape   = Image (Double, Double) 
+             | DiffImg Int (Double, Double) | NonIncreasing Int | NonDecreasing Int
+             | Inflection Int Int | Convex Int Int | Concave Int Int -- (0,0), (0,Infinity), (-Infinitiy,0)
                     deriving (Show, Read)
 
 type Domains = Maybe [(Double, Double)]
@@ -45,16 +47,31 @@ violationImg imgfun domains img expr ws
     img' = imgfun domains expr ws
 
 violationNonIncreasing, violationNonDecreasing :: Int -> [Interval Double] -> Constraint
-violationNonIncreasing ix domains expr ws
+violationNonIncreasing ix domains expr ws  -- (-Infinity .. 0)
   | img == empty = 1e+10
-  | otherwise    = min 0 $ sup img
+  | otherwise    = max 0 $ sup img
   where img = evalDiffImage ix domains expr ws
 
-violationNonDecreasing ix domains expr ws 
+violationNonDecreasing ix domains expr ws -- (0 .. Infinity)
   | img == empty = 1e+10
-  | otherwise    = negate $ max 0 $ inf img
+  | otherwise    = negate $ min 0 $ inf img
   where img = evalDiffImage ix domains expr ws
 
+violationInflection, violationConcave, violationConvex :: Int -> Int -> [Interval Double] -> Constraint
+violationInflection ix iy domains expr ws -- (0 .. 0)
+  | img == empty = 1e+10
+  | otherwise    = if abs (inf img) + abs (sup img) < 1e-2 then 0 else abs (inf img) + abs (sup img)
+  where img = evalSndDiffImage ix iy domains expr ws
+
+violationConvex ix iy domains expr ws -- (0 .. Infinity)
+  | img == empty = 1e+10
+  | otherwise    = negate $ min 0 $ inf img
+  where img = evalSndDiffImage ix iy domains expr ws
+
+violationConcave ix iy domains expr ws -- (-Infinity .. 0)
+  | img == empty = 1e+10
+  | otherwise    = max 0 $ sup img
+  where img = evalSndDiffImage ix iy domains expr ws
 
 constraintFrom :: [Constraint] -> Constraint
 constraintFrom funs expr ws = foldr (\f tot -> f expr ws + tot) 0 funs
@@ -70,4 +87,7 @@ fromShapes shapes (Just domains) = constraintFrom (map toFun shapes)
     toFun (DiffImg ix (lo, hi)) = violationImg (evalDiffImage ix) domains' (lo ... hi) 
     toFun (NonIncreasing ix)    = violationNonIncreasing ix domains' 
     toFun (NonDecreasing ix)    = violationNonDecreasing ix domains' 
+    toFun (Inflection ix iy)    = violationInflection ix iy domains'
+    toFun (Convex ix iy)        = violationConvex ix iy domains'
+    toFun (Concave ix iy)       = violationConcave ix iy domains'
 

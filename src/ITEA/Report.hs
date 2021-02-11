@@ -36,7 +36,10 @@ getBest :: Int  -> [Population] -> Solution
 getBest n ps     = minimum $ getAllBests n ps
 
 getAllBests :: Int -> [Population] -> [Solution]
-getAllBests n ps = map minimum $ take n ps
+getAllBests n ps = concatMap minimum' $ take n ps
+  where
+    minimum' [] = []
+    minimum' xs = [minimum xs]
 
 -- | Creates a file if it does not exist
 createIfDoesNotExist :: String -> FilePath -> IO Handle

@@ -46,6 +46,17 @@ derivative SqrtAbs = \x -> x / (2* (abs x)**1.5)
 derivative Exp     = exp
 derivative Log     = recip
 
+sndDerivative :: Floating a => Transformation -> a -> a
+sndDerivative Id      = const 1
+sndDerivative Sin     = negate.sin
+sndDerivative Cos     = negate.cos
+sndDerivative Tan     = \x -> 2 * tan x * (cos x) ** (-2)
+sndDerivative Tanh    = \x -> (-2) * tanh x * (1 - tanh x ** 2)
+sndDerivative Sqrt    = negate . recip . (*4) . sqrt . (^3)
+sndDerivative SqrtAbs = \x -> -(x**2 / (4 * abs x ** 3.5)) -- assuming dirac(x) = 0
+sndDerivative Exp     = exp
+sndDerivative Log     = \x -> -(1/x**2)
+
 -- Interaction of dataset xss with strengths ks
 -- ps = xss ** ks
 -- it is faster to go through the nonzero strengths, since we can query a column in O(1)
@@ -93,9 +104,10 @@ evalTermInterval domains (Term t ks)
 -- w1 t1'(p1(x))p1'(x) + w2 t2'(p2(x))p2'(x)
 evalTermDiff :: Int -> Dataset Double -> Term -> Column Double 
 evalTermDiff ix xss (Term t ks)
-  | M.member ix ks = LA.fromList $ replicate n 0
-  | otherwise      = it * p'
+  | M.member ix ks = ki * it * p'
+  | otherwise      = LA.fromList $ replicate n 0
   where
+    ki = fromIntegral $ ks M.! ix
     p  = monomial xss ks
     p' = monomial xss (M.update dec ix ks)
     t' = derivative t
@@ -105,11 +117,35 @@ evalTermDiff ix xss (Term t ks)
     dec 1 = Nothing
     dec k = Just (k-1)
     
+-- w1 t1''(p1(x))p1'(x)p1'(x) + w1 t1'(p1(x))p1''(x)
+evalTermSndDiff :: Int -> Int -> Dataset Double -> Term -> Column Double 
+evalTermSndDiff ix iy xss (Term t ks)
+  | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
+  | otherwise                         = LA.fromList $ replicate n 0
+  where
+    ks'  = M.update dec iy ks
+    ki = fromIntegral $ ks M.! ix
+    kj =  fromIntegral $  ks M.! iy
+    kij = kj * (fromIntegral (ks' M.! ix))
+    p    = monomial xss ks
+    px'  = monomial xss (M.update dec ix ks)
+    py'  = monomial xss (M.update dec iy ks)
+    pxy' = monomial xss (M.update dec ix ks')
+    t'   = derivative t
+    t''  = sndDerivative t
+    tp'  = LA.cmap t'  p
+    tp'' = LA.cmap t'' p
+    n    = LA.size (xss V.! 0)
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
+
 evalTermDiffInterval :: Int -> [Interval Double] -> Term -> Interval Double 
 evalTermDiffInterval ix domains (Term t ks)
-  | M.member ix ks = singleton 0
-  | otherwise      = it * p'
+  | M.member ix ks = ki * it * p'
+  | otherwise      = singleton 0
   where
+    ki = (singleton . fromIntegral) $ ks M.! ix
     p  = monomialInterval domains ks
     p' = monomialInterval domains (M.update dec ix ks)
     t' = protected (derivative t)
@@ -118,6 +154,27 @@ evalTermDiffInterval ix domains (Term t ks)
     dec 1 = Nothing
     dec k = Just (k-1)
         
+evalTermSndDiffInterval :: Int -> Int -> [Interval Double] -> Term -> Interval Double 
+evalTermSndDiffInterval ix iy domains (Term t ks)
+  | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
+  | otherwise                         = singleton 0
+  where
+    ks' = M.update dec iy ks
+    ki = (singleton . fromIntegral) $ ks M.! ix
+    kj = (singleton . fromIntegral) $ ks M.! iy
+    kij = kj * (singleton $ fromIntegral (ks' M.! ix))
+    p    = monomialInterval domains ks
+    px'  = monomialInterval domains (M.update dec ix ks)
+    py'  = monomialInterval domains (M.update dec iy ks)
+    pxy' = monomialInterval domains (M.update dec ix $ M.update dec iy ks)
+    t'   = protected (derivative t)
+    t''  = protected (sndDerivative t)
+    tp'  = t'  p
+    tp'' = t'' p
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
+
 -- | evaluates an expression by evaluating the terms into a list
 -- applying the weight and summing the results.
 evalGeneric :: (Dataset Double -> Term -> Column Double) -> Dataset Double -> Expr -> [Double] -> Column Double
@@ -131,6 +188,9 @@ evalExpr = evalGeneric evalTerm
 
 evalDiff :: Int -> Dataset Double -> Expr -> [Double] -> Column Double
 evalDiff ix = evalGeneric (evalTermDiff ix)
+
+evalSndDiff :: Int -> Int -> Dataset Double -> Expr -> [Double] -> Column Double
+evalSndDiff ix iy = evalGeneric (evalTermSndDiff ix iy)
 
 -- | Returns the estimate of the image of the funcion with Interval Arithmetic
 --
@@ -146,6 +206,8 @@ evalImage = evalImageGeneric evalTermInterval
 evalDiffImage :: Int -> [Interval Double] -> Expr -> [Double] -> Interval Double
 evalDiffImage ix = evalImageGeneric (evalTermDiffInterval ix)
 
+evalSndDiffImage :: Int -> Int -> [Interval Double] -> Expr -> [Double] -> Interval Double
+evalSndDiffImage ix iy = evalImageGeneric (evalTermSndDiffInterval ix iy)
 
 -- | A value is invalid if it's wether NaN or Infinite
 isInvalid :: Double -> Bool
