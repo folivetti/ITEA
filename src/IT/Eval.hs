@@ -51,7 +51,7 @@ regTanh    = Transformation "tanh" tanh
 
 regSqrt    = Transformation "sqrt" sqrt
 regAbsSqrt = Transformation "sqrt.abs" (sqrt.abs)
-regLog     = Transformation "log" log
+regLog     = Transformation "log" (\x -> log (x+1))
 regExp     = Transformation "exp" exp
 
 regId      = Transformation "id" id
