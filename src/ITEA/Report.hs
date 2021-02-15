@@ -99,8 +99,8 @@ genReports (PartialLog dirname) measures pop n fitTest = do
 
     stats           = intercalate "," $ [dirname, totTime] ++ measuresResults
 
-  hPutStrLn hStats stats
-  hPutStrLn hStatsExpr exprWithWeight
+  hPutStr hStats stats
+  hPutStr hStatsExpr exprWithWeight
   hClose hStats
   hClose hStatsExpr
 
