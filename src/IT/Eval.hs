@@ -14,10 +14,9 @@ Definitions of IT data structure and support functions.
 
 module IT.Eval where
 
-import Foreign.Storable
 import qualified Data.Vector as V
 import qualified Numeric.LinearAlgebra as LA
-import qualified Data.Map.Strict as M
+import qualified Data.IntMap.Strict as M
 import Numeric.Interval hiding (null)
 
 import IT
@@ -39,10 +38,10 @@ derivative :: Floating a => Transformation -> a -> a
 derivative Id      = const 1
 derivative Sin     = cos
 derivative Cos     = negate.sin
-derivative Tan     = recip . (^2) . cos
-derivative Tanh    = (1-) . (^2) . tanh
+derivative Tan     = recip . (**2.0) . cos
+derivative Tanh    = (1-) . (**2.0) . tanh
 derivative Sqrt    = recip . (2*) . sqrt
-derivative SqrtAbs = \x -> x / (2* (abs x)**1.5)
+derivative SqrtAbs = \x -> x / (2* abs x**1.5)
 derivative Exp     = exp
 derivative Log     = recip
 
@@ -50,10 +49,10 @@ sndDerivative :: Floating a => Transformation -> a -> a
 sndDerivative Id      = const 0
 sndDerivative Sin     = negate.sin
 sndDerivative Cos     = negate.cos
-sndDerivative Tan     = \x -> 2 * tan x * (cos x) ** (-2)
-sndDerivative Tanh    = \x -> (-2) * tanh x * (1 - tanh x ** 2)
-sndDerivative Sqrt    = negate . recip . (*4) . sqrt . (^3)
-sndDerivative SqrtAbs = \x -> -(x**2 / (4 * abs x ** 3.5)) -- assuming dirac(x) = 0
+sndDerivative Tan     = \x -> 2 * tan x * cos x ** (-2.0)
+sndDerivative Tanh    = \x -> (-2) * tanh x * (1 - tanh x ** 2.0)
+sndDerivative Sqrt    = negate . recip . (*4) . sqrt . (**3.0)
+sndDerivative SqrtAbs = \x -> -(x**2.0 / (4 * abs x ** 3.5)) -- assuming dirac(x) = 0
 sndDerivative Exp     = exp
 sndDerivative Log     = \x -> -(1/x**2)
 
@@ -72,14 +71,14 @@ monomial xss ks
 -- | Interaction of the domain interval
 -- it is faster to fold through the list of domains and checking whether we 
 -- have a nonzero strength.
-monomialInterval :: [Interval Double] -> Interaction -> Interval Double 
-monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains 
+monomialInterval :: [Interval Double] -> Interaction -> Interval Double
+monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains
   where
-    monoProduct (ix, x) img 
+    monoProduct (ix, x) img
       | ix `M.member` ks = img * (x ** get ix)
       | otherwise        = img
     get ix = fromIntegral (ks M.! ix)
-    
+
 -- | to evaluate a term we apply the transformation function
 -- to the interaction monomial
 evalTerm :: Dataset Double -> Term -> Column Double
@@ -88,8 +87,8 @@ evalTerm xss (Term t ks) = LA.cmap t' (monomial xss ks)
 
 -- | apply the transformation function to the interaction monomial
 evalTermInterval :: [Interval Double] -> Term -> Interval Double
-evalTermInterval domains (Term t ks) 
-  | inter == empty = empty 
+evalTermInterval domains (Term t ks)
+  | inter == empty = empty
   | otherwise      = protected (transform t) inter
   where inter = (monomialInterval domains ks)
 
@@ -102,7 +101,7 @@ evalTermInterval domains (Term t ks)
 --
 -- w1 t1(p1(x)) + w2 t2(p2(x))
 -- w1 t1'(p1(x))p1'(x) + w2 t2'(p2(x))p2'(x)
-evalTermDiff :: Int -> Dataset Double -> Term -> Column Double 
+evalTermDiff :: Int -> Dataset Double -> Term -> Column Double
 evalTermDiff ix xss (Term t ks)
   | M.member ix ks = ki * it * p'
   | otherwise      = LA.fromList $ replicate n 0
@@ -116,9 +115,9 @@ evalTermDiff ix xss (Term t ks)
 
     dec 1 = Nothing
     dec k = Just (k-1)
-    
+
 -- w1 t1''(p1(x))p1'(x)p1'(x) + w1 t1'(p1(x))p1''(x)
-evalTermSndDiff :: Int -> Int -> Dataset Double -> Term -> Column Double 
+evalTermSndDiff :: Int -> Int -> Dataset Double -> Term -> Column Double
 evalTermSndDiff ix iy xss (Term t ks)
   | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
   | otherwise                         = LA.fromList $ replicate n 0
@@ -140,7 +139,7 @@ evalTermSndDiff ix iy xss (Term t ks)
     dec 1 = Nothing
     dec k = Just (k-1)
 
-evalTermDiffInterval :: Int -> [Interval Double] -> Term -> Interval Double 
+evalTermDiffInterval :: Int -> [Interval Double] -> Term -> Interval Double
 evalTermDiffInterval ix domains (Term t ks)
   | M.member ix ks = ki * it * p'
   | otherwise      = singleton 0
@@ -153,8 +152,8 @@ evalTermDiffInterval ix domains (Term t ks)
 
     dec 1 = Nothing
     dec k = Just (k-1)
-        
-evalTermSndDiffInterval :: Int -> Int -> [Interval Double] -> Term -> Interval Double 
+
+evalTermSndDiffInterval :: Int -> Int -> [Interval Double] -> Term -> Interval Double
 evalTermSndDiffInterval ix iy domains (Term t ks)
   | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
   | otherwise                         = singleton 0
@@ -182,7 +181,7 @@ evalGeneric f xss terms ws = sum weightedTerms
   where
     weightedTerms = zipWith multWeight ws (map (f xss) terms)
     multWeight w  = LA.cmap (w*)
-    
+
 evalExpr :: Dataset Double -> Expr -> [Double] -> Column Double
 evalExpr = evalGeneric evalTerm
 
@@ -199,7 +198,7 @@ evalImageGeneric :: ([Interval Double] -> Term -> Interval Double) -> [Interval 
 evalImageGeneric f domains terms ws = sum weightedTerms
   where
     weightedTerms = zipWith (*) (map singleton ws) (map (f domains) terms)
-    
+
 evalImage :: [Interval Double] -> Expr -> [Double] -> Interval Double
 evalImage = evalImageGeneric evalTermInterval
 
@@ -231,7 +230,7 @@ cleanExpr :: Dataset Double -> Expr -> Expr
 cleanExpr xss [] = []
 cleanExpr xss (term:terms) = if not . null $ LA.find isInvalid $ evalTerm xss term
                                 then cleanExpr xss terms
-                                else term : cleanExpr xss terms 
+                                else term : cleanExpr xss terms
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution -> Bool

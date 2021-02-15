@@ -24,7 +24,6 @@ import Data.List.NonEmpty hiding (map)
 
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
-import Numeric.Interval
 
 import Control.Monad.State
 import System.Random

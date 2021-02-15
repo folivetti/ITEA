@@ -28,14 +28,14 @@ module IT where
 
 import Data.List (intercalate)
 
-import qualified Data.Map.Strict as M
+import qualified Data.IntMap.Strict as M
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
 
 -- | The 'Interaction' type is a map where
 -- a key, value pair (i,p) indicates that the i-th
 -- variable should be raised to the power of p.
-type Interaction = M.Map Int Int
+type Interaction = M.IntMap Int
 
 -- | The 'Transformation' type contains the name of the function
 -- and the transformation function.
@@ -62,13 +62,15 @@ type Dataset a = V.Vector (Column a)
 
 
 prettyPrint :: ((Int, Int) -> String) -> (Transformation -> String) -> Expr -> [Double] -> String 
+prettyPrint _ _ [] _ = ""
+prettyPrint _ _ _ [] = error "ERROR: prettyPrint on non fitted expression."
 prettyPrint k2str t2str terms (b:ws) = show b ++ " + " ++ expr
   where
-    expr = intercalate " + " (zipWith weight2str ws (map (terms2str k2str) terms))
+    expr = intercalate " + " (zipWith weight2str ws (map terms2str terms))
 
-    interaction2str k2str       = intercalate "*" . filter (/="") . map k2str . M.toList
-    terms2str k2str (Term t ks) = t2str t ++ "(" ++ interaction2str k2str ks ++ ")"
-    weight2str w t              = show w ++ "*" ++ t
+    interaction2str       = intercalate "*" . filter (/="") . map k2str . M.toList
+    terms2str (Term t ks) = t2str t ++ "(" ++ interaction2str ks ++ ")"
+    weight2str w t        = show w ++ "*" ++ t
 
 toExprStr :: Expr -> [Double] -> String
 toExprStr = prettyPrint k2str show
@@ -118,6 +120,8 @@ getInteractions (Term _ ks) = ks
 
 -- | returns the length of an expression as in https://github.com/EpistasisLab/regression-benchmark/blob/dev/CONTRIBUTING.md
 exprLength :: Expr -> [Double] -> Int
+exprLength [] _ = 0
+exprLength _ [] = error "ERROR: length of unfitted expression."
 exprLength terms (b:ws) = biasTerm + addSymbs + weightSymbs + totTerms
   where
     nonNullTerms = filter ((/=0).fst) $ zip ws terms

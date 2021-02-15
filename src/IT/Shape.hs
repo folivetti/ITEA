@@ -77,7 +77,7 @@ constraintFrom :: [Constraint] -> Constraint
 constraintFrom funs expr ws = foldr (\f tot -> f expr ws + tot) 0 funs
 
 fromShapes :: [Shape] -> Domains -> Constraint
-fromShapes []     Nothing        = unconstrained
+fromShapes _      Nothing        = unconstrained
 fromShapes []     _              = unconstrained
 fromShapes shapes (Just domains) = constraintFrom (map toFun shapes)
   where

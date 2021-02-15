@@ -16,7 +16,6 @@ import IT
 import IT.Algorithms
 import IT.Eval
 import IT.Metrics
-import IT.Shape
 
 import Data.Maybe
 import Data.List

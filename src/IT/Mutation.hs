@@ -12,7 +12,7 @@ Mutation operators.
 module IT.Mutation where
 
 import Data.List (nub)
-import Data.Map.Strict as M
+import Data.IntMap.Strict as M
 import Control.Monad
 
 import IT -- (itea, addTerm, dropTerm)

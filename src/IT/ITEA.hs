@@ -83,7 +83,7 @@ step mutFun fitFun nPop pop = do
   children  <- parRndMap nPop (mutFun . _expr) fitFun pop
   if null children
    then tournament pop nPop
-   else tournament (pop ++ children) nPop
+   else tournament (pop <> children) nPop
    
 -- * Parallel random functions
 

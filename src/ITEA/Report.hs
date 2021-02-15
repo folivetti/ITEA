@@ -137,7 +137,7 @@ genReports (FullLog dirname) measures pop n fitTest =
 -- | Opens the first file available in the format "name.{i}.csv"
 -- where 'i' follows a sequence from 0 onward.
 openNext :: String -> IO Handle
-openNext fname = go [fname ++ "." ++ show n ++ ".csv" | n <- [0..]]
+openNext fname = go [fname ++ "." ++ show n ++ ".csv" | n <- [0 :: Int ..]]
   where
     -- this is a partial function applied to an infinite list
     -- so, what harm can it do?

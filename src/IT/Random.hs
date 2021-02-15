@@ -16,7 +16,7 @@ import IT
 
 import System.Random
 import Control.Monad.State
-import qualified Data.Map.Strict as M
+import qualified Data.IntMap.Strict as M
 
 -- * Random expressions generation
 

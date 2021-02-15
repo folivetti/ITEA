@@ -1,20 +1,10 @@
 module IT.FI2POP where
 
-import IT  
 import IT.Algorithms
 import IT.Random
 import IT.ITEA
 
 import Control.Monad.Extra (iterateM)
-
-import GHC.Conc (numCapabilities)
-
-import Control.Monad.State
-import Control.DeepSeq
-import Control.Parallel.Strategies
-import Data.Maybe
-import System.Random
-import Data.List (nub)
 
 -- * FI2POP
 

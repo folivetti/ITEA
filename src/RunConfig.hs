@@ -16,8 +16,6 @@ import System.Directory
 import Data.ConfigFile
 import Data.Either.Utils
 
-import IT.Regression (Task(..))
-import IT.Shape
 import ITEA.Regression
 import ITEA.Config
 

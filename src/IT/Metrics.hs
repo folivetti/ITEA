@@ -33,7 +33,7 @@ var :: Vector -> Double
 var xs = sum' / fromIntegral (V.length xs)
   where
     mu   = mean xs
-    sum' = V.foldl (\s x -> s + (x-mu)^2) 0 xs
+    sum' = V.foldl (\s x -> s + (x-mu)^(2 :: Int)) 0 xs
 
 -- | generic mean error measure
 meanError :: (Double -> Double) -- ^ a function to be applied to the error terms (abs, square,...)
@@ -47,7 +47,7 @@ meanError op ysHat ys = mean $ V.map op $ ysHat - ys
 
 -- | Mean Squared Error
 mse :: Vector -> Vector -> Double
-mse           = meanError (^2)
+mse           = meanError (^(2 :: Int))
 
 -- | Mean Absolute Error
 mae :: Vector -> Vector -> Double
@@ -68,7 +68,7 @@ rSq ysHat ys  = 1 - r/t
     ym      = mean ys
     t       = sumOfSq $ V.map (\yi -> yi - ym) ys
     r       = sumOfSq $ ys - ysHat
-    sumOfSq = V.foldl (\s di -> s + di^2) 0
+    sumOfSq = V.foldl (\s di -> s + di^(2 :: Int)) 0
 
 -- * Regression measures 
 _rmse, _mae, _nmse, _r2 :: Measure

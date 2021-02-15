@@ -30,7 +30,7 @@ data Solution = Sol { _expr    :: Expr     -- ^ The IT expression of type a
                     }
 
 instance Show Solution where
-  show (Sol e f c l p w) = concat ["Expression: "  , expr,    "\n"
+  show (Sol e f c l _ w) = concat ["Expression: "  , expr,    "\n"
                                 , "Fitness: "    , fit,     "\n"
                                 , "Weights: "    , weights, "\n"
                                 , "Constraints: ", constr,  "\n"
