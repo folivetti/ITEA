@@ -18,6 +18,7 @@ import Data.Either.Utils
 
 import ITEA.Regression
 import ITEA.Config
+import IT.Regression
 
 
 data Alg = ITEA | FI2POP deriving (Show, Read)
@@ -25,6 +26,14 @@ data Alg = ITEA | FI2POP deriving (Show, Read)
 -- | Read the option 'x' located at section 'cat' from configuration 'cp'.
 getSetting :: Get_C a => ConfigParser -> SectionSpec -> OptionSpec -> a
 getSetting cp cat x = forceEither $ get cp cat x
+
+getWithDefault :: Get_C a => a -> ConfigParser -> SectionSpec -> OptionSpec -> a
+getWithDefault def cp cat x = 
+  case get cp cat x of
+    Right y -> y      
+    Left  (NoOption _, _) -> def
+    Left  (NoSection _, _) -> def
+    Left (e,_) -> error (show e)
 
 -- | Read the config file and run the algorithm.
 runWithConfig :: String -> IO ()
@@ -46,10 +55,10 @@ runWithConfig fname = do
     nGens              = getSetting cp "Algorithm"   "ngens"
     alg                = getSetting cp "Algorithm"   "algorithm"
     
-    penalty            = getSetting cp "Constraints" "penalty"
-    shapes             = getSetting cp "Constraints" "shapes"
-    domains            = getSetting cp "Constraints" "domains"
-
+    penalty            = getWithDefault NoPenalty cp "Constraints" "penalty"
+    shapes             = getWithDefault [] cp "Constraints" "shapes"
+    domains            = getWithDefault Nothing cp "Constraints" "domains"
+    
     -- validate the configurations
     mutCfg =  validateConfig
            $  exponents expmin expmax

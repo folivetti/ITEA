@@ -28,6 +28,7 @@ splitPop pop = go pop [] []
 -- | Perform one iteration of FI2POP
 step2pop :: Mutation -> Fitness -> Int -> (Population, Population) -> Rnd (Population, Population)
 step2pop mutFun fitFun nPop (feas, infeas) = do
+  let tourn = if nPop >= 1000 then tournamentSeq else tournament
   childrenF <- parRndMap nPop (mutFun . _expr) fitFun feas
   childrenI <- parRndMap nPop (mutFun . _expr) fitFun infeas
   let (feas', infeas') = splitPop (childrenF ++ childrenI)
@@ -42,7 +43,7 @@ step2pop mutFun fitFun nPop (feas, infeas) = do
                   then tournament infeas nInfeas
                   else tournament (infeas ++ infeas') (min nInfeas halfPop)
 -}
-  nextFeas <- tournament (feas ++ feas') nPop
-  nextInfeas <- tournament (infeas ++ infeas') nPop  
+  nextFeas <- tourn (feas ++ feas') nPop
+  nextInfeas <- tourn (infeas ++ infeas') nPop  
   return (nextFeas, nextInfeas)
 

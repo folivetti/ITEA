@@ -34,6 +34,7 @@ import Control.Parallel.Strategies
 import Data.Maybe
 import System.Random
 import Data.List (nub)
+import qualified Data.Sequence as Seq
 
 -- * ITEA
 
@@ -65,7 +66,26 @@ initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replica
 -- selection of these combined population with
 -- the same size as the original population.
 --
+tournamentSeq :: Population -> Int -> Rnd Population
+tournamentSeq p n = do let p'   = Seq.fromList p
+                           npop = Seq.length p'
+                       ixs1 <- replicateM n (sampleTo (npop-1))
+                       ixs2 <- replicateM n (sampleTo (npop-1))
+                       return $ zipWith (chooseOne p') ixs1 ixs2
+
+  where
+    chooseOne p ix1 ix2 = min (p `Seq.index` ix1) (p `Seq.index` ix2)
+
 tournament :: Population -> Int -> Rnd Population
+tournament p n = do let npop = length p
+                    ixs1 <- replicateM n (sampleTo (npop-1))
+                    ixs2 <- replicateM n (sampleTo (npop-1))
+                    return $ zipWith (chooseOne p) ixs1 ixs2
+
+  where
+    chooseOne p ix1 ix2 = min (p !! ix1) (p !! ix2)
+
+{-
 tournament _ 0 = return []
 tournament p n = do p_i <- chooseOne p
                     p'  <- tournament p (n-1)
@@ -76,14 +96,15 @@ chooseOne p = do let n = length p
                  c1 <- sampleTo (n-1)
                  c2 <- sampleTo (n-1)
                  return $ min (p !! c1) (p !! c2)
-
+-}
 -- | Perform one iteration of ITEA
 step :: Mutation -> Fitness -> Int -> Population -> Rnd Population
 step mutFun fitFun nPop pop = do
-  children  <- parRndMap nPop (mutFun . _expr) fitFun pop
+  let tourn = if nPop >= 1000 then tournamentSeq else tournament
+  children  <- parRndMap nPop (mutFun . _expr) fitFun pop  
   if null children
-   then tournament pop nPop
-   else tournament (pop <> children) nPop
+   then tourn pop nPop
+   else tourn (pop <> children) nPop
    
 -- * Parallel random functions
 
