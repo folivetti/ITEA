@@ -16,6 +16,7 @@ import IT.ITEA
 import IT.FI2POP
 import IT.Regression
 import IT.Shape
+import IT.Eval
 
 import ITEA.Config
 import ITEA.Report
@@ -49,16 +50,25 @@ runITEA (D tr te) mcfg output nPop nGens task penalty shapes domains =
         xss         = V.fromList $ LA.toColumns trainX
         xss'        = V.fromList $ LA.toColumns testX
 
-        measureList = fromList $ getMeasure mcfg
-        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss trainY        -- create the fitness function
-        fitTest     = evalTest task measureList xss' testY         -- create the fitness for the test set
+        nRows       = LA.rows trainX
+        nRowsTrain  = round (fromIntegral nRows * 1.0)
+        nRowsVal    = nRows - nRowsTrain
+        xss_train   = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Take nRowsTrain, LA.All)
+        xss_val     = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Drop nRowsTrain, LA.All)
+        y_train     = LA.subVector 0 nRowsTrain trainY
+        y_val       = LA.subVector nRowsTrain nRowsVal trainY
 
+        measureList = fromList $ getMeasure mcfg
+        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_train y_train        -- create the fitness function
+        fitTest     = evalTest task measureList xss' testY         -- create the fitness for the test set
+        cleaner     = cleanExpr xss_train
+        
         dim         = LA.cols trainX
 
         (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
 
-        p0       = initialPop 4 nPop rndTerm fitTrain      -- initialize de population
-        gens     = (p0 >>= itea mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
+        p0       = initialPop 4 nPop rndTerm fitTrain cleaner      -- initialize de population
+        gens     = (p0 >>= itea mutFun fitTrain cleaner) `evalState` g -- evaluate a lazy stream of infinity generations
 
     genReports output measureList gens nGens fitTest                       -- create the report
     
@@ -77,19 +87,28 @@ runFI2POP (D tr te) mcfg output nPop nGens task penalty shapes domains =
     (trainX, trainY) <- parseFile <$> readFile tr
     (testX,  testY ) <- parseFile <$> readFile te
     let
-        xss         = V.fromList $ LA.toColumns trainX
         xss'        = V.fromList $ LA.toColumns testX
+        
+        nRows       = LA.rows trainX
+        -- TODO: add an option to create a validation set, for now it is disabled
+        nRowsTrain  = round (fromIntegral nRows * 1.0)
+        nRowsVal    = nRows - nRowsTrain
+        xss_train   = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Take nRowsTrain, LA.All)
+        xss_val     = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Drop nRowsTrain, LA.All)
+        y_train     = LA.subVector 0 nRowsTrain trainY
+        y_val       = LA.subVector nRowsTrain nRowsVal trainY
 
         measureList = fromList $ getMeasure mcfg
-        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss trainY        -- create the fitness function
+        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_train y_train        -- create the fitness function
         fitTest     = evalTest task measureList xss' testY         -- create the fitness for the test set
-
+        cleaner     = cleanExpr xss_train
+        
         dim         = LA.cols trainX
 
         (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
 
-        p0       = splitPop <$> initialPop 4 nPop rndTerm fitTrain      -- initialize de population
+        p0       = splitPop <$> initialPop 4 nPop rndTerm fitTrain cleaner     -- initialize de population
         gens     = map fst $ (p0 >>= fi2pop mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
-
+      
     genReports output measureList gens nGens fitTest                       -- create the report    
 

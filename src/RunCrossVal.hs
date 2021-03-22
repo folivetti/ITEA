@@ -24,28 +24,35 @@ import Control.Monad
 import Control.Monad.State
 import System.Random
 import System.Random.Shuffle
+import Data.ConfigFile
+import Data.Either.Utils
 
 import IT
 import IT.Shape
+import IT.Eval
 import ITEA.Config
 import ITEA.Report
 import IT.ITEA
+import IT.FI2POP
 import IT.Regression
 import IT.Algorithms
 import IT.Metrics
+
+import RunConfig (Alg(..),getSetting,getWithDefault)
 
 -- | Returns the mutation configuration, population size and number of generations.
 --
 -- * '(e1, e2)' are the minimum and maximum exponentes.
 -- * 'tmax' is the maximum number of terms.
 -- * 'pop' is the population size.
-createMutCfg :: Integral c => (Int, Int) -> Int -> c -> (MutationCfg, c, c)
-createMutCfg (e1,e2) tmax pop = (cfg, pop, 100000 `div` pop)
+createMutCfg :: (Int, Int) -> Int -> [Transformation] -> MutationCfg
+createMutCfg (e1,e2) tmax tfuncs = cfg
   where cfg = validateConfig
             $  exponents e1 e2
             <> termLimit 2 tmax
             <> nonzeroExps 1
-            <> transFunctions [Id, Sin, Cos, Tanh, SqrtAbs, Log, Exp]
+            <> transFunctions tfuncs -- [Id, Sin, Cos, Tanh, SqrtAbs, Log, Exp]
+            <> measures ["NMSE"]
 
 -- | Validates the program arguments
 validateArgs :: [String] -> (String, Int)
@@ -55,30 +62,63 @@ validateArgs _ = error "Usage: crossval dataname fold"
 -- | Runs a single experiment with a given configuration
 runITEARegCV :: Fitness                         -- ^ Training fitness function
              -> (Solution -> Maybe [Double])          -- ^ Test fitness function
+             -> (Expr -> Expr)
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
              -> Int                                                 -- ^ number of generations
              -> IO Double
-runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
+runITEARegCV fitTrain fitTest cleaner dim mcfg nPop nGens = do
   -- random seed
   g <- newStdGen
 
   -- run ITEA with given configuration
   let (mutFun, rndTerm)  = withMutation mcfg dim
-      p0                 = initialPop 4 nPop rndTerm fitTrain
-      gens               = (p0 >>= itea mutFun fitTrain) `evalState` g
+      p0                 = initialPop 4 nPop rndTerm fitTrain cleaner
+      gens               = (p0 >>= itea mutFun fitTrain cleaner) `evalState` g
       best               = getBest nGens gens
-      result             = fromMaybe [1/0] $ fitTest best
+      result             = fromMaybe [1e+10] $ fitTest best
   (return.head) result
 
+runFI2POPRegCV :: Fitness                         -- ^ Training fitness function
+             -> (Solution -> Maybe [Double])          -- ^ Test fitness function
+             -> (Expr -> Expr)
+             -> Int                                                 -- ^ Problem dimension
+             -> MutationCfg                                         -- ^ Mutation configuration
+             -> Int                                                 -- ^ population size
+             -> Int                                                 -- ^ number of generations
+             -> IO Double
+runFI2POPRegCV fitTrain fitTest cleaner dim mcfg nPop nGens = do
+  -- random seed
+  g <- newStdGen
 
+  -- run ITEA with given configuration
+  let (mutFun, rndTerm)  = withMutation mcfg dim
+      p0                 = splitPop <$> initialPop 4 nPop rndTerm fitTrain cleaner
+      gens               = map fst $ (p0 >>= fi2pop mutFun fitTrain) `evalState` g
+      mBest              = getBestMaybe nGens gens
+      result             = case mBest of
+                                Nothing   -> [1e+10]
+                                Just best -> fromMaybe [1e+10] $ fitTest best
+  (return.head) result
+  
 -- | runs a configuration for a given data set
-runCfg :: String -> Int -> (MutationCfg, Int, Int) -> IO Double
-runCfg dname fold (mutCfg, pop, gen) = do
-  let fname = "datasets/" ++ dname ++ "/" ++ dname ++ "-train-" ++ show fold ++ ".dat"
+runCfg :: FilePath -> Int -> MutationCfg -> IO Double
+runCfg fname fold mutCfg = do
 
-  (trainX, trainY) <- parseFile <$> readFile fname
+  cp <- forceEither <$> readfile emptyCP fname
+  let
+    trainname          = getSetting cp "IO"   "train"
+    
+    --nPop               = getSetting cp "Algorithm"   "npop"
+    --nGens              = getSetting cp "Algorithm"   "ngens"
+    alg                = getSetting cp "Algorithm"   "algorithm"
+    
+    penalty            = getWithDefault NoPenalty cp "Constraints" "penalty"
+    shapes             = getWithDefault [] cp "Constraints" "shapes"
+    domains            = getWithDefault Nothing cp "Constraints" "domains"
+    
+  (trainX, trainY) <- parseFile <$> readFile trainname
   g <- newStdGen
 
   let nRows = LA.rows trainX
@@ -88,9 +128,9 @@ runCfg dname fold (mutCfg, pop, gen) = do
       cycle' []     = []
       cycle' (x:xs) = xs ++ [x]
       rndix         = shuffle' [0 .. (nRows-1)] nRows g
-      nRows'        = nRows `div` 5
-      idxs          = [take nRows' $ drop (i*nRows') rndix | i <- [0..4]]
-      folds         = take 5 $ map (\(x:xs) -> (concat xs,x)) $ iterate cycle' idxs
+      nRows'        = nRows `div` fold
+      idxs          = [take nRows' $ drop (i*nRows') rndix | i <- [0 .. fold-1]]
+      folds         = take fold $ map (\(x:xs) -> (concat xs,x)) $ iterate cycle' idxs
 
       -- tr = training, tv = validation
       getY is = LA.flatten $ LA.asColumn trainY LA.?? (LA.Pos (LA.idxs is), LA.All)
@@ -103,18 +143,28 @@ runCfg dname fold (mutCfg, pop, gen) = do
       tvXs  = map (getX.snd) folds
 
       toRegMtx = V.fromList . LA.toColumns
-      criteria = NE.fromList [_rmse]
+      criteria = NE.fromList [_nmse]
 
-
-      fitTrains = zipWith (\x y  -> evalTrain Regression criteria unconstrained NoPenalty (toRegMtx x) y) trXs trYs
+      fitTrains = zipWith (\x y  -> evalTrain Regression criteria (fromShapes shapes domains) NoPenalty (toRegMtx x) y (toRegMtx x) y) trXs trYs
 
       fitTests  =  zipWith (\x y -> evalTest Regression criteria (toRegMtx x) y) tvXs tvYs
+      
+      cleaners  = map (cleanExpr . toRegMtx) tvXs
 
       average xs = sum xs / fromIntegral (length xs)
+      
+      standard xs = average $ map (\x -> (x - x_m)^2) xs
+        where x_m = average xs
 
-      run fitTr fitTe = runITEARegCV fitTr fitTe dim mutCfg pop gen
+      confidence xs n = x_m + 1.96 * sqrt (x_s / fromIntegral n)
+        where x_m = average xs
+              x_s = standard xs
 
-  rmses <- zipWithM run fitTrains fitTests
+      run (fitTr, fitTe) cleaner = case alg of
+                          ITEA   -> runITEARegCV fitTr fitTe cleaner dim mutCfg 100 100
+                          FI2POP -> runFI2POPRegCV fitTr fitTe cleaner dim mutCfg 100 100
+
+  rmses <- zipWithM run (zip fitTrains fitTests) cleaners
 
   return $ average rmses
 
@@ -124,9 +174,9 @@ runCrossVal args = do
   let
     -- generate all combination of configurations
     allCfgs        =  [createMutCfg]
-                  <*> [(-2,2),(-3,3)]
-                  <*> [10,15]
-                  <*> [100, 250, 500]
+                  <*> [(-1,1),(-3,3),(-5,5),(0,1),(0,3),(0,5)]
+                  <*> [2,5,10]
+                  <*> [[Id],[Id, SqrtAbs, Log, Exp], [Id, SqrtAbs, Log, Exp, Sin, Tanh]] -- , SqrtAbs, Log, Exp]
 
     (dname, nfold) = validateArgs args
 

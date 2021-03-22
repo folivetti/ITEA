@@ -132,6 +132,6 @@ mutFun dim (minExp, maxExp) (minTerms, maxTerms) rndTerm rndTrans e = join (samp
              ,positiveInter minExp maxExp   e
              ,negativeInter minExp maxExp   e] ++ addMut ++ dropMut
 
-    addMut  = [addTerm rndTerm e | len <= maxTerms]
-    dropMut = [dropTerm e        | len >= minTerms]
+    addMut  = [addTerm rndTerm e | len <  maxTerms]
+    dropMut = [dropTerm e        | len >  minTerms]
     len     = length e

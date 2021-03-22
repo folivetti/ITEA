@@ -34,8 +34,8 @@ data Task = Regression | Classification | ClassMult
 type FitFun = Vector -> Vector -> Double
 
 data Penalty = NoPenalty | Len Double | Shape Double deriving (Show, Read)
-                  
-                    
+
+
 -- | Predict a linear model
 predict :: LA.Matrix Double -> Vector -> Vector
 predict xs w = xs LA.#> w
@@ -75,7 +75,7 @@ classifyMult ys zss
           (ws, _)   = OVA.learn (OVA.ConjugateGradientPR 0.1 0.1) 0.0001 500 OVA.RegNone numLabels zss ys ws0
           ysHat     = OVA.predict zss ws
       in  Just (ysHat, ws)
-      
+
 -- | Fitness function for regression
 -- 
 --  Split the dataset into twice the available cores
@@ -84,23 +84,30 @@ classifyMult ys zss
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
 
-evalTrain :: Task -> NonEmpty Measure -> Constraint -> Penalty -> Dataset Double -> Vector -> Expr -> Maybe Solution
-evalTrain task measures cnstrFun penalty xss ys expr =
+evalTrain :: Task -> NonEmpty Measure -> Constraint -> Penalty -> Dataset Double -> Vector -> Dataset Double -> Vector -> Expr -> Maybe Solution
+evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr =
 
 --  | notInfNan ps = Just ps 
 --  | otherwise    = Nothing
   case res of
        Nothing -> Nothing
-       Just _  -> Just ps 
+       Just _  -> if null expr then Nothing else Just ps
   where
-    zss         = exprToMatrix xss expr
+    zss         = exprToMatrix xss_train expr
+    zss_val     = exprToMatrix xss_val   expr
+
     fitFun      = _fun . NE.head $ measures
     res         = case task of
-                    Regression     -> tryToRound (`fitFun` ys) zss <$> regress ys zss
-                    Classification -> classify ys zss
-                    ClassMult      -> classifyMult ys zss
-    (ysHat, ws) = fromJust res
-    fit         = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
+                    Regression     -> regress ys_train zss -- tryToRound (`fitFun` ys_train) zss <$> 
+                    Classification -> classify ys_train zss
+                    ClassMult      -> classifyMult ys_train zss
+    (_, ws) = fromJust res
+    ysHat   = case task of
+                Regression     -> predict zss_val (head ws)
+                Classification -> LM.hypothesis LM.Logistic zss_val (head ws)
+                ClassMult      -> OVA.predict zss_val ws
+
+    fit         = NE.toList $ NE.map ((`uncurry` (ysHat, ys_val)) . _fun) measures
     ws'         = V.toList $ head ws
 
     len         = exprLength expr ws'
@@ -112,12 +119,11 @@ evalTrain task measures cnstrFun penalty xss ys expr =
     ps          = Sol expr fit cnst len pnlty ws
 
 
-
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.
 -- It was: fitnessTest
 evalTest :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Solution -> Maybe [Double]
-evalTest task measures xss ys sol 
+evalTest task measures xss ys sol
   | V.length (head ws) /= LA.cols zss = Nothing
   | otherwise                  = Just fit
   where
@@ -126,23 +132,23 @@ evalTest task measures xss ys sol
     ysHat = case task of
               Regression     -> predict zss (head ws)
               Classification -> LM.hypothesis LM.Logistic zss (head ws)
-              ClassMult      -> OVA.predict zss ws   
+              ClassMult      -> OVA.predict zss ws
     fit   = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
 
 -- | Experimental: round off floating point to the 1e-10 place.
 roundoff :: RealFrac a => a -> a
 roundoff x
-  | x < thr   = 0.0
-  | x > 1e200 = x
+  | abs x < thr   = 0.0
+  | abs x > 1e200 = x
   | otherwise = fromInteger (round (x / thr)) * thr
-  where thr = 1e-10
+  where thr = 1e-15
 
 -- what to do with you?
 tryToRound :: (Vector -> Double) -> LA.Matrix Double -> (Vector, [Vector]) -> (Vector, [Vector])
 tryToRound f zss (ysHat, (ws:_)) =
   let ws'         = V.map roundoff ws
       ysHat'      = predict zss ws'
-  in  if abs (f ysHat' - f ysHat) < 0.01
-          then (ysHat', [ws'])
-          else (ysHat, [ws])
+  in  (ysHat', [ws']) --if abs (f ysHat' - f ysHat) < 0.01
+          --then (ysHat', [ws'])
+          --else (ysHat, [ws])
 tryToRound _ _ _ = error "empty weight list"

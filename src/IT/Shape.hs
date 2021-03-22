@@ -40,8 +40,8 @@ violationImg imgfun domains img expr ws
   | otherwise =
     let (lo, hi)   = (inf &&& sup) img
         (lo', hi') = (inf &&& sup) img' 
-        loDiff     = if lo' > lo then 0 else lo - lo'
-        hiDiff     = if hi' < hi then 0 else hi' - hi
+        loDiff     = if lo' > lo && lo' < hi then 0 else lo - lo'
+        hiDiff     = if hi' < hi && hi' > lo then 0 else hi' - hi
     in  loDiff + hiDiff
   where 
     img' = imgfun domains expr ws

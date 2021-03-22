@@ -8,3 +8,5 @@ yhat = clr.predict(Z[:,:-1])
 
 mse = np.square(yhat - Z[:,-1]).mean()
 print("Fitness should be approx.: ", np.sqrt(mse))
+print(clr.expr)
+print(clr.len)

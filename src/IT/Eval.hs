@@ -63,6 +63,7 @@ monomial :: Dataset Double -> Interaction -> Column Double
 monomial xss ks
   | V.length xss == 0 = LA.fromList []
   | otherwise         = M.foldrWithKey monoProduct 1 ks
+
   where
     --vzero               = LA.fromList $ replicate n 1
     --n                   = LA.size (xss V.! 0)

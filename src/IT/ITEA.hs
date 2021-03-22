@@ -40,23 +40,24 @@ import qualified Data.Sequence as Seq
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
-itea :: Mutation -> Fitness -> Population -> Rnd [Population]
-itea f g p0 = let n = length p0
-              in  iterateM (step f g n) p0
+itea :: Mutation -> Fitness -> (Expr -> Expr) -> Population -> Rnd [Population]
+itea f g cleaner p0 = let n = length p0
+                      in  iterateM (step f g n cleaner) p0
 
 -- | Generate an Initial Population at Random
 initialPop :: Int                -- ^ maxTerms
            -> Int                -- ^ nPop
            -> Rnd Term       -- ^ random term generator
            -> Fitness          -- ^ fitness function
+           -> (Expr -> Expr)
            -> Rnd Population
-initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
+initialPop maxTerms nPop rndTerm fit cleaner = parRndMap nPop rndIndividual fit (replicate nPop ()) 
   where
     rndExpr = sampleExpr rndTerm
 
     -- return a random list of random expressions
     rndIndividual () = do n <- sampleRng 1 maxTerms
-                          nub <$> rndExpr n
+                          cleaner . nub <$> rndExpr n
                           
 
 -- | Tournament Selection
@@ -67,6 +68,7 @@ initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replica
 -- the same size as the original population.
 --
 tournamentSeq :: Population -> Int -> Rnd Population
+tournamentSeq [] _ = return []
 tournamentSeq p n = do let p'   = Seq.fromList p
                            npop = Seq.length p'
                        ixs1 <- replicateM n (sampleTo (npop-1))
@@ -77,6 +79,7 @@ tournamentSeq p n = do let p'   = Seq.fromList p
     chooseOne p ix1 ix2 = min (p `Seq.index` ix1) (p `Seq.index` ix2)
 
 tournament :: Population -> Int -> Rnd Population
+tournament [] _ = return []
 tournament p n = do let npop = length p
                     ixs1 <- replicateM n (sampleTo (npop-1))
                     ixs2 <- replicateM n (sampleTo (npop-1))
@@ -98,10 +101,11 @@ chooseOne p = do let n = length p
                  return $ min (p !! c1) (p !! c2)
 -}
 -- | Perform one iteration of ITEA
-step :: Mutation -> Fitness -> Int -> Population -> Rnd Population
-step mutFun fitFun nPop pop = do
-  let tourn = if nPop >= 1000 then tournamentSeq else tournament
-  children  <- parRndMap nPop (mutFun . _expr) fitFun pop  
+step :: Mutation -> Fitness -> Int -> (Expr -> Expr) -> Population -> Rnd Population
+step mutFun fitFun nPop cleaner pop = do
+  let tourn  = if nPop >= 1000 then tournamentSeq else tournament
+      mutf s = cleaner <$> mutFun (_expr s)
+  children  <- parRndMap nPop mutf fitFun pop  
   if null children
    then tourn pop nPop
    else tourn (pop <> children) nPop

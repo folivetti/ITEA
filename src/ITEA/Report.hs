@@ -35,6 +35,11 @@ data Output = Screen | PartialLog String | FullLog String deriving Read
 getBest :: Int  -> [Population] -> Solution
 getBest n ps     = minimum $ getAllBests n ps
 
+getBestMaybe :: Int -> [Population] -> Maybe Solution
+getBestMaybe n ps = case getAllBests n ps of 
+                       [] -> Nothing
+                       xs -> Just (minimum xs)
+
 getAllBests :: Int -> [Population] -> [Solution]
 getAllBests n ps = concatMap minimum' $ take n ps
   where
@@ -77,7 +82,7 @@ genReports (PartialLog dirname) measures pop n fitTest = do
     mNames     = NE.map _name measures
     trainNames = NE.toList $ NE.map (++"_train") mNames
     testNames  = NE.toList $ NE.map (++"_test") mNames
-    headReport = intercalate "," (["name", "time"] ++ interleave trainNames testNames)
+    headReport = intercalate "," (["name", "time", "length"] ++ interleave trainNames testNames)
     headExpr   = intercalate "," ["expr", "weights", "python"]
     best       = getBest n pop
 
@@ -97,7 +102,7 @@ genReports (PartialLog dirname) measures pop n fitTest = do
     ws              = LA.toList . head $ _weights best
     expr            = _expr best
 
-    stats           = intercalate "," $ [dirname, totTime] ++ measuresResults
+    stats           = intercalate "," $ [dirname, totTime, show (_len best)] ++ measuresResults
 
   hPutStr hStats stats
   hPutStr hStatsExpr exprWithWeight

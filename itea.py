@@ -8,18 +8,14 @@ import pandas as pd
 import numpy as np
 import re
 
-def sqrtabs(a):
+def sqrtAbs(a):
     """ Auxiliary function to calculate sqrt.abs """
     return np.sqrt(np.abs(a))
-
-def ident(x):
-    """ Identity function """
-    return x
 
 
 class ITEARegressor(BaseEstimator, RegressorMixin):
 
-    def __init__(self, npop, ngens, exponents, termlimit, nonzeroexps=10, transfunctions='["id", "sin", "cos", "tanh", "sqrt.abs", "log", "exp"]'):
+    def __init__(self, npop, ngens, exponents, termlimit, nonzeroexps=10, transfunctions='[Id, Sin, Tanh, SqrtAbs, Log, Exp]'):
         """ Builds a Symbolic Regression model using ITEA.
 
         Parameters
@@ -29,7 +25,7 @@ class ITEARegressor(BaseEstimator, RegressorMixin):
         exponents : a tuple of int representing the minimum and maximum exponents of the interactions
         termlimit : a tuple of int representing the minimum and maximum number of terms in an expression
         nonzeroexps : number of non-zero exponents in each term of the initial population
-        transfunctions : a string with the list of transformation functions enclosed by quotes. Currently supported: id, sin, cos, tan, tanh, sqrt, sqrt.abs, log, exp
+        transfunctions : a string with the list of transformation functions. Currently supported: Id, Sin, Cos, Tanh, SqrtAbs, Log, Exp
 
 
         Examples
@@ -52,13 +48,6 @@ class ITEARegressor(BaseEstimator, RegressorMixin):
         self.tmpdir = tempfile.mkdtemp()
         print(self.tmpdir)
     
-    def insertNP(self, term):
-        """ Prepend function names with 'np.' """
-        idx = term.find("(")
-        if term[idx+1:idx+8] != "sqrtabs" and term[idx+1:idx+6] != "ident":
-            return term[:idx+1] + "np." + term[idx+1:]
-        return term
-
     def fit(self, X_train, y_train):
         """A reference implementation of a fitting function.
         Parameters
@@ -86,22 +75,29 @@ class ITEARegressor(BaseEstimator, RegressorMixin):
         
         np.savetxt(f"{fname}", Z_train, delimiter=",")
         
-        config = f'''[Dataset]
+        config = f'''[IO]
 train = {fname}
 test  = {fname}
 task  = Regression
+log   = PartialLog "{logname}"
 
 [Mutation]
-exponents = {self.exponents}
-termlimit = {self.termlimit}
-nonzeroexps = {self.nonzeroexps}
+exponents      = {self.exponents}
+termlimit      = {self.termlimit}
+nonzeroexps    = {self.nonzeroexps}
 transfunctions = {self.transfunctions}
-measures       = ["RMSE", "NMSE", "MAE", "R^2"]
+measures       = ["RMSE"]
 
 [Algorithm]
-npop = {self.npop}
-ngens = {self.ngens}
-log = PartialLog "{logname}"
+npop      = {self.npop}
+ngens     = {self.ngens}
+algorithm = ITEA
+
+[Constraints]
+penalty = NoPenalty
+shapes  = []
+domains = Nothing
+varnames = []
 '''
         fw = open(f"{cfgname}", "w")
         fw.write(config)
@@ -109,8 +105,11 @@ log = PartialLog "{logname}"
 
         subprocess.call([f"stack run config {cfgname}"], shell=True)
 
+        df = pd.read_csv(f"{logname}/exprs.csv")
+        self.expr = df.python.values[0]
+        
         df = pd.read_csv(f"{logname}/stats.csv")
-        self.expr = df.expr.values[0]
+        self.len = df.length.values[0]
         
         self.is_fitted_ = True
 
@@ -118,19 +117,7 @@ log = PartialLog "{logname}"
 
     def eval_expr(self, x):
         """ Evaluates the expression with data point x. """
-        terms = (self.expr
-                 .replace('id','ident')
-                 .replace('sqrt.abs','sqrtabs')
-                 .replace('^','**')
-                 .split(' + '))
-        bias  = terms[0]
-        terms = terms[1:]
-        p = re.compile('x([0-9]+)')
-        terms = map(lambda t: self.insertNP(p.sub(r"x[:,\1]", t)), terms)
-
-        zs = np.array(list(map(eval,terms))).T
-
-        return zs.sum(axis=1) + eval(bias)
+        return eval(self.expr)
 
     def predict(self, X_test, ic=None):
         """ A reference implementation of a predicting function.
