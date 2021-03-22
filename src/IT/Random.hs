@@ -16,7 +16,7 @@ import IT
 
 import System.Random
 import Control.Monad.State
-import qualified Data.Map.Strict as M
+import qualified Data.IntMap.Strict as M
 
 -- * Random expressions generation
 
@@ -64,31 +64,31 @@ sampleInter' dim minExp maxExp = do e  <- sampleRng minExp maxExp
 
 
 -- | Samples a random transformation function from a provided list of functions
-sampleTrans :: [Transformation a]      -- ^ choices of transformation functions
-            -> Rnd (Transformation a)  -- ^ Random generator
+sampleTrans :: [Transformation]      -- ^ choices of transformation functions
+            -> Rnd Transformation  -- ^ Random generator
 sampleTrans = sampleFromList 
 
 -- | Samples a random term using a random transformation and a random interaction generators.
-sampleTerm :: Rnd (Transformation a)  -- ^ random transformation function
-           -> Rnd Interaction         -- ^ random interaction function
-           -> Rnd (Term a)            -- ^ Random generator
+sampleTerm :: Rnd Transformation  -- ^ random transformation function
+           -> Rnd Interaction     -- ^ random interaction function
+           -> Rnd Term            -- ^ Random generator
 sampleTerm rndTrans rndInter = do t <- rndTrans
                                   Term t <$> rndInter
 
 -- | Create a random expression with exactly n terms
-sampleExpr :: Rnd (Term a)         -- ^ random term function
+sampleExpr :: Rnd Term         -- ^ random term function
            -> Int                  -- ^ number of terms
-           -> Rnd (Expr a)         -- ^ Random generator
-sampleExpr _ 0            = return (Expr [])
+           -> Rnd Expr         -- ^ Random generator
+sampleExpr _ 0            = return []
 sampleExpr rndTerm nTerms = do t <- rndTerm
                                e <- sampleExpr rndTerm (nTerms-1)
-                               return $ t `consTerm` e
+                               return $ t : e
 
 -- | Create a random population of n expressions with varying number of terms
 samplePop :: Int                   -- population size
           -> Int                   -- max number of terms
-          -> (Int -> Rnd (Expr a)) -- random expression generator
-          -> Rnd [Expr a]
+          -> (Int -> Rnd Expr) -- random expression generator
+          -> Rnd [Expr]
 samplePop nPop maxNTerms rndExpr = do n  <- sampleRng 1 maxNTerms
                                       e  <- rndExpr n
                                       es <- samplePop (nPop-1) maxNTerms rndExpr

@@ -25,6 +25,8 @@ import Control.Monad.State
 import System.Random
 import System.Random.Shuffle
 
+import IT
+import IT.Shape
 import ITEA.Config
 import ITEA.Report
 import IT.ITEA
@@ -43,7 +45,7 @@ createMutCfg (e1,e2) tmax pop = (cfg, pop, 100000 `div` pop)
             $  exponents e1 e2
             <> termLimit 2 tmax
             <> nonzeroExps 1
-            <> transFunctions ["id","sin","cos", "tanh", "sqrt.abs", "log", "exp"]
+            <> transFunctions [Id, Sin, Cos, Tanh, SqrtAbs, Log, Exp]
 
 -- | Validates the program arguments
 validateArgs :: [String] -> (String, Int)
@@ -51,8 +53,8 @@ validateArgs (x:y:_) = (x, read y)
 validateArgs _ = error "Usage: crossval dataname fold"
 
 -- | Runs a single experiment with a given configuration
-runITEARegCV :: Fitness Double                         -- ^ Training fitness function
-             -> (Solution Double -> Maybe [Double])          -- ^ Test fitness function
+runITEARegCV :: Fitness                         -- ^ Training fitness function
+             -> (Solution -> Maybe [Double])          -- ^ Test fitness function
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
@@ -103,7 +105,9 @@ runCfg dname fold (mutCfg, pop, gen) = do
       toRegMtx = V.fromList . LA.toColumns
       criteria = NE.fromList [_rmse]
 
-      fitTrains = zipWith (\x y  -> evalTrain Regression criteria (toRegMtx x) y) trXs trYs
+
+      fitTrains = zipWith (\x y  -> evalTrain Regression criteria unconstrained NoPenalty (toRegMtx x) y) trXs trYs
+
       fitTests  =  zipWith (\x y -> evalTest Regression criteria (toRegMtx x) y) tvXs tvYs
 
       average xs = sum xs / fromIntegral (length xs)

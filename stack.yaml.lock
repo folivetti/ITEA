@@ -18,9 +18,20 @@ packages:
       sha256: 0351665fd1015af6974ecb7b11822f70a008c2c3fb513f2ae4f38e0e03ec1c49
   original:
     hackage: splitmix-0.1.0.2
+- completed:
+    name: intervals
+    version: 0.9.1
+    git: https://github.com/massma/intervals.git
+    pantry-tree:
+      size: 1076
+      sha256: 2d38b20ac6f956b0eb81298d52f63111c165d9355e389328157b422ae15975d4
+    commit: 3fe1c614dae10dc51554b5575b07ab042d448f9f
+  original:
+    git: https://github.com/massma/intervals.git
+    commit: 3fe1c614dae10dc51554b5575b07ab042d448f9f
 snapshots:
 - completed:
-    size: 532177
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/19.yaml
-    sha256: d2b828ecf50386841d0c5700b58d38566992e10d63a062af497ab29ab031faa1
-  original: lts-16.19
+    size: 563098
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/1.yaml
+    sha256: 395775c03e66a4286f134d50346b0b6f1432131cf542886252984b4cfa5fef69
+  original: lts-17.1

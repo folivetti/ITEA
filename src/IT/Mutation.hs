@@ -11,7 +11,8 @@ Mutation operators.
 -}
 module IT.Mutation where
 
-import Data.Map.Strict as M
+import Data.List (nub)
+import Data.IntMap.Strict as M
 import Control.Monad
 
 import IT -- (itea, addTerm, dropTerm)
@@ -33,11 +34,11 @@ import IT.Random
 --      You need to provide a Fitness function and a function that
 --      samples a random term.
 --
-addTerm :: Rnd (Term a) -> Mutation a
+addTerm :: Rnd Term -> Mutation
 addTerm rndTerm e = do t <- rndTerm
-                       if e `hasTerm` t
+                       if t `elem` e
                        then return e
-                       else return (t `consTerm` e)
+                       else return (t : e)
 
 -- | Create a Drop term mutation.
 --
@@ -45,8 +46,8 @@ addTerm rndTerm e = do t <- rndTerm
 --
 --      You need to provide a Fitness function.
 --
-dropTerm :: Mutation a
-dropTerm e = do let n = numberOfTerms e
+dropTerm :: Mutation
+dropTerm e = do let n = length e
                 i <- sampleTo (n-1)
                 return (removeIthTerm i e)
 
@@ -56,42 +57,44 @@ dropTerm e = do let n = numberOfTerms e
 --         a random term of the expression.
 --         You need to provide the minimum 
 --         and maximum allowed exponent
-replaceTerm :: Int -> Int -> Int -> Mutation a
-replaceTerm dim minExp maxExp e = do let n = numberOfTerms e
+replaceTerm :: Int -> Int -> Int -> Mutation
+replaceTerm dim minExp maxExp e = do let n = length e
                                      i <- sampleTo (n-1)
                                      let t  = fromJust $ getIthTerm i e
                                          e' = removeIthTerm i e
                                      t' <- rndReplaceStrength dim t minExp maxExp
-                                     return (t' `consTerm` e')
+                                     return (t' : e')
   where 
     fromJust (Just x) = x
     fromJust Nothing  = error "Couldn't get i-th term in replaceTerm"  -- this should never happen
 
 -- | replaces a strength at random
-rndReplaceStrength :: Int -> Term a -> Int -> Int -> Rnd (Term a)
+rndReplaceStrength :: Int -> Term -> Int -> Int -> Rnd Term
 rndReplaceStrength dim (Term tf ps) minExp maxExp =
   do p <- sampleRng minExp maxExp
      i <- sampleTo (dim-1)
      let ps' = M.filter (/=0) $ M.insert i p ps
-     return (Term tf ps')
+     if M.size ps' == 0
+       then return (Term tf ps)
+       else return (Term tf ps')
 
 -- | replaces a random transformation function
-replaceTrans :: Rnd (Transformation a) -> Mutation a
-replaceTrans rndTrans e = do let n = numberOfTerms e
+replaceTrans :: Rnd Transformation -> Mutation
+replaceTrans rndTrans e = do let n = length e
                              i  <- sampleTo (n-1)
                              tr <- rndTrans
                              return (replace i tr e)
   where
     change tr' (Term _ i)       = Term tr' i
-    replace 0  _  (Expr [])     = Expr []
-    replace _  _  (Expr [])     = error "Empty expression in replaceTrans"
-    replace 0  tr (Expr (t:es)) = Expr (change tr t : es)
-    replace i  tr (Expr (t:es)) = t `consTerm` replace (i-1) tr (Expr es)
+    replace 0  _  ([])     = []
+    replace _  _  ([])     = error "Empty expression in replaceTrans"
+    replace 0  tr ((t:es)) = (change tr t : es)
+    replace i  tr ((t:es)) = t : replace (i-1) tr (es)
 
 -- | Combine two interactions with `op` operation (use (+) or (-)
 -- for positive and negative interaction)
-combineInter :: (Int -> Int -> Int) -> Int -> Int -> Mutation a
-combineInter op minExp maxExp e = do let n = numberOfTerms e
+combineInter :: (Int -> Int -> Int) -> Int -> Int -> Mutation
+combineInter op minExp maxExp e = do let n = length e
                                      i <- sampleTo (n-1)
                                      j <- sampleTo (n-1)
                                      let ti = fromJust $ getIthTerm i e
@@ -100,7 +103,7 @@ combineInter op minExp maxExp e = do let n = numberOfTerms e
                                          ti'= combineBoth ti tj
                                      if  allZeros ti'
                                      then return e'
-                                     else return . uniqueTerms $ ti' `consTerm` e'
+                                     else return . nub $ ti' : e'
   where
     allZeros (Term _  is) = M.size is == 0
     fromJust (Just x)     = x
@@ -110,7 +113,7 @@ combineInter op minExp maxExp e = do let n = numberOfTerms e
     minmax x = min maxExp $ max minExp x
 
 -- | Positive and Negative interaction mutations
-positiveInter, negativeInter :: Int -> Int -> Mutation a
+positiveInter, negativeInter :: Int -> Int -> Mutation
 positiveInter = combineInter (+)
 negativeInter = combineInter (-)
 
@@ -118,10 +121,10 @@ negativeInter = combineInter (-)
 mutFun :: Int                    -- ^ Dim
        -> (Int, Int)             -- ^ minExp, maxExp
        -> (Int, Int)             -- ^ minTerms, maxTerms
-       -> Rnd (Term a)           -- ^ random term generator
-       -> Rnd (Transformation a) -- ^ random term generator
-       -> Expr a                 -- ^ Expression to be mutated
-       -> Rnd (Expr a)           -- ^ Random Expression generator
+       -> Rnd Term           -- ^ random term generator
+       -> Rnd Transformation -- ^ random term generator
+       -> Expr                 -- ^ Expression to be mutated
+       -> Rnd Expr           -- ^ Random Expression generator
 mutFun dim (minExp, maxExp) (minTerms, maxTerms) rndTerm rndTrans e = join (sampleFromList muts)
   where
     muts   = [replaceTerm dim minExp maxExp e
@@ -131,4 +134,4 @@ mutFun dim (minExp, maxExp) (minTerms, maxTerms) rndTerm rndTrans e = join (samp
 
     addMut  = [addTerm rndTerm e | len <= maxTerms]
     dropMut = [dropTerm e        | len >= minTerms]
-    len     = numberOfTerms e
+    len     = length e

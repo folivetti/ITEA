@@ -20,7 +20,7 @@ This library also provides some generic mutation function builders.
 -}
 module IT.ITEA where
 
-import IT -- (itea, addTerm, dropTerm)
+import IT  
 import IT.Algorithms
 import IT.Random
 
@@ -33,29 +33,31 @@ import Control.DeepSeq
 import Control.Parallel.Strategies
 import Data.Maybe
 import System.Random
+import Data.List (nub)
+import qualified Data.Sequence as Seq
 
 -- * ITEA
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
-itea :: NFData a => Mutation a -> Fitness a -> Population a -> Rnd [Population a]
+itea :: Mutation -> Fitness -> Population -> Rnd [Population]
 itea f g p0 = let n = length p0
               in  iterateM (step f g n) p0
 
 -- | Generate an Initial Population at Random
-initialPop :: NFData a
-           => Int                -- ^ maxTerms
+initialPop :: Int                -- ^ maxTerms
            -> Int                -- ^ nPop
-           -> Rnd (Term a)       -- ^ random term generator
-           -> Fitness a          -- ^ fitness function
-           -> Rnd (Population a)
+           -> Rnd Term       -- ^ random term generator
+           -> Fitness          -- ^ fitness function
+           -> Rnd Population
 initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replicate nPop ()) 
   where
     rndExpr = sampleExpr rndTerm
 
     -- return a random list of random expressions
     rndIndividual () = do n <- sampleRng 1 maxTerms
-                          uniqueTerms <$> rndExpr n
+                          nub <$> rndExpr n
+                          
 
 -- | Tournament Selection
 --
@@ -64,25 +66,45 @@ initialPop maxTerms nPop rndTerm fit = parRndMap nPop rndIndividual fit (replica
 -- selection of these combined population with
 -- the same size as the original population.
 --
-tournament :: Population a -> Int -> Rnd (Population a)
+tournamentSeq :: Population -> Int -> Rnd Population
+tournamentSeq p n = do let p'   = Seq.fromList p
+                           npop = Seq.length p'
+                       ixs1 <- replicateM n (sampleTo (npop-1))
+                       ixs2 <- replicateM n (sampleTo (npop-1))
+                       return $ zipWith (chooseOne p') ixs1 ixs2
+
+  where
+    chooseOne p ix1 ix2 = min (p `Seq.index` ix1) (p `Seq.index` ix2)
+
+tournament :: Population -> Int -> Rnd Population
+tournament p n = do let npop = length p
+                    ixs1 <- replicateM n (sampleTo (npop-1))
+                    ixs2 <- replicateM n (sampleTo (npop-1))
+                    return $ zipWith (chooseOne p) ixs1 ixs2
+
+  where
+    chooseOne p ix1 ix2 = min (p !! ix1) (p !! ix2)
+
+{-
 tournament _ 0 = return []
 tournament p n = do p_i <- chooseOne p
                     p'  <- tournament p (n-1)
                     return $ p_i:p'
 
-chooseOne :: Population a -> Rnd (Solution a)
+chooseOne :: Population -> Rnd Solution
 chooseOne p = do let n = length p
                  c1 <- sampleTo (n-1)
                  c2 <- sampleTo (n-1)
                  return $ min (p !! c1) (p !! c2)
-
+-}
 -- | Perform one iteration of ITEA
-step :: NFData a => Mutation a -> Fitness a -> Int -> Population a -> Rnd (Population a)
+step :: Mutation -> Fitness -> Int -> Population -> Rnd Population
 step mutFun fitFun nPop pop = do
-  children  <- parRndMap nPop (mutFun . _expr) fitFun pop
+  let tourn = if nPop >= 1000 then tournamentSeq else tournament
+  children  <- parRndMap nPop (mutFun . _expr) fitFun pop  
   if null children
-   then tournament pop nPop
-   else tournament (pop ++ children) nPop
+   then tourn pop nPop
+   else tourn (pop <> children) nPop
    
 -- * Parallel random functions
 

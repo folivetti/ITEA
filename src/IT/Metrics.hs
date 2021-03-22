@@ -13,7 +13,6 @@ Definitions of IT data structure and support functions.
 module IT.Metrics where
 
 import Data.Semigroup
-import Data.Foldable
 
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector.Storable as V
@@ -34,7 +33,7 @@ var :: Vector -> Double
 var xs = sum' / fromIntegral (V.length xs)
   where
     mu   = mean xs
-    sum' = V.foldl (\s x -> s + (x-mu)^2) 0 xs
+    sum' = V.foldl (\s x -> s + (x-mu)^(2 :: Int)) 0 xs
 
 -- | generic mean error measure
 meanError :: (Double -> Double) -- ^ a function to be applied to the error terms (abs, square,...)
@@ -48,7 +47,7 @@ meanError op ysHat ys = mean $ V.map op $ ysHat - ys
 
 -- | Mean Squared Error
 mse :: Vector -> Vector -> Double
-mse           = meanError (^2)
+mse           = meanError (^(2 :: Int))
 
 -- | Mean Absolute Error
 mae :: Vector -> Vector -> Double
@@ -69,7 +68,7 @@ rSq ysHat ys  = 1 - r/t
     ym      = mean ys
     t       = sumOfSq $ V.map (\yi -> yi - ym) ys
     r       = sumOfSq $ ys - ysHat
-    sumOfSq = V.foldl (\s di -> s + di^2) 0
+    sumOfSq = V.foldl (\s di -> s + di^(2 :: Int)) 0
 
 -- * Regression measures 
 _rmse, _mae, _nmse, _r2 :: Measure
@@ -98,7 +97,8 @@ accuracy ysHat ys = -equals/tot
       | yH == y   = (Sum 1, Sum 1)
       | otherwise = (Sum 0, Sum 1)
 
-precision ysHat ys = -equals/tot
+precision :: Vector -> Vector -> Double
+precision ysHat ys = equals/tot
   where
     ys'    = map round $ LA.toList ys
     ysHat' = map round $ LA.toList ysHat
@@ -106,21 +106,22 @@ precision ysHat ys = -equals/tot
     cmp :: (Integer, Integer) -> (Sum Double, Sum Double)
     cmp (1, 1)  = (Sum 1, Sum 1)
     cmp (1, 0)  = (Sum 0, Sum 1)
-    cmp (yH, y) = (Sum 0, Sum 0)
+    cmp (_, _) = (Sum 0, Sum 0)
 
-recall ysHat ys = -equals/tot
+recall :: Vector -> Vector -> Double
+recall ysHat ys = equals/tot
   where
     ys'    = map round $ LA.toList ys
     ysHat' = map round $ LA.toList ysHat
     (Sum equals, Sum tot) = foldMap cmp $ zip ysHat' ys'
+
     cmp :: (Integer, Integer) -> (Sum Double, Sum Double)
     cmp (1, 1)  = (Sum 1, Sum 1)
     cmp (0, 1)  = (Sum 0, Sum 1)
-    cmp (yH, y) = (Sum 0, Sum 0)
+    cmp (_, _) = (Sum 0, Sum 0)
 
-f1 ysHat ys 
-  | prec == 0 || rec == 0 = 0
-  | otherwise             = (1 + beta^2)*prec*rec/(prec*beta^2+rec)
+f1 :: Vector -> Vector -> Double
+f1 ysHat ys = 2*prec*rec/(prec+rec)
   where
     prec = precision ysHat ys
     rec  = recall ysHat ys

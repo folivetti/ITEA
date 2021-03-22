@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 Module      : IT.Regression
 Description : Specific functions for Symbolic Regression
@@ -9,106 +10,246 @@ Portability : POSIX
 
 Definitions of IT data structure and support functions.
 -}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module IT.Eval where
 
-import Data.Semigroup
-import qualified Data.Vector as VV
+import qualified Data.Vector as V
 import qualified Numeric.LinearAlgebra as LA
-import qualified Data.Map.Strict as M
-import Data.Char
+import qualified Data.IntMap.Strict as M
+import Numeric.Interval hiding (null)
 
 import IT
 import IT.Algorithms
 
--- | IT Instance for regression evals an expression to
--- sum(w_i * term_i) + w0
--- with
---      term_i = f_i(p_i(xs))
---  and p_i(xs) = prod(x^eij)
-instance IT Double where
-  --itTimes :: Dataset Double -> Interaction -> Column Double
-  itTimes vs m
-    | VV.length vs == 0 = LA.fromList []
-    | otherwise         = M.foldrWithKey f vzero m
-    where
-      vzero    = n LA.|> repeat 1
-      f ix p v = v * LA.cmap (^^p) (vs VV.! ix)
-      n        = LA.size (vs VV.! 0)
+-- * Transformation evaluation
+transform :: Floating a => Transformation -> a -> a
+transform Id      = id
+transform Sin     = sin
+transform Cos     = cos
+transform Tan     = tan
+transform Tanh    = tanh
+transform Sqrt    = sqrt
+transform SqrtAbs = sqrt.abs
+transform Exp     = exp
+transform Log     = log
 
-  --itAdd :: [Column Double] -> Column Double
-  itAdd = getSum . foldMap Sum
+derivative :: Floating a => Transformation -> a -> a
+derivative Id      = const 1
+derivative Sin     = cos
+derivative Cos     = negate.sin
+derivative Tan     = recip . (**2.0) . cos
+derivative Tanh    = (1-) . (**2.0) . tanh
+derivative Sqrt    = recip . (2*) . sqrt
+derivative SqrtAbs = \x -> x / (2* abs x**1.5)
+derivative Exp     = exp
+derivative Log     = recip
 
-  --itWeight :: Double -> Column Double -> Column Double
-  itWeight w = LA.cmap (w*)
+sndDerivative :: Floating a => Transformation -> a -> a
+sndDerivative Id      = const 0
+sndDerivative Sin     = negate.sin
+sndDerivative Cos     = negate.cos
+sndDerivative Tan     = \x -> 2 * tan x * cos x ** (-2.0)
+sndDerivative Tanh    = \x -> (-2) * tanh x * (1 - tanh x ** 2.0)
+sndDerivative Sqrt    = negate . recip . (*4) . sqrt . (**3.0)
+sndDerivative SqrtAbs = \x -> -(x**2.0 / (4 * abs x ** 3.5)) -- assuming dirac(x) = 0
+sndDerivative Exp     = exp
+sndDerivative Log     = \x -> -(1/x**2)
 
--- | Transformation Functions
-regId, regSin, regCos, regTan, regTanh, regSqrt, regAbsSqrt, regLog, regExp :: Transformation Double
-regSin     = Transformation "sin" sin
-regCos     = Transformation "cos" cos
-regTan     = Transformation "tan" tan
-regTanh    = Transformation "tanh" tanh
-
-regSqrt    = Transformation "sqrt" sqrt
-regAbsSqrt = Transformation "sqrt.abs" (sqrt.abs)
-regLog     = Transformation "log" (\x -> log (x+1))
-regExp     = Transformation "exp" exp
-
-regId      = Transformation "id" id
-
-regAll, regTrig, regNonLinear, regLinear :: [Transformation Double]
-regTrig      = [regSin, regCos, regTanh] 
-regNonLinear = [regExp, regLog, regAbsSqrt] 
-regLinear    = [Transformation "id" id]
-
--- | List of all transformation functions 
-regAll = [regId, regSin, regCos, regTan, regTanh, regSqrt, regAbsSqrt, regLog, regExp]
-
--- | Convert a string to a Transformation Function
-toTrans :: String -> Transformation Double
-toTrans input
-  | null cmp  = error ("Invalid function name " ++ input)
-  | otherwise = (snd.head) cmp 
+-- Interaction of dataset xss with strengths ks
+-- ps = xss ** ks
+-- it is faster to go through the nonzero strengths, since we can query a column in O(1)
+monomial :: Dataset Double -> Interaction -> Column Double
+monomial xss ks
+  | V.length xss == 0 = LA.fromList []
+  | otherwise         = M.foldrWithKey monoProduct 1 ks
   where
-    cmp    = filter fst $ map isThis regAll
-    input' = map toLower input
-    isThis t@(Transformation name _) = (name == input', t)
+    --vzero               = LA.fromList $ replicate n 1
+    --n                   = LA.size (xss V.! 0)
+    monoProduct ix k ps = ps * LA.cmap (^^k) (xss V.! ix)
+
+-- | Interaction of the domain interval
+-- it is faster to fold through the list of domains and checking whether we 
+-- have a nonzero strength.
+monomialInterval :: [Interval Double] -> Interaction -> Interval Double
+monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains
+  where
+    monoProduct (ix, x) img
+      | ix `M.member` ks = img * (x ** get ix)
+      | otherwise        = img
+    get ix = fromIntegral (ks M.! ix)
+
+-- | to evaluate a term we apply the transformation function
+-- to the interaction monomial
+evalTerm :: Dataset Double -> Term -> Column Double
+evalTerm xss (Term t ks) = LA.cmap t' (monomial xss ks)
+  where t' = transform t
+
+-- | apply the transformation function to the interaction monomial
+evalTermInterval :: [Interval Double] -> Term -> Interval Double
+evalTermInterval domains (Term t ks)
+  | inter == empty = empty
+  | otherwise      = protected (transform t) inter
+  where inter = (monomialInterval domains ks)
+
+-- | The partial derivative of a term w.r.t. the variable ix is:
+-- 
+-- If ix exists in the interaction, the derivative is:
+--      derivative t (monomial xss ks) * (monomial xss ks') 
+--      ks' is the same as ks but with the strength of ix decremented by one
+-- Otherwise it is equal to 0
+--
+-- w1 t1(p1(x)) + w2 t2(p2(x))
+-- w1 t1'(p1(x))p1'(x) + w2 t2'(p2(x))p2'(x)
+evalTermDiff :: Int -> Dataset Double -> Term -> Column Double
+evalTermDiff ix xss (Term t ks)
+  | M.member ix ks = ki * it * p'
+  | otherwise      = LA.fromList $ replicate n 0
+  where
+    ki = fromIntegral $ ks M.! ix
+    p  = monomial xss ks
+    p' = monomial xss (M.update dec ix ks)
+    t' = derivative t
+    it = LA.cmap t' p
+    n  = LA.size (xss V.! 0)
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
+
+-- w1 t1''(p1(x))p1'(x)p1'(x) + w1 t1'(p1(x))p1''(x)
+evalTermSndDiff :: Int -> Int -> Dataset Double -> Term -> Column Double
+evalTermSndDiff ix iy xss (Term t ks)
+  | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
+  | otherwise                         = LA.fromList $ replicate n 0
+  where
+    ks'  = M.update dec iy ks
+    ki = fromIntegral $ ks M.! ix
+    kj =  fromIntegral $  ks M.! iy
+    kij = kj * (fromIntegral (ks' M.! ix))
+    p    = monomial xss ks
+    px'  = monomial xss (M.update dec ix ks)
+    py'  = monomial xss (M.update dec iy ks)
+    pxy' = monomial xss (M.update dec ix ks')
+    t'   = derivative t
+    t''  = sndDerivative t
+    tp'  = LA.cmap t'  p
+    tp'' = LA.cmap t'' p
+    n    = LA.size (xss V.! 0)
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
+
+evalTermDiffInterval :: Int -> [Interval Double] -> Term -> Interval Double
+evalTermDiffInterval ix domains (Term t ks)
+  | M.member ix ks = ki * it * p'
+  | otherwise      = singleton 0
+  where
+    ki = (singleton . fromIntegral) $ ks M.! ix
+    p  = monomialInterval domains ks
+    p' = monomialInterval domains (M.update dec ix ks)
+    t' = protected (derivative t)
+    it = t' p
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
+
+evalTermSndDiffInterval :: Int -> Int -> [Interval Double] -> Term -> Interval Double
+evalTermSndDiffInterval ix iy domains (Term t ks)
+  | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
+  | otherwise                         = singleton 0
+  where
+    ks' = M.update dec iy ks
+    ki = (singleton . fromIntegral) $ ks M.! ix
+    kj = (singleton . fromIntegral) $ ks M.! iy
+    kij = kj * (singleton $ fromIntegral (ks' M.! ix))
+    p    = monomialInterval domains ks
+    px'  = monomialInterval domains (M.update dec ix ks)
+    py'  = monomialInterval domains (M.update dec iy ks)
+    pxy' = monomialInterval domains (M.update dec ix $ M.update dec iy ks)
+    t'   = protected (derivative t)
+    t''  = protected (sndDerivative t)
+    tp'  = t'  p
+    tp'' = t'' p
+
+    dec 1 = Nothing
+    dec k = Just (k-1)
+
+-- | evaluates an expression by evaluating the terms into a list
+-- applying the weight and summing the results.
+evalGeneric :: (Dataset Double -> Term -> Column Double) -> Dataset Double -> Expr -> [Double] -> Column Double
+evalGeneric f xss terms ws = sum weightedTerms
+  where
+    weightedTerms = zipWith multWeight ws (map (f xss) terms)
+    multWeight w  = LA.cmap (w*)
+
+evalExpr :: Dataset Double -> Expr -> [Double] -> Column Double
+evalExpr = evalGeneric evalTerm
+
+evalDiff :: Int -> Dataset Double -> Expr -> [Double] -> Column Double
+evalDiff ix = evalGeneric (evalTermDiff ix)
+
+evalSndDiff :: Int -> Int -> Dataset Double -> Expr -> [Double] -> Column Double
+evalSndDiff ix iy = evalGeneric (evalTermSndDiff ix iy)
+
+-- | Returns the estimate of the image of the funcion with Interval Arithmetic
+--
+-- this requires a different implementation from `evalGeneric`
+evalImageGeneric :: ([Interval Double] -> Term -> Interval Double) -> [Interval Double]-> Expr -> [Double] -> Interval Double
+evalImageGeneric f domains terms ws = sum weightedTerms
+  where
+    weightedTerms = zipWith (*) (map singleton ws) (map (f domains) terms)
+
+evalImage :: [Interval Double] -> Expr -> [Double] -> Interval Double
+evalImage = evalImageGeneric evalTermInterval
+
+evalDiffImage :: Int -> [Interval Double] -> Expr -> [Double] -> Interval Double
+evalDiffImage ix = evalImageGeneric (evalTermDiffInterval ix)
+
+evalSndDiffImage :: Int -> Int -> [Interval Double] -> Expr -> [Double] -> Interval Double
+evalSndDiffImage ix iy = evalImageGeneric (evalTermSndDiffInterval ix iy)
 
 -- | A value is invalid if it's wether NaN or Infinite
 isInvalid :: Double -> Bool
-isInvalid x = isNaN x || isInfinite x
+isInvalid x = isNaN x || isInfinite x || abs x >= 1e150
 
 -- | a set of points is valid if none of its values are invalid and
 -- the maximum abosolute value is below 1e150 (to avoid overflow)
 isValid :: [Double] -> Bool
-isValid xs = not (any isInvalid xs) && (maximum (map abs xs) < 1e150)
-
-{- TO BE TESTED
- -- && var > 1e-4
-  where
-    mu  = sum(xs) / n
-    var = (*(1/n)) . sum $ map (\x -> (x-mu)*(x-mu)) xs
-    n   = fromIntegral (length xs)
--}
+isValid xs = not (any isInvalid xs)
 
 -- | evaluate an expression to a set of samples 
 --
 -- (1 LA.|||) adds a bias dimension
-exprToMatrix :: Dataset Double -> Expr Double -> LA.Matrix Double
-exprToMatrix rss (Expr e) = ((1 LA.|||) . LA.fromColumns) zss
+exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
+exprToMatrix xss = intercept . LA.fromColumns . map (evalTerm xss)
   where
-    zss = map (`evalTerm` rss) e
+    intercept = (1 LA.|||)
 
 -- | Clean the expression by removing the invalid teerms
-cleanExpr :: Dataset Double -> Expr Double -> Expr Double
-cleanExpr rss (Expr e) = Expr (cleanExpr' e)
-  where
-    cleanExpr' [] = []
-    cleanExpr' (t:ts) = if ((/=[]) . LA.find isInvalid . evalTerm t) rss
-                       then cleanExpr' ts
-                       else t : cleanExpr' ts
+cleanExpr :: Dataset Double -> Expr -> Expr
+cleanExpr xss [] = []
+cleanExpr xss (term:terms) = if not . null $ LA.find isInvalid $ evalTerm xss term
+                                then cleanExpr xss terms
+                                else term : cleanExpr xss terms
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
-notInfNan :: Solution Double -> Bool
+notInfNan :: Solution -> Bool
 notInfNan s = not (isInfinite f || isNaN f)
   where f = head $ _fit s
+
+-- | definition of an interval evaluated to NaN
+nanInterval :: RealFloat a => Interval a
+nanInterval = singleton (0/0)
+
+-- | Check if any bound of the interval is infinity
+hasInf :: RealFloat a => Interval a -> Bool
+hasInf x = any isInfinite [inf x, sup x]
+
+-- | Creates a protected function to avoid throwing exceptions
+protected :: RealFloat a => (Interval a -> Interval a) -> Interval a -> Interval a
+protected f x
+  | hasInf x      = nanInterval
+  | sup y < inf y = sup y ... inf y
+  | otherwise     = y
+  where
+    y = f x

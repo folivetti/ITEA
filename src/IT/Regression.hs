@@ -33,6 +33,9 @@ data Task = Regression | Classification | ClassMult
 
 type FitFun = Vector -> Vector -> Double
 
+data Penalty = NoPenalty | Len Double | Shape Double deriving (Show, Read)
+                  
+                    
 -- | Predict a linear model
 predict :: LA.Matrix Double -> Vector -> Vector
 predict xs w = xs LA.#> w
@@ -80,8 +83,10 @@ classifyMult ys zss
 --  run a Linear regression on the evaluated expressions
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
-evalTrain :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Expr Double -> Maybe (Solution Double)
-evalTrain task measures xss ys expr =
+
+evalTrain :: Task -> NonEmpty Measure -> Constraint -> Penalty -> Dataset Double -> Vector -> Expr -> Maybe Solution
+evalTrain task measures cnstrFun penalty xss ys expr =
+
 --  | notInfNan ps = Just ps 
 --  | otherwise    = Nothing
   case res of
@@ -96,13 +101,22 @@ evalTrain task measures xss ys expr =
                     ClassMult      -> classifyMult ys zss
     (ysHat, ws) = fromJust res
     fit         = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
-    ps          = Sol expr fit ws
+    ws'         = V.toList $ head ws
+
+    len         = exprLength expr ws'
+    cnst        = cnstrFun expr ws'
+    pnlty       = case penalty of
+                    NoPenalty -> 0.0
+                    Len c     -> c * fromIntegral len
+                    Shape c   -> c*cnst
+    ps          = Sol expr fit cnst len pnlty ws
+
 
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.
 -- It was: fitnessTest
-evalTest :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Solution Double -> Maybe [Double]
+evalTest :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Solution -> Maybe [Double]
 evalTest task measures xss ys sol 
   | V.length (head ws) /= LA.cols zss = Nothing
   | otherwise                  = Just fit
@@ -131,3 +145,4 @@ tryToRound f zss (ysHat, (ws:_)) =
   in  if abs (f ysHat' - f ysHat) < 0.01
           then (ysHat', [ws'])
           else (ysHat, [ws])
+tryToRound _ _ _ = error "empty weight list"
