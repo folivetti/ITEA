@@ -1,4 +1,4 @@
-# ITEA: Interaction-Transformation Evolutionary Algorithm
+# ITEA: Interaction-Transformation Evolutionary Algorithm (v1.0)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/folivetti/ITEA/blob/master/LICENSE)
 
@@ -71,16 +71,31 @@ Interaction-Transformation (IT) is a representation proposed in [1](https://www.
 
 ## Cite
 
-de França, Fabrício Olivetti, and Guilherme Seidyo Imai Aldeia. "Interaction-Transformation Evolutionary Algorithm for Symbolic Regression." arXiv preprint arXiv:1902.03983 (2019).
+de França, F. O., & Aldeia, G. S. I. (2020). Interaction-Transformation Evolutionary Algorithm for Symbolic Regression. *Evolutionary Computation*, 1-25.
 
 Bibtex:
 
-    @article{de2019interaction,
-      title={Interaction-Transformation Evolutionary Algorithm for Symbolic Regression},
-      author={de Fran{\c{c}}a, Fabr{\'\i}cio Olivetti and Aldeia, Guilherme Seidyo Imai},
-      journal={arXiv preprint arXiv:1902.03983},
-      year={2019}
+    @article{doi:10.1162/evco\_a\_00285,
+    author = {de Franca, F. O. and Aldeia, G. S. I.},
+    title = {Interaction-Transformation Evolutionary Algorithm for Symbolic Regression},
+    journal = {Evolutionary Computation},
+    volume = {0},
+    number = {ja},
+    pages = {1-25},
+    year = {0},
+    doi = {10.1162/evco\_a\_00285},
+        note ={PMID: 33306435},
+    URL = { 
+            https://doi.org/10.1162/evco_a_00285
+        },
+    eprint = { 
+            https://doi.org/10.1162/evco_a_00285
+        }
     }
+    
+## Experiments Results
+
+Notice that the results in this repository are not the same as those in the referenced paper due to constant improvements to the source code (that sometimes fails). The original results for ITEA and every other algorithm in the paper are available at [experiments-ITEA-paper](https://github.com/gAldeia/experiments-ITEA-paper).
     
 ## Contact
 

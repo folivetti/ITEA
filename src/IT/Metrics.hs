@@ -87,7 +87,7 @@ _logloss   = Measure "Log-Loss" logloss
 
 -- | Accuracy
 accuracy :: Vector -> Vector -> Double
-accuracy ysHat ys = equals/tot
+accuracy ysHat ys = -equals/tot
   where
     ys'    = map round $ LA.toList ys
     ysHat' = map round $ LA.toList ysHat
@@ -125,6 +125,7 @@ f1 ysHat ys = 2*prec*rec/(prec+rec)
   where
     prec = precision ysHat ys
     rec  = recall ysHat ys
+    beta = 1.1
 
 logloss :: Vector -> Vector -> Double
 logloss ysHat ys = mean $ -(ys * log ysHat' + (1 - ys)*log(1 - ysHat'))
