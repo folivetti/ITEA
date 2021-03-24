@@ -46,7 +46,7 @@ class ITEARegressor(BaseEstimator, RegressorMixin):
         self.ngens = ngens
 
         self.tmpdir = tempfile.mkdtemp()
-        print(self.tmpdir)
+        #print(self.tmpdir)
     
     def fit(self, X_train, y_train):
         """A reference implementation of a fitting function.
@@ -103,7 +103,10 @@ varnames = []
         fw.write(config)
         fw.close()
 
-        subprocess.call([f"stack run config {cfgname}"], shell=True)
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        #print(cwd)
+        subprocess.call([f"stack run config {cfgname}"], shell=True, cwd=cwd)
+        #print(ooo)
 
         df = pd.read_csv(f"{logname}/exprs.csv")
         self.expr = df.python.values[0]
@@ -117,7 +120,14 @@ varnames = []
 
     def eval_expr(self, x):
         """ Evaluates the expression with data point x. """
-        return eval(self.expr)
+        Z = eval(self.expr)
+        inds = np.where(np.isnan(Z))[0]
+        inds2 = np.where(np.isinf(Z))[0]
+        Z[inds] = 0
+        Z[inds2] = 0
+        print(Z)
+
+        return Z
 
     def predict(self, X_test, ic=None):
         """ A reference implementation of a predicting function.
