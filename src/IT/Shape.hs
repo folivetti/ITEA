@@ -23,6 +23,7 @@ type ImgFun = [Interval Double] -> Expr -> [Double] -> Interval Double
 
 data Shape   = Image (Double, Double) 
              | DiffImg Int (Double, Double) | NonIncreasing Int | NonDecreasing Int
+             | PartialNonIncreasing Int (Double, Double) | PartialNonDecreasing Int (Double, Double)
              | Inflection Int Int | Convex Int Int | Concave Int Int -- (0,0), (0,Infinity), (-Infinitiy,0)
                     deriving (Show, Read)
 
@@ -40,8 +41,8 @@ violationImg imgfun domains img expr ws
   | otherwise =
     let (lo, hi)   = (inf &&& sup) img
         (lo', hi') = (inf &&& sup) img' 
-        loDiff     = if lo' > lo && lo' < hi then 0 else lo - lo'
-        hiDiff     = if hi' < hi && hi' > lo then 0 else hi' - hi
+        loDiff     = if lo' > lo && lo' < hi then 0 else abs (lo - lo')
+        hiDiff     = if hi' < hi && hi' > lo then 0 else abs (hi' - hi)
     in  loDiff + hiDiff
   where 
     img' = imgfun domains expr ws
@@ -74,7 +75,8 @@ violationConcave ix iy domains expr ws -- (-Infinity .. 0)
   where img = evalSndDiffImage ix iy domains expr ws
 
 constraintFrom :: [Constraint] -> Constraint
-constraintFrom funs expr ws = foldr (\f tot -> f expr ws + tot) 0 funs
+constraintFrom funs expr ws = let c = foldr (\f tot -> abs (f expr ws) + tot) 0 funs
+                              in if c < 1e-60 then 0 else c
 
 fromShapes :: [Shape] -> Domains -> Constraint
 fromShapes _      Nothing        = unconstrained
@@ -82,11 +84,15 @@ fromShapes []     _              = unconstrained
 fromShapes shapes (Just domains) = constraintFrom (map toFun shapes)
   where
     domains' = map (uncurry (...)) domains
+    replace ds ix rng = let rng' = (fst rng ... snd rng)
+                        in  take ix ds ++ (rng' : drop (ix+1) ds)
 
     toFun (Image (lo, hi))      = violationImg evalImage          domains' (lo ... hi) 
     toFun (DiffImg ix (lo, hi)) = violationImg (evalDiffImage ix) domains' (lo ... hi) 
     toFun (NonIncreasing ix)    = violationNonIncreasing ix domains' 
     toFun (NonDecreasing ix)    = violationNonDecreasing ix domains' 
+    toFun (PartialNonIncreasing ix range) = violationNonIncreasing ix $ replace domains' ix range
+    toFun (PartialNonDecreasing ix range) = violationNonDecreasing ix $ replace domains' ix range
     toFun (Inflection ix iy)    = violationInflection ix iy domains'
     toFun (Convex ix iy)        = violationConvex ix iy domains'
     toFun (Concave ix iy)       = violationConcave ix iy domains'

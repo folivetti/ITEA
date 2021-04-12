@@ -66,15 +66,18 @@ interleave xs' ys' = getLeft xs' ys' []
 
 
 -- | Generates the reports into the output
-genReports :: Output -> NonEmpty Measure -> [Population] -> Int -> (Solution -> Maybe [Double]) -> IO ()
-genReports Screen _ pop n fitTest = do
-  let best = getBest n pop
+genReports :: Output -> NonEmpty Measure -> [Population] -> Int -> (Solution -> Maybe [Double]) -> (Expr -> Maybe Solution) -> IO ()
+genReports Screen _ pop n fitTest refit = do
+  let best  = getBest n pop
+      best' = case refit (_expr best) of
+                Nothing -> best
+                Just x  -> x
   putStrLn "Best expression applied to the training set:\n"
-  print best
+  print best'
   putStrLn "Best expression applied to the test set:\n"
-  print (fitTest best)
+  print (fitTest best')
 
-genReports (PartialLog dirname) measures pop n fitTest = do
+genReports (PartialLog dirname) measures pop n fitTest refit = do
   createDirectoryIfMissing True dirname
   let
     fname      = dirname ++ "/stats.csv"
@@ -84,7 +87,10 @@ genReports (PartialLog dirname) measures pop n fitTest = do
     testNames  = NE.toList $ NE.map (++"_test") mNames
     headReport = intercalate "," (["name", "time", "length"] ++ interleave trainNames testNames)
     headExpr   = intercalate "," ["expr", "weights", "python"]
-    best       = getBest n pop
+    best'      = getBest n pop
+    best       = case refit (_expr best') of
+                   Nothing -> best'
+                   Just x  -> x
 
   hStats     <- createIfDoesNotExist headReport fname
   hStatsExpr <- createIfDoesNotExist headExpr fnameExpr
@@ -112,7 +118,7 @@ genReports (PartialLog dirname) measures pop n fitTest = do
 -- FullLog is the same as PartialLog plus the best, worst, avg fit for every generation.
 --
 -- TODO: this code is ugly, but it's low priority to fix it.
-genReports (FullLog dirname) measures pop n fitTest =
+genReports (FullLog dirname) measures pop n fitTest refit =
   do
     let
         pop'      = take n pop
@@ -137,7 +143,7 @@ genReports (FullLog dirname) measures pop n fitTest =
     mapM_ (toFile hs) $ zipWith (++) statsTrain statsTest
     mapM_ hClose hs
 
-    genReports (PartialLog dirname) measures pop n fitTest
+    genReports (PartialLog dirname) measures pop n fitTest refit
 
 -- | Opens the first file available in the format "name.{i}.csv"
 -- where 'i' follows a sequence from 0 onward.

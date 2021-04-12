@@ -39,7 +39,7 @@ type Interaction = M.IntMap Int
 
 -- | The 'Transformation' type contains the name of the function
 -- and the transformation function.
-data Transformation = Id | Sin | Cos | Tan | Tanh | Sqrt | SqrtAbs | Log | Exp
+data Transformation = Id | Sin | Cos | Tan | Tanh | Sqrt | SqrtAbs | Log | Exp | Log1p
                         deriving (Show, Read, Eq, Ord)
 
 -- | A 'Term' is the product type of a 'Transformation' and an 'Interaction'.
@@ -95,6 +95,7 @@ toPython = prettyPrint k2str numpy
     numpy SqrtAbs = "sqrtAbs"
     numpy Exp     = "np.exp"
     numpy Log     = "np.log"
+    numpy Log1p   = "np.log1p"
 
 -- | Two terms are equal if their interactions are equal
 -- this instance is used for the mutation operation to avoid adding 

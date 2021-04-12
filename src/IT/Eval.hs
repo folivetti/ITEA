@@ -22,6 +22,8 @@ import Numeric.Interval hiding (null)
 import IT
 import IT.Algorithms
 
+log1p x = log (x+1)
+
 -- * Transformation evaluation
 transform :: Floating a => Transformation -> a -> a
 transform Id      = id
@@ -33,6 +35,7 @@ transform Sqrt    = sqrt
 transform SqrtAbs = sqrt.abs
 transform Exp     = exp
 transform Log     = log
+transform Log1p   = log1p
 
 derivative :: Floating a => Transformation -> a -> a
 derivative Id      = const 1
@@ -44,6 +47,7 @@ derivative Sqrt    = recip . (2*) . sqrt
 derivative SqrtAbs = \x -> x / (2* abs x**1.5)
 derivative Exp     = exp
 derivative Log     = recip
+derivative Log1p   = recip . (+1)
 
 sndDerivative :: Floating a => Transformation -> a -> a
 sndDerivative Id      = const 0
@@ -55,6 +59,7 @@ sndDerivative Sqrt    = negate . recip . (*4) . sqrt . (**3.0)
 sndDerivative SqrtAbs = \x -> -(x**2.0 / (4 * abs x ** 3.5)) -- assuming dirac(x) = 0
 sndDerivative Exp     = exp
 sndDerivative Log     = \x -> -(1/x**2)
+sndDerivative Log1p   = negate . recip . (**2.0) . (+1)
 
 -- Interaction of dataset xss with strengths ks
 -- ps = xss ** ks

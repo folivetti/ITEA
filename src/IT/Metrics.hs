@@ -61,9 +61,9 @@ nmse ysHat ys = mse ysHat ys / var ys
 rmse :: Vector -> Vector -> Double
 rmse ysHat ys = sqrt $ mse ysHat ys
 
--- | R^2 
+-- | negate R^2 - minimization metric
 rSq :: Vector -> Vector -> Double
-rSq ysHat ys  = 1 - r/t
+rSq ysHat ys  = negate (1 - r/t)
   where
     ym      = mean ys
     t       = sumOfSq $ V.map (\yi -> yi - ym) ys
