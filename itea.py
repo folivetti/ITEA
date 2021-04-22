@@ -105,7 +105,8 @@ varnames = []
 
         cwd = os.path.dirname(os.path.realpath(__file__))
         #print(cwd)
-        subprocess.call([f"stack --allow-different-user run config {cfgname}"], shell=True, cwd=cwd)
+        #subprocess.call([f"stack --allow-different-user run config {cfgname}"], shell=True, cwd=cwd)
+        subprocess.call([f"bin/itea config {cfgname}"], shell=True, cwd=cwd)
         #print(ooo)
 
         df = pd.read_csv(f"{logname}/exprs.csv")
