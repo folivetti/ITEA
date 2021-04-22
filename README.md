@@ -75,23 +75,19 @@ de França, F. O., & Aldeia, G. S. I. (2020). Interaction-Transformation Evoluti
 
 Bibtex:
 
-    @article{doi:10.1162/evco\_a\_00285,
-    author = {de Franca, F. O. and Aldeia, G. S. I.},
-    title = {Interaction-Transformation Evolutionary Algorithm for Symbolic Regression},
-    journal = {Evolutionary Computation},
-    volume = {0},
-    number = {ja},
-    pages = {1-25},
-    year = {0},
-    doi = {10.1162/evco\_a\_00285},
-        note ={PMID: 33306435},
-    URL = { 
-            https://doi.org/10.1162/evco_a_00285
-        },
-    eprint = { 
-            https://doi.org/10.1162/evco_a_00285
-        }
+    @article{10.1162/evco_a_00285,
+        author = {de Franca, F. O. and Aldeia, G. S. I.},
+        title = "{Interaction-Transformation Evolutionary Algorithm for Symbolic Regression}",
+        journal = {Evolutionary Computation},
+        pages = {1-25},
+        year = {2020},
+        month = {12},    
+        issn = {1063-6560},
+        doi = {10.1162/evco_a_00285},
+        url = {https://doi.org/10.1162/evco\_a\_00285},
+        eprint = {https://direct.mit.edu/evco/article-pdf/doi/10.1162/evco\_a\_00285/1888497/evco\_a\_00285.pdf},
     }
+
     
 ## Experiments Results
 
