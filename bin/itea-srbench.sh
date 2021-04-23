@@ -1,5 +1,5 @@
 #!/bin/bash
-conda activate srbench
+conda init srbench
 
 if [ ! -f bin/libgsl.so.0 ]; then
   cp $CONDA_PREFIX/lib/libgsl.so bin/libgsl.so.0
