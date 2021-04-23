@@ -14,7 +14,7 @@ cabal-version:       >=1.10
 extra-source-files:  README.md
 
 executable itea
-  ghc-options:         -rtsopts -Wall -threaded -eventlog -O2 -optc-O3 
+  ghc-options:         -rtsopts -Wall -threaded -eventlog -O2 -optc-O3
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.FI2POP, IT.Mutation, IT.Algorithms, IT.Eval, IT.Metrics, IT.Shape, ITEA.Config, ITEA.Report, ITEA.Regression, RunConfig, RunCrossVal 
