@@ -1,5 +1,5 @@
 #!/bin/bash
-bash
+source ~/.bashrc
 conda activate srbench
 
 if [ ! -f bin/libgsl.so.0 ]; then
