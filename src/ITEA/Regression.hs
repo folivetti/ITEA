@@ -35,7 +35,8 @@ import System.Random
 type AlgRunner = Rnd Population -> Mutation -> Fitness -> (Expr -> Expr) -> StdGen -> [Population]
 
 readAndParse :: FilePath -> IO (LA.Matrix Double, Column Double)
-readAndParse f = parseFile <$> readFile f
+readAndParse f = do (xss, ys) <- parseFile <$> readFile f
+                    return (1.0 LA.||| xss, ys)
 
 toVecOfColumns :: LA.Matrix Double -> Dataset Double
 toVecOfColumns = V.fromList . LA.toColumns
@@ -85,7 +86,7 @@ run alg (D tr te) mcfg output nPop nGens task penalty shapes domains =
         refit       = evalTrain task measureList (fromShapes shapes domains) penalty xss_all trainY xss_all trainY
         fitTest     = evalTest task measureList xss_test testY
         cleaner     = cleanExpr xss_train        
-        dim         = LA.cols trainX
+        dim         = LA.cols trainX - 1
 
         (mutFun, rndTerm) = withMutation mcfg dim            -- create the mutation function
 

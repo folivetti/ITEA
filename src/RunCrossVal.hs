@@ -22,6 +22,7 @@ import Data.Maybe
 
 import Control.Monad
 import Control.Monad.State
+import Data.Bifunctor
 import System.Random
 import System.Random.Shuffle
 import Data.ConfigFile
@@ -101,7 +102,7 @@ runFI2POPRegCV fitTrain fitTest cleaner dim mcfg nPop nGens = do
                                 Nothing   -> [1e+10]
                                 Just best -> fromMaybe [1e+10] $ fitTest best
   (return.head) result
-  
+
 -- | runs a configuration for a given data set
 runCfg :: FilePath -> Int -> MutationCfg -> IO Double
 runCfg fname fold mutCfg = do
@@ -109,20 +110,20 @@ runCfg fname fold mutCfg = do
   cp <- forceEither <$> readfile emptyCP fname
   let
     trainname          = getSetting cp "IO"   "train"
-    
+
     --nPop               = getSetting cp "Algorithm"   "npop"
     --nGens              = getSetting cp "Algorithm"   "ngens"
     alg                = getSetting cp "Algorithm"   "algorithm"
-    
+
     -- penalty            = getWithDefault NoPenalty cp "Constraints" "penalty"
     shapes             = getWithDefault [] cp "Constraints" "shapes"
     domains            = getWithDefault Nothing cp "Constraints" "domains"
-    
-  (trainX, trainY) <- parseFile <$> readFile trainname
+
+  (trainX, trainY) <- first (1.0 LA.|||) . parseFile <$> readFile trainname
   g <- newStdGen
 
   let nRows = LA.rows trainX
-      dim   = LA.cols trainX
+      dim   = LA.cols trainX - 1
 
       -- random 5-cv split
       cycle' []     = []
@@ -148,7 +149,7 @@ runCfg fname fold mutCfg = do
       fitTrains = zipWith (\x y  -> evalTrain Regression criteria (fromShapes shapes domains) NoPenalty (toRegMtx x) y (toRegMtx x) y) trXs trYs
 
       fitTests  =  zipWith (\x y -> evalTest Regression criteria (toRegMtx x) y) tvXs tvYs
-      
+
       cleaners  = map (cleanExpr . toRegMtx) tvXs
 
       average xs = sum xs / fromIntegral (length xs)

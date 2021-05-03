@@ -15,7 +15,6 @@ Definitions of IT data structure and support functions.
 module IT.Eval where
 
 import qualified Data.Vector as V
-import qualified Data.Vector.Storable as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.IntMap.Strict as M
 import Numeric.Interval hiding (null)
@@ -73,7 +72,6 @@ monomial xss ks
 
   where
     monoProduct ix k ps = ps * (xss V.! ix) ^^ k
-{-# INLINE monomial #-}
 
 -- | Interaction of the domain interval
 -- it is faster to fold through the list of domains and checking whether we 
@@ -90,7 +88,6 @@ monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domain
 -- to the interaction monomial
 evalTerm :: Dataset Double -> Term -> Column Double
 evalTerm xss (Term t ks) = transform t (monomial xss ks)
-{-# INLINE evalTerm #-}
 
 -- | apply the transformation function to the interaction monomial
 evalTermInterval :: [Interval Double] -> Term -> Interval Double
@@ -184,10 +181,12 @@ evalTermSndDiffInterval ix iy domains (Term t ks)
 -- | evaluates an expression by evaluating the terms into a list
 -- applying the weight and summing the results.
 evalGeneric :: (Dataset Double -> Term -> Column Double) -> Dataset Double -> Expr -> [Double] -> Column Double
-evalGeneric f xss terms ws = sum weightedTerms
+evalGeneric f xss terms ws = b + sum weightedTerms
   where
-    weightedTerms = zipWith multWeight ws (map (f xss) terms)
+    weightedTerms = zipWith multWeight ws (map (f xss') terms)
     multWeight w  = LA.cmap (w*)
+    b             = V.head xss 
+    xss'          = V.tail xss 
 
 evalExpr :: Dataset Double -> Expr -> [Double] -> Column Double
 evalExpr = evalGeneric evalTerm
@@ -230,17 +229,15 @@ isValid = all (\x -> not (isNaN x) && not (isInfinite x) && abs x < 1e150)
 -- (1 LA.|||) adds a bias dimension
 exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
 --exprToMatrix xss = (1.0 LA.|||) . LA.fromColumns . map (evalTerm xss) -- 1 ||| is the intercept
-exprToMatrix xss expr = LA.fromColumns $ (intercept :) $ map (evalTerm xss) expr -- 1 ||| is the intercept
-  where
-    intercept :: Column Double
-    intercept = VV.replicate (VV.length $ V.head xss) 1.0
+exprToMatrix xss = LA.fromColumns . (V.head xss :) . map (evalTerm (V.tail xss)) -- 1 ||| is the intercept
 
 -- | Clean the expression by removing the invalid teerms
 cleanExpr :: Dataset Double -> Expr -> Expr
 cleanExpr xss [] = []
-cleanExpr xss (term:terms) = if not . null $ LA.find isInvalid $ evalTerm xss term
+cleanExpr xss (term:terms) = if not . null $ LA.find isInvalid $ evalTerm xss' term
                                 then cleanExpr xss terms
                                 else term : cleanExpr xss terms
+  where xss' = V.tail xss
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution -> Bool
