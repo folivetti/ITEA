@@ -73,8 +73,8 @@ runWithConfig fname = do
 
   -- run ITEA with the given configuration
   case alg of
-    ITEA   -> runITEA datasetCfg mutCfg logg nPop nGens task penalty shapes domains
-    FI2POP -> runFI2POP datasetCfg mutCfg logg nPop nGens task penalty shapes domains
+    ITEA   -> run runITEA datasetCfg mutCfg logg nPop nGens task penalty shapes domains
+    FI2POP -> run runFI2POP datasetCfg mutCfg logg nPop nGens task penalty shapes domains
 
 -- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()

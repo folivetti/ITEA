@@ -17,7 +17,6 @@ import IT.Algorithms
 import IT.Eval
 import IT.Metrics
 
-import Data.Maybe
 import Data.List
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
@@ -45,7 +44,8 @@ solveOLS :: LA.Matrix Double -> Vector -> Vector
 solveOLS zss = LA.flatten . LA.linearSolveLS zss . LA.asColumn
 
 isInvalidMatrix :: LA.Matrix Double -> Bool
-isInvalidMatrix zss = LA.rows zss == 0 || any isInvalid (LA.toList $ LA.flatten zss)
+isInvalidMatrix zss = LA.rows zss == 0 || V.any isInvalid (LA.flatten zss)
+{-# INLINE isInvalidMatrix #-}
 
 -- | Applies OLS and returns a Solution
 -- if the expression is invalid, it returns Infinity as a fitness

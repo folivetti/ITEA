@@ -15,6 +15,7 @@ Definitions of IT data structure and support functions.
 module IT.Eval where
 
 import qualified Data.Vector as V
+import qualified Data.Vector.Storable as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.IntMap.Strict as M
 import Numeric.Interval hiding (null)
@@ -72,6 +73,7 @@ monomial xss ks
 
   where
     monoProduct ix k ps = ps * (xss V.! ix) ^^ k
+{-# INLINE monomial #-}
 
 -- | Interaction of the domain interval
 -- it is faster to fold through the list of domains and checking whether we 
@@ -88,6 +90,7 @@ monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domain
 -- to the interaction monomial
 evalTerm :: Dataset Double -> Term -> Column Double
 evalTerm xss (Term t ks) = transform t (monomial xss ks)
+{-# INLINE evalTerm #-}
 
 -- | apply the transformation function to the interaction monomial
 evalTermInterval :: [Interval Double] -> Term -> Interval Double
@@ -226,9 +229,11 @@ isValid = all (\x -> not (isNaN x) && not (isInfinite x) && abs x < 1e150)
 --
 -- (1 LA.|||) adds a bias dimension
 exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
-exprToMatrix xss = intercept . LA.fromColumns . map (evalTerm xss)
+--exprToMatrix xss = (1.0 LA.|||) . LA.fromColumns . map (evalTerm xss) -- 1 ||| is the intercept
+exprToMatrix xss expr = LA.fromColumns $ (intercept :) $ map (evalTerm xss) expr -- 1 ||| is the intercept
   where
-    intercept = (1 LA.|||)
+    intercept :: Column Double
+    intercept = VV.replicate (VV.length $ V.head xss) 1.0
 
 -- | Clean the expression by removing the invalid teerms
 cleanExpr :: Dataset Double -> Expr -> Expr

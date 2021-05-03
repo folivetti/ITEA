@@ -12,7 +12,10 @@ Function to execute ITEA
 -}
 module ITEA.Regression where
 
+import IT 
+import IT.Random 
 import IT.ITEA
+import IT.Algorithms
 import IT.FI2POP
 import IT.Regression
 import IT.Shape
@@ -29,92 +32,74 @@ import qualified Data.Vector as V
 import Control.Monad.State
 import System.Random
 
+type AlgRunner = Rnd Population -> Mutation -> Fitness -> (Expr -> Expr) -> StdGen -> [Population]
 
+readAndParse :: FilePath -> IO (LA.Matrix Double, Column Double)
+readAndParse f = parseFile <$> readFile f
+
+toVecOfColumns :: LA.Matrix Double -> Dataset Double
+toVecOfColumns = V.fromList . LA.toColumns
+
+takeNRows, dropNRows :: Int -> LA.Matrix Double -> LA.Matrix Double
+takeNRows n xss = xss LA.?? (LA.Take n, LA.All)
+dropNRows n xss = xss LA.?? (LA.Drop n, LA.All)
+
+splitValidation :: Double -> LA.Matrix Double -> LA.Vector Double 
+                -> (Dataset Double, Column Double, Dataset Double, Column Double)
+splitValidation ratio xss ys
+  | nRows <= 100 = (toVecOfColumns xss, ys, toVecOfColumns xss, ys)
+  | otherwise    = (xss_train, y_train, xss_val, y_val)
+  where
+    nRows      = LA.rows xss
+    nRowsTrain = round (fromIntegral nRows * ratio)
+    nRowsVal   = nRows - nRowsTrain
+    xss_train  = toVecOfColumns $ takeNRows nRowsTrain xss
+    xss_val    = toVecOfColumns $ dropNRows nRowsTrain xss
+    y_train    = LA.subVector 0 nRowsTrain ys
+    y_val      = LA.subVector nRowsTrain nRowsVal ys
 
 -- | Support function for running ITEA
-runITEA :: Datasets     -- training and test datasets
-        -> MutationCfg  -- configuration of mutation operators
-        -> Output       -- output to Screen | PartialLog filename | FullLog filename
-        -> Int          -- population size
-        -> Int          -- generations
-        -> Task
-        -> Penalty
-        -> [Shape]
-        -> Domains
-        -> IO ()
-runITEA (D tr te) mcfg output nPop nGens task penalty shapes domains =
+run :: AlgRunner
+    -> Datasets     -- training and test datasets
+    -> MutationCfg  -- configuration of mutation operators
+    -> Output       -- output to Screen | PartialLog filename | FullLog filename
+    -> Int          -- population size
+    -> Int          -- generations
+    -> Task
+    -> Penalty
+    -> [Shape]
+    -> Domains
+    -> IO ()
+run alg (D tr te) mcfg output nPop nGens task penalty shapes domains =
  do g <- newStdGen
-    (trainX, trainY) <- parseFile <$> readFile tr
-    (testX,  testY ) <- parseFile <$> readFile te
+    (trainX, trainY) <- readAndParse tr
+    (testX,  testY ) <- readAndParse te
     let
-        xss         = V.fromList $ LA.toColumns trainX
-        xss'        = V.fromList $ LA.toColumns testX
-
-        nRows       = LA.rows trainX
-        nRowsTrain  = round (fromIntegral nRows * 0.5 :: Double)
-        nRowsVal    = nRows - nRowsTrain
-        xss_train   = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Take nRowsTrain, LA.All)
-        xss_val     = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Drop nRowsTrain, LA.All)
-        y_train     = LA.subVector 0 nRowsTrain trainY
-        y_val       = LA.subVector nRowsTrain nRowsVal trainY
+        xss_all                              = toVecOfColumns trainX 
+        xss_test                             = toVecOfColumns testX
+        (xss_train, y_train, xss_val, y_val) = splitValidation 0.5 trainX trainY
 
         measureList = fromList $ getMeasure mcfg
-        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_val y_val        -- create the fitness function
-        fitTest     = evalTest task measureList xss' testY         -- create the fitness for the test set
-        refit       = evalTrain task measureList (fromShapes shapes domains) penalty xss trainY xss trainY
-        cleaner     = cleanExpr xss_train
-        
+        -- Create the fitness function for the training and test set 
+        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_val y_val 
+        refit       = evalTrain task measureList (fromShapes shapes domains) penalty xss_all trainY xss_all trainY
+        fitTest     = evalTest task measureList xss_test testY
+        cleaner     = cleanExpr xss_train        
         dim         = LA.cols trainX
 
-        (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
+        (mutFun, rndTerm) = withMutation mcfg dim            -- create the mutation function
 
-        p0       = if nRows <= 100
-                      then initialPop (getMaxTerms mcfg) nPop rndTerm refit cleaner      -- initialize the population
-                      else initialPop (getMaxTerms mcfg) nPop rndTerm fitTrain cleaner      
-        gens     = (p0 >>= itea mutFun fitTrain cleaner) `evalState` g -- evaluate a lazy stream of infinity generations
+        p0       = initialPop (getMaxTerms mcfg) nPop rndTerm fitTrain cleaner      
+        gens     = alg p0 mutFun fitTrain cleaner g 
 
     genReports output measureList gens nGens fitTest refit                      -- create the report
-    
-runFI2POP :: Datasets     -- training and test datasets
-          -> MutationCfg  -- configuration of mutation operators
-          -> Output       -- output to Screen | PartialLog filename | FullLog filename
-          -> Int          -- population size
-          -> Int          -- generations
-          -> Task
-          -> Penalty
-          -> [Shape]
-          -> Domains
-          -> IO ()
-runFI2POP (D tr te) mcfg output nPop nGens task penalty shapes domains =
- do g <- newStdGen
-    (trainX, trainY) <- parseFile <$> readFile tr
-    (testX,  testY ) <- parseFile <$> readFile te
-    let
-        xss         = V.fromList $ LA.toColumns trainX
-        xss'        = V.fromList $ LA.toColumns testX
-        
-        nRows       = LA.rows trainX
-        -- TODO: add an option to create a validation set, for now it is disabled
-        nRowsTrain  = round (fromIntegral nRows * 0.5 :: Double)
-        nRowsVal    = nRows - nRowsTrain
-        xss_train   = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Take nRowsTrain, LA.All)
-        xss_val     = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Drop nRowsTrain, LA.All)
-        y_train     = LA.subVector 0 nRowsTrain trainY
-        y_val       = LA.subVector nRowsTrain nRowsVal trainY
 
-        measureList = fromList $ getMeasure mcfg
-        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_val y_val        -- create the fitness function
-        fitTest     = evalTest task measureList xss' testY         -- create the fitness for the test set
-        refit       = evalTrain task measureList (fromShapes shapes domains) penalty xss trainY xss trainY
-        cleaner     = cleanExpr xss_train
-        
-        dim         = LA.cols trainX
 
-        (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
+-- evaluate a lazy stream of infinity generations
+runITEA, runFI2POP :: AlgRunner 
+runITEA p0 mutFun fitTrain cleaner g = (p0 >>= itea mutFun fitTrain cleaner) `evalState` g 
 
-        p0       = splitPop <$> initialPop (getMaxTerms mcfg) nPop rndTerm fitTrain cleaner     -- initialize de population
-        p        = (p0 >>= fi2pop mutFun fitTrain) `evalState` g -- evaluate a lazy stream of infinity generations
-        gens     = map fst p
-
-    genReports output measureList gens nGens fitTest refit                      -- create the report    
-
+runFI2POP p0 mutFun fitTrain _ g = 
+  let p0' = splitPop <$> p0
+      p   = (p0' >>= fi2pop mutFun fitTrain) `evalState` g
+  in  map fst p
