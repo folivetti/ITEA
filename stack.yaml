@@ -70,6 +70,6 @@ extra-deps:
 # compiler-check: newer-minor
 allow-newer: true
 nix:
-  enable: true
+  enable: false
   pure: true 
   packages: [pkg-config, glpk, pcre, gsl, lapack, blas]

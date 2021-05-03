@@ -114,7 +114,7 @@ runCfg fname fold mutCfg = do
     --nGens              = getSetting cp "Algorithm"   "ngens"
     alg                = getSetting cp "Algorithm"   "algorithm"
     
-    penalty            = getWithDefault NoPenalty cp "Constraints" "penalty"
+    -- penalty            = getWithDefault NoPenalty cp "Constraints" "penalty"
     shapes             = getWithDefault [] cp "Constraints" "shapes"
     domains            = getWithDefault Nothing cp "Constraints" "domains"
     
@@ -152,14 +152,14 @@ runCfg fname fold mutCfg = do
       cleaners  = map (cleanExpr . toRegMtx) tvXs
 
       average xs = sum xs / fromIntegral (length xs)
-      
+      {-
       standard xs = average $ map (\x -> (x - x_m)^2) xs
         where x_m = average xs
 
       confidence xs n = x_m + 1.96 * sqrt (x_s / fromIntegral n)
         where x_m = average xs
               x_s = standard xs
-
+      -}
       run (fitTr, fitTe) cleaner = case alg of
                           ITEA   -> runITEARegCV fitTr fitTe cleaner dim mutCfg 100 100
                           FI2POP -> runFI2POPRegCV fitTr fitTe cleaner dim mutCfg 100 100

@@ -42,22 +42,25 @@ predict xs w = xs LA.#> w
 
 -- | Solve the OLS *zss*w = ys*
 solveOLS :: LA.Matrix Double -> Vector -> Vector
-solveOLS zss ys = LA.flatten $ LA.linearSolveSVD zss (LA.asColumn ys)
+solveOLS zss = LA.flatten . LA.linearSolveLS zss . LA.asColumn
+
+isInvalidMatrix :: LA.Matrix Double -> Bool
+isInvalidMatrix zss = LA.rows zss == 0 || any isInvalid (LA.toList $ LA.flatten zss)
 
 -- | Applies OLS and returns a Solution
 -- if the expression is invalid, it returns Infinity as a fitness
-regress :: Vector -> LA.Matrix Double -> Maybe (Vector, [Vector])
-regress ys zss
-  | LA.rows zss == 0 || not (all isValid (LA.toLists zss))
+regress :: LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
+regress zss ys 
+  | isInvalidMatrix zss
     = Nothing
   | otherwise
     = let ws    = solveOLS zss ys
           ysHat = predict zss ws
       in  Just (ysHat, [ws])
 
-classify :: Vector -> LA.Matrix Double -> Maybe (Vector, [Vector])
-classify ys zss
-  | LA.rows zss == 0 || not (all isValid (LA.toLists zss))
+classify :: LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
+classify zss ys
+  | isInvalidMatrix zss
     = Nothing
   | otherwise
     = let ws0     = LA.konst 0 (LA.cols zss)
@@ -65,9 +68,9 @@ classify ys zss
           ysHat   = LM.hypothesis LM.Logistic zss ws
       in  Just (ysHat, [ws])
 
-classifyMult :: Vector -> LA.Matrix Double -> Maybe (Vector, [Vector])
-classifyMult ys zss
-  | LA.rows zss == 0 || not (all isValid (LA.toLists zss))
+classifyMult :: LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
+classifyMult zss ys
+  | isInvalidMatrix zss
     = Nothing
   | otherwise
     = let ws0       = replicate numLabels $ LA.konst 0 (LA.cols zss)
@@ -84,40 +87,50 @@ classifyMult ys zss
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
 
-evalTrain :: Task -> NonEmpty Measure -> Constraint -> Penalty -> Dataset Double -> Vector -> Dataset Double -> Vector -> Expr -> Maybe Solution
-evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr =
+fitTask :: Task -> LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
+fitTask Regression     = regress
+fitTask Classification = classify
+fitTask ClassMult      = classifyMult
 
---  | notInfNan ps = Just ps 
---  | otherwise    = Nothing
-  case res of
-       Nothing -> Nothing
-       Just _  -> if null expr then Nothing else Just ps
-  where
-    zss         = exprToMatrix xss_train expr
-    zss_val     = exprToMatrix xss_val   expr
+predictTask :: Task -> LA.Matrix Double -> [Vector] -> Vector
+predictTask _ _ []                   = error "predictTask: empty coefficients matrix"
+predictTask Regression zss (w:_)     = predict zss w
+predictTask Classification zss (w:_) = LM.hypothesis LM.Logistic zss w
+predictTask ClassMult zss ws         = OVA.predict zss ws
 
-    fitFun      = _fun . NE.head $ measures
-    res         = case task of
-                    Regression     -> regress ys_train zss -- tryToRound (`fitFun` ys_train) zss <$> 
-                    Classification -> classify ys_train zss
-                    ClassMult      -> classifyMult ys_train zss
-    (_, ws) = fromJust res
-    ysHat   = case task of
-                Regression     -> predict zss_val (head ws)
-                Classification -> LM.hypothesis LM.Logistic zss_val (head ws)
-                ClassMult      -> OVA.predict zss_val ws
+evalPenalty :: Penalty -> Int -> Double -> Double
+evalPenalty NoPenalty _   _   = 0.0
+evalPenalty (Len c)   len _   = fromIntegral len * c
+evalPenalty (Shape c) _   val = val*c
 
-    fit         = NE.toList $ NE.map ((`uncurry` (ysHat, ys_val)) . _fun) measures
-    ws'         = V.toList $ head ws
+applyMeasures :: NonEmpty Measure -> Vector -> Vector -> [Double]
+applyMeasures measures ysHat ys = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
 
-    len         = exprLength expr ws'
-    cnst        = cnstrFun expr ws'
-    pnlty       = case penalty of
-                    NoPenalty -> 0.0
-                    Len c     -> c * fromIntegral len
-                    Shape c   -> c*cnst
-    ps          = Sol expr fit cnst len pnlty ws
-
+evalTrain :: Task
+          -> NonEmpty Measure
+          -> Constraint
+          -> Penalty
+          -> Dataset Double
+          -> Vector
+          -> Dataset Double
+          -> Vector
+          -> Expr
+          -> Maybe Solution
+evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr
+  | null expr = Nothing 
+  | otherwise = 
+     let zss     = exprToMatrix xss_train expr 
+         zss_val = exprToMatrix xss_val expr
+     in  case fitTask task zss ys_train of
+           Nothing      -> Nothing
+           Just (_, ws) -> Just $ Sol expr fit cnst len pnlty ws
+             where
+               ysHat = predictTask task zss_val ws
+               fit   = applyMeasures measures ysHat ys_val
+               ws'   = V.toList $ head ws
+               len   = exprLength expr ws'
+               cnst  = cnstrFun expr ws'
+               pnlty = evalPenalty penalty len cnst
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.
@@ -125,16 +138,14 @@ evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr 
 evalTest :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Solution -> Maybe [Double]
 evalTest task measures xss ys sol
   | V.length (head ws) /= LA.cols zss = Nothing
-  | otherwise                  = Just fit
+  | otherwise                         = Just fit
   where
     zss   = exprToMatrix xss (_expr sol)
     ws    = _weights sol
-    ysHat = case task of
-              Regression     -> predict zss (head ws)
-              Classification -> LM.hypothesis LM.Logistic zss (head ws)
-              ClassMult      -> OVA.predict zss ws
-    fit   = NE.toList $ NE.map ((`uncurry` (ysHat, ys)) . _fun) measures
+    ysHat = predictTask task zss ws 
+    fit   = applyMeasures measures ysHat ys 
 
+{-
 -- | Experimental: round off floating point to the 1e-10 place.
 roundoff :: RealFrac a => a -> a
 roundoff x
@@ -152,3 +163,4 @@ tryToRound f zss (ysHat, (ws:_)) =
           --then (ysHat', [ws'])
           --else (ysHat, [ws])
 tryToRound _ _ _ = error "empty weight list"
+-}

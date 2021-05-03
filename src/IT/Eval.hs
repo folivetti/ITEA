@@ -22,6 +22,7 @@ import Numeric.Interval hiding (null)
 import IT
 import IT.Algorithms
 
+log1p :: Floating a => a -> a
 log1p x = log (x+1)
 
 -- * Transformation evaluation
@@ -70,9 +71,7 @@ monomial xss ks
   | otherwise         = M.foldrWithKey monoProduct 1 ks
 
   where
-    --vzero               = LA.fromList $ replicate n 1
-    --n                   = LA.size (xss V.! 0)
-    monoProduct ix k ps = ps * LA.cmap (^^k) (xss V.! ix)
+    monoProduct ix k ps = ps * (xss V.! ix) ^^ k
 
 -- | Interaction of the domain interval
 -- it is faster to fold through the list of domains and checking whether we 
@@ -88,15 +87,14 @@ monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domain
 -- | to evaluate a term we apply the transformation function
 -- to the interaction monomial
 evalTerm :: Dataset Double -> Term -> Column Double
-evalTerm xss (Term t ks) = LA.cmap t' (monomial xss ks)
-  where t' = transform t
+evalTerm xss (Term t ks) = transform t (monomial xss ks)
 
 -- | apply the transformation function to the interaction monomial
 evalTermInterval :: [Interval Double] -> Term -> Interval Double
 evalTermInterval domains (Term t ks)
   | inter == empty = empty
   | otherwise      = protected (transform t) inter
-  where inter = (monomialInterval domains ks)
+  where inter = monomialInterval domains ks
 
 -- | The partial derivative of a term w.r.t. the variable ix is:
 -- 
@@ -221,7 +219,8 @@ isInvalid x = isNaN x || isInfinite x || abs x >= 1e150
 -- | a set of points is valid if none of its values are invalid and
 -- the maximum abosolute value is below 1e150 (to avoid overflow)
 isValid :: [Double] -> Bool
-isValid xs = not (any isInvalid xs)
+isValid = all (\x -> not (isNaN x) && not (isInfinite x) && abs x < 1e150) 
+-- not (any isInvalid xs)
 
 -- | evaluate an expression to a set of samples 
 --

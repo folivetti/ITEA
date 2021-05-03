@@ -51,7 +51,7 @@ runITEA (D tr te) mcfg output nPop nGens task penalty shapes domains =
         xss'        = V.fromList $ LA.toColumns testX
 
         nRows       = LA.rows trainX
-        nRowsTrain  = round (fromIntegral nRows * 0.5)
+        nRowsTrain  = round (fromIntegral nRows * 0.5 :: Double)
         nRowsVal    = nRows - nRowsTrain
         xss_train   = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Take nRowsTrain, LA.All)
         xss_val     = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Drop nRowsTrain, LA.All)
@@ -68,7 +68,9 @@ runITEA (D tr te) mcfg output nPop nGens task penalty shapes domains =
 
         (mutFun, rndTerm)   = withMutation mcfg dim            -- create the mutation function
 
-        p0       = initialPop (getMaxTerms mcfg) nPop rndTerm fitTrain cleaner      -- initialize de population
+        p0       = if nRows <= 100
+                      then initialPop (getMaxTerms mcfg) nPop rndTerm refit cleaner      -- initialize the population
+                      else initialPop (getMaxTerms mcfg) nPop rndTerm fitTrain cleaner      
         gens     = (p0 >>= itea mutFun fitTrain cleaner) `evalState` g -- evaluate a lazy stream of infinity generations
 
     genReports output measureList gens nGens fitTest refit                      -- create the report
@@ -93,7 +95,7 @@ runFI2POP (D tr te) mcfg output nPop nGens task penalty shapes domains =
         
         nRows       = LA.rows trainX
         -- TODO: add an option to create a validation set, for now it is disabled
-        nRowsTrain  = round (fromIntegral nRows * 0.5)
+        nRowsTrain  = round (fromIntegral nRows * 0.5 :: Double)
         nRowsVal    = nRows - nRowsTrain
         xss_train   = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Take nRowsTrain, LA.All)
         xss_val     = V.fromList $ LA.toColumns $ trainX LA.?? (LA.Drop nRowsTrain, LA.All)

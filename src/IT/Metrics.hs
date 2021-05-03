@@ -36,11 +36,11 @@ var xs = sum' / fromIntegral (V.length xs)
     sum' = V.foldl (\s x -> s + (x-mu)^(2 :: Int)) 0 xs
 
 -- | generic mean error measure
-meanError :: (Double -> Double) -- ^ a function to be applied to the error terms (abs, square,...)
+meanError :: (Vector -> Vector) -- ^ a function to be applied to the error terms (abs, square,...)
           -> Vector             -- ^ fitted values
           -> Vector             -- ^ target values
           -> Double
-meanError op ysHat ys = mean $ V.map op $ ysHat - ys
+meanError op ysHat ys = mean $ op $ ysHat - ys
 
 -- * Common error measures for regression: 
 -- MSE, MAE, RMSE, NMSE, r^2
@@ -125,7 +125,6 @@ f1 ysHat ys = 2*prec*rec/(prec+rec)
   where
     prec = precision ysHat ys
     rec  = recall ysHat ys
-    beta = 1.1
 
 logloss :: Vector -> Vector -> Double
 logloss ysHat ys = mean $ -(ys * log ysHat' + (1 - ys)*log(1 - ysHat'))

@@ -71,35 +71,19 @@ tournamentSeq :: Population -> Int -> Rnd Population
 tournamentSeq [] _ = return []
 tournamentSeq p n = do let p'   = Seq.fromList p
                            npop = Seq.length p'
+                           chooseOne ix1 ix2 = min (p' `Seq.index` ix1) (p' `Seq.index` ix2)
                        ixs1 <- replicateM n (sampleTo (npop-1))
                        ixs2 <- replicateM n (sampleTo (npop-1))
-                       return $ zipWith (chooseOne p') ixs1 ixs2
-
-  where
-    chooseOne p ix1 ix2 = min (p `Seq.index` ix1) (p `Seq.index` ix2)
+                       return $ zipWith chooseOne ixs1 ixs2
 
 tournament :: Population -> Int -> Rnd Population
 tournament [] _ = return []
 tournament p n = do let npop = length p
+                        chooseOne ix1 ix2 = min (p !! ix1) (p !! ix2)
                     ixs1 <- replicateM n (sampleTo (npop-1))
                     ixs2 <- replicateM n (sampleTo (npop-1))
-                    return $ zipWith (chooseOne p) ixs1 ixs2
+                    return $ zipWith chooseOne ixs1 ixs2
 
-  where
-    chooseOne p ix1 ix2 = min (p !! ix1) (p !! ix2)
-
-{-
-tournament _ 0 = return []
-tournament p n = do p_i <- chooseOne p
-                    p'  <- tournament p (n-1)
-                    return $ p_i:p'
-
-chooseOne :: Population -> Rnd Solution
-chooseOne p = do let n = length p
-                 c1 <- sampleTo (n-1)
-                 c2 <- sampleTo (n-1)
-                 return $ min (p !! c1) (p !! c2)
--}
 -- | Perform one iteration of ITEA
 step :: Mutation -> Fitness -> Int -> (Expr -> Expr) -> Population -> Rnd Population
 step mutFun fitFun nPop cleaner pop = do
