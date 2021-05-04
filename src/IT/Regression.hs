@@ -41,43 +41,28 @@ predict xs w = xs LA.#> w
 
 -- | Solve the OLS *zss*w = ys*
 solveOLS :: LA.Matrix Double -> Vector -> Vector
-solveOLS zss = LA.flatten . LA.linearSolveLS zss . LA.asColumn
+solveOLS zss = LA.flatten . LA.linearSolveSVD zss . LA.asColumn
 
 isInvalidMatrix :: LA.Matrix Double -> Bool
 isInvalidMatrix zss = LA.rows zss == 0 || V.any isInvalid (LA.flatten zss)
-{-# INLINE isInvalidMatrix #-}
 
 -- | Applies OLS and returns a Solution
 -- if the expression is invalid, it returns Infinity as a fitness
-regress :: LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
-regress zss ys 
-  | isInvalidMatrix zss
-    = Nothing
-  | otherwise
-    = let ws    = solveOLS zss ys
-          ysHat = predict zss ws
-      in  Just (ysHat, [ws])
+regress :: LA.Matrix Double -> Vector -> [Vector]
+regress zss ys = [solveOLS zss ys]
 
-classify :: LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
+classify :: LA.Matrix Double -> Vector -> [Vector]
 classify zss ys
-  | isInvalidMatrix zss
-    = Nothing
-  | otherwise
     = let ws0     = LA.konst 0 (LA.cols zss)
           (ws, _) = BC.learn (BC.ConjugateGradientPR 0.1 0.1) 0.0001 500 BC.RegNone zss ys ws0
-          ysHat   = LM.hypothesis LM.Logistic zss ws
-      in  Just (ysHat, [ws])
+      in  [ws]
 
-classifyMult :: LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
+classifyMult :: LA.Matrix Double -> Vector -> [Vector]
 classifyMult zss ys
-  | isInvalidMatrix zss
-    = Nothing
-  | otherwise
     = let ws0       = replicate numLabels $ LA.konst 0 (LA.cols zss)
           numLabels = length $ nub $ LA.toList ys
           (ws, _)   = OVA.learn (OVA.ConjugateGradientPR 0.1 0.1) 0.0001 500 OVA.RegNone numLabels zss ys ws0
-          ysHat     = OVA.predict zss ws
-      in  Just (ysHat, ws)
+      in  ws
 
 -- | Fitness function for regression
 -- 
@@ -87,7 +72,7 @@ classifyMult zss ys
 --  Remove from the population any expression that leads to NaNs or Infs
 -- it was fitnessReg
 
-fitTask :: Task -> LA.Matrix Double -> Vector -> Maybe (Vector, [Vector])
+fitTask :: Task -> LA.Matrix Double -> Vector -> [Vector]
 fitTask Regression     = regress
 fitTask Classification = classify
 fitTask ClassMult      = classifyMult
@@ -117,20 +102,19 @@ evalTrain :: Task
           -> Expr
           -> Maybe Solution
 evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr
-  | null expr = Nothing 
-  | otherwise = 
-     let zss     = exprToMatrix xss_train expr 
-         zss_val = exprToMatrix xss_val expr
-     in  case fitTask task zss ys_train of
-           Nothing      -> Nothing
-           Just (_, ws) -> Just $ Sol expr fit cnst len pnlty ws
-             where
-               ysHat = predictTask task zss_val ws
-               fit   = applyMeasures measures ysHat ys_val
-               ws'   = V.toList $ head ws
-               len   = exprLength expr ws'
-               cnst  = cnstrFun expr ws'
-               pnlty = evalPenalty penalty len cnst
+  | null expr' = Nothing 
+  | otherwise  = Just $ Sol expr' fit cnst len pnlty ws
+  where
+    ws    = fitTask task zss ys_train
+    ysHat = predictTask task zss_val ws
+    fit   = applyMeasures measures ysHat ys_val
+    ws'   = V.toList $ head ws
+    len   = exprLength expr' ws'
+    cnst  = cnstrFun expr' ws'
+    pnlty = evalPenalty penalty len cnst
+
+    (expr', zss) = cleanExpr xss_train expr
+    zss_val      = exprToMatrix xss_val expr'
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.

@@ -19,7 +19,6 @@ import IT.Algorithms
 import IT.FI2POP
 import IT.Regression
 import IT.Shape
-import IT.Eval
 
 import ITEA.Config
 import ITEA.Report
@@ -32,7 +31,7 @@ import qualified Data.Vector as V
 import Control.Monad.State
 import System.Random
 
-type AlgRunner = Rnd Population -> Mutation -> Fitness -> (Expr -> Expr) -> StdGen -> [Population]
+type AlgRunner = Rnd Population -> Mutation -> Fitness -> StdGen -> [Population]
 
 readAndParse :: FilePath -> IO (LA.Matrix Double, Column Double)
 readAndParse f = do (xss, ys) <- parseFile <$> readFile f
@@ -48,7 +47,7 @@ dropNRows n xss = xss LA.?? (LA.Drop n, LA.All)
 splitValidation :: Double -> LA.Matrix Double -> LA.Vector Double 
                 -> (Dataset Double, Column Double, Dataset Double, Column Double)
 splitValidation ratio xss ys
-  | nRows <= 100 = (toVecOfColumns xss, ys, toVecOfColumns xss, ys)
+  | nRows <= 20 = (toVecOfColumns xss, ys, toVecOfColumns xss, ys)
   | otherwise    = (xss_train, y_train, xss_val, y_val)
   where
     nRows      = LA.rows xss
@@ -85,22 +84,21 @@ run alg (D tr te) mcfg output nPop nGens task penalty shapes domains =
         fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_val y_val 
         refit       = evalTrain task measureList (fromShapes shapes domains) penalty xss_all trainY xss_all trainY
         fitTest     = evalTest task measureList xss_test testY
-        cleaner     = cleanExpr xss_train        
         dim         = LA.cols trainX - 1
 
         (mutFun, rndTerm) = withMutation mcfg dim            -- create the mutation function
 
-        p0       = initialPop (getMaxTerms mcfg) nPop rndTerm fitTrain cleaner      
-        gens     = alg p0 mutFun fitTrain cleaner g 
+        p0       = initialPop (getMaxTerms mcfg) nPop rndTerm fitTrain
+        gens     = alg p0 mutFun fitTrain g 
 
     genReports output measureList gens nGens fitTest refit                      -- create the report
 
 
 -- evaluate a lazy stream of infinity generations
 runITEA, runFI2POP :: AlgRunner 
-runITEA p0 mutFun fitTrain cleaner g = (p0 >>= itea mutFun fitTrain cleaner) `evalState` g 
+runITEA p0 mutFun fitTrain g = (p0 >>= itea mutFun fitTrain) `evalState` g 
 
-runFI2POP p0 mutFun fitTrain _ g = 
+runFI2POP p0 mutFun fitTrain g = 
   let p0' = splitPop <$> p0
       p   = (p0' >>= fi2pop mutFun fitTrain) `evalState` g
   in  map fst p

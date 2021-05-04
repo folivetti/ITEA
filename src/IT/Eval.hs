@@ -15,9 +15,11 @@ Definitions of IT data structure and support functions.
 module IT.Eval where
 
 import qualified Data.Vector as V
+import qualified Data.Vector.Storable as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.IntMap.Strict as M
 import Numeric.Interval hiding (null)
+import Data.Bifunctor
 
 import IT
 import IT.Algorithms
@@ -80,7 +82,7 @@ monomialInterval :: [Interval Double] -> Interaction -> Interval Double
 monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains
   where
     monoProduct (ix, x) img
-      | ix `M.member` ks = img * (x ** get ix)
+      | ix `M.member` ks = img * x ** get ix
       | otherwise        = img
     get ix = fromIntegral (ks M.! ix)
 
@@ -129,7 +131,7 @@ evalTermSndDiff ix iy xss (Term t ks)
     ks'  = M.update dec iy ks
     ki = fromIntegral $ ks M.! ix
     kj =  fromIntegral $  ks M.! iy
-    kij = kj * (fromIntegral (ks' M.! ix))
+    kij = kj * fromIntegral (ks' M.! ix)
     p    = monomial xss ks
     px'  = monomial xss (M.update dec ix ks)
     py'  = monomial xss (M.update dec iy ks)
@@ -148,7 +150,7 @@ evalTermDiffInterval ix domains (Term t ks)
   | M.member ix ks = ki * it * p'
   | otherwise      = singleton 0
   where
-    ki = (singleton . fromIntegral) $ ks M.! ix
+    ki = singleton . fromIntegral $ ks M.! ix
     p  = monomialInterval domains ks
     p' = monomialInterval domains (M.update dec ix ks)
     t' = protected (derivative t)
@@ -163,9 +165,9 @@ evalTermSndDiffInterval ix iy domains (Term t ks)
   | otherwise                         = singleton 0
   where
     ks' = M.update dec iy ks
-    ki = (singleton . fromIntegral) $ ks M.! ix
-    kj = (singleton . fromIntegral) $ ks M.! iy
-    kij = kj * (singleton $ fromIntegral (ks' M.! ix))
+    ki = singleton . fromIntegral $ ks M.! ix
+    kj = singleton . fromIntegral $ ks M.! iy
+    kij = kj * singleton (fromIntegral (ks' M.! ix))
     p    = monomialInterval domains ks
     px'  = monomialInterval domains (M.update dec ix ks)
     py'  = monomialInterval domains (M.update dec iy ks)
@@ -185,8 +187,8 @@ evalGeneric f xss terms ws = b + sum weightedTerms
   where
     weightedTerms = zipWith multWeight ws (map (f xss') terms)
     multWeight w  = LA.cmap (w*)
-    b             = V.head xss 
-    xss'          = V.tail xss 
+    b             = V.head xss
+    xss'          = V.tail xss
 
 evalExpr :: Dataset Double -> Expr -> [Double] -> Column Double
 evalExpr = evalGeneric evalTerm
@@ -221,23 +223,25 @@ isInvalid x = isNaN x || isInfinite x || abs x >= 1e150
 -- | a set of points is valid if none of its values are invalid and
 -- the maximum abosolute value is below 1e150 (to avoid overflow)
 isValid :: [Double] -> Bool
-isValid = all (\x -> not (isNaN x) && not (isInfinite x) && abs x < 1e150) 
+isValid = all (\x -> not (isNaN x) && not (isInfinite x) && abs x < 1e150)
 -- not (any isInvalid xs)
 
 -- | evaluate an expression to a set of samples 
 --
 -- (1 LA.|||) adds a bias dimension
 exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
---exprToMatrix xss = (1.0 LA.|||) . LA.fromColumns . map (evalTerm xss) -- 1 ||| is the intercept
-exprToMatrix xss = LA.fromColumns . (V.head xss :) . map (evalTerm (V.tail xss)) -- 1 ||| is the intercept
+exprToMatrix xss = LA.fromColumns . (V.head xss :) . map (evalTerm (V.tail xss))
 
 -- | Clean the expression by removing the invalid teerms
-cleanExpr :: Dataset Double -> Expr -> Expr
-cleanExpr xss [] = []
-cleanExpr xss (term:terms) = if not . null $ LA.find isInvalid $ evalTerm xss' term
-                                then cleanExpr xss terms
-                                else term : cleanExpr xss terms
-  where xss' = V.tail xss
+cleanExpr :: Dataset Double -> Expr -> (Expr, LA.Matrix Double)
+cleanExpr xss = second (LA.fromColumns . (b:)) . foldr p ([], [])
+  where
+    xss'           = V.tail xss
+    b              = V.head xss
+    p t (ts, cols) = let col = evalTerm xss' t
+                     in  if VV.all (not.isInvalid) col
+                            then (t:ts, col:cols)
+                            else (ts, cols)
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution -> Bool
