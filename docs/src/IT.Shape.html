@@ -1,0 +1,536 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{-|
+Module      : IT.Shape
+Description : Measuring shape constraints with interval arithmetic
+Copyright   : (c) Fabricio Olivetti de Franca, 2020
+License     : GPL-3
+Maintainer  : fabricio.olivetti@gmail.com
+Stability   : experimental
+Portability : POSIX
+
+Support functions to measure imposed shape constraints into the image of the function and its derivatives.
+-}</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">IT.Shape</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.html"><span class="hs-identifier">IT</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Eval.html"><span class="hs-identifier">IT.Eval</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Algorithms.html"><span class="hs-identifier">IT.Algorithms</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Arrow</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Interval</span></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">type</span><span> </span><span id="ImgFun"><span class="annot"><a href="IT.Shape.html#ImgFun"><span class="hs-identifier hs-var">ImgFun</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Interval</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Interval</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">data</span><span> </span><span id="Shape"><span class="annot"><a href="IT.Shape.html#Shape"><span class="hs-identifier hs-var">Shape</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="Image"><span class="annot"><a href="IT.Shape.html#Image"><span class="hs-identifier hs-var">Image</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span> </span><span>
+</span><span id="line-25"></span><span>             </span><span class="hs-glyph">|</span><span> </span><span id="DiffImg"><span class="annot"><a href="IT.Shape.html#DiffImg"><span class="hs-identifier hs-var">DiffImg</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="NonIncreasing"><span class="annot"><a href="IT.Shape.html#NonIncreasing"><span class="hs-identifier hs-var">NonIncreasing</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="NonDecreasing"><span class="annot"><a href="IT.Shape.html#NonDecreasing"><span class="hs-identifier hs-var">NonDecreasing</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-26"></span><span>             </span><span class="hs-glyph">|</span><span> </span><span id="PartialNonIncreasing"><span class="annot"><a href="IT.Shape.html#PartialNonIncreasing"><span class="hs-identifier hs-var">PartialNonIncreasing</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="PartialNonDecreasing"><span class="annot"><a href="IT.Shape.html#PartialNonDecreasing"><span class="hs-identifier hs-var">PartialNonDecreasing</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>             </span><span class="hs-glyph">|</span><span> </span><span id="Inflection"><span class="annot"><a href="IT.Shape.html#Inflection"><span class="hs-identifier hs-var">Inflection</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Convex"><span class="annot"><a href="IT.Shape.html#Convex"><span class="hs-identifier hs-var">Convex</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Concave"><span class="annot"><a href="IT.Shape.html#Concave"><span class="hs-identifier hs-var">Concave</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-comment">-- (0,0), (0,Infinity), (-Infinitiy,0)</span><span>
+</span><span id="line-28"></span><span>                    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074632"><span id="local-6989586621679074634"><span id="local-6989586621679074636"><span class="annot"><span class="annottext">Int -&gt; Shape -&gt; ShowS
+[Shape] -&gt; ShowS
+Shape -&gt; String
+(Int -&gt; Shape -&gt; ShowS)
+-&gt; (Shape -&gt; String) -&gt; ([Shape] -&gt; ShowS) -&gt; Show Shape
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Shape] -&gt; ShowS
+$cshowList :: [Shape] -&gt; ShowS
+show :: Shape -&gt; String
+$cshow :: Shape -&gt; String
+showsPrec :: Int -&gt; Shape -&gt; ShowS
+$cshowsPrec :: Int -&gt; Shape -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074623"><span id="local-6989586621679074625"><span id="local-6989586621679074627"><span id="local-6989586621679074629"><span class="annot"><span class="annottext">ReadPrec [Shape]
+ReadPrec Shape
+Int -&gt; ReadS Shape
+ReadS [Shape]
+(Int -&gt; ReadS Shape)
+-&gt; ReadS [Shape]
+-&gt; ReadPrec Shape
+-&gt; ReadPrec [Shape]
+-&gt; Read Shape
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Shape]
+$creadListPrec :: ReadPrec [Shape]
+readPrec :: ReadPrec Shape
+$creadPrec :: ReadPrec Shape
+readList :: ReadS [Shape]
+$creadList :: ReadS [Shape]
+readsPrec :: Int -&gt; ReadS Shape
+$creadsPrec :: Int -&gt; ReadS Shape
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">type</span><span> </span><span id="Domains"><span class="annot"><a href="IT.Shape.html#Domains"><span class="hs-identifier hs-var">Domains</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- * Constraint functions</span><span>
+</span><span id="line-33"></span><span class="annot"><a href="IT.Shape.html#unconstrained"><span class="hs-identifier hs-type">unconstrained</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span>
+</span><span id="line-34"></span><span id="unconstrained"><span class="annot"><span class="annottext">unconstrained :: Constraint
+</span><a href="IT.Shape.html#unconstrained"><span class="hs-identifier hs-var hs-var">unconstrained</span></a></span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-35"></span><span>                    </span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- violationImg evalImage</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- violationImg (evalDiffImage ix)</span><span>
+</span><span id="line-38"></span><span class="annot"><a href="IT.Shape.html#violationImg"><span class="hs-identifier hs-type">violationImg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Shape.html#ImgFun"><span class="hs-identifier hs-type">ImgFun</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Interval</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Interval</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span>
+</span><span id="line-39"></span><span id="violationImg"><span class="annot"><span class="annottext">violationImg :: ImgFun -&gt; [Interval Double] -&gt; Interval Double -&gt; Constraint
+</span><a href="IT.Shape.html#violationImg"><span class="hs-identifier hs-var hs-var">violationImg</span></a></span></span><span> </span><span id="local-6989586621679074619"><span class="annot"><span class="annottext">ImgFun
+</span><a href="#local-6989586621679074619"><span class="hs-identifier hs-var">imgfun</span></a></span></span><span> </span><span id="local-6989586621679074618"><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074618"><span class="hs-identifier hs-var">domains</span></a></span></span><span> </span><span id="local-6989586621679074617"><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074617"><span class="hs-identifier hs-var">img</span></a></span></span><span> </span><span id="local-6989586621679074616"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074616"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679074615"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074615"><span class="hs-identifier hs-var">ws</span></a></span></span><span> </span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074614"><span class="hs-identifier hs-var">img'</span></a></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Interval Double -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+forall a. Interval a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074612"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074612"><span class="hs-identifier hs-var">lo</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074611"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074611"><span class="hs-identifier hs-var">hi</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">inf</span></span><span> </span><span class="annot"><span class="annottext">(Interval Double -&gt; Double)
+-&gt; (Interval Double -&gt; Double)
+-&gt; Interval Double
+-&gt; (Double, Double)
+forall (a :: * -&gt; * -&gt; *) b c c'.
+Arrow a =&gt;
+a b c -&gt; a b c' -&gt; a b (c, c')
+</span><span class="hs-operator hs-var">&amp;&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">sup</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074617"><span class="hs-identifier hs-var">img</span></a></span><span>
+</span><span id="line-43"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679074607"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074607"><span class="hs-identifier hs-var">lo'</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074606"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074606"><span class="hs-identifier hs-var">hi'</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">inf</span></span><span> </span><span class="annot"><span class="annottext">(Interval Double -&gt; Double)
+-&gt; (Interval Double -&gt; Double)
+-&gt; Interval Double
+-&gt; (Double, Double)
+forall (a :: * -&gt; * -&gt; *) b c c'.
+Arrow a =&gt;
+a b c -&gt; a b c' -&gt; a b (c, c')
+</span><span class="hs-operator hs-var">&amp;&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">sup</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074614"><span class="hs-identifier hs-var">img'</span></a></span><span> </span><span>
+</span><span id="line-44"></span><span>        </span><span id="local-6989586621679074605"><span class="annot"><span class="annottext">loDiff :: Double
+</span><a href="#local-6989586621679074605"><span class="hs-identifier hs-var hs-var">loDiff</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074607"><span class="hs-identifier hs-var">lo'</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074612"><span class="hs-identifier hs-var">lo</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074607"><span class="hs-identifier hs-var">lo'</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074611"><span class="hs-identifier hs-var">hi</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074612"><span class="hs-identifier hs-var">lo</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074607"><span class="hs-identifier hs-var">lo'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>        </span><span id="local-6989586621679074600"><span class="annot"><span class="annottext">hiDiff :: Double
+</span><a href="#local-6989586621679074600"><span class="hs-identifier hs-var hs-var">hiDiff</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074606"><span class="hs-identifier hs-var">hi'</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074611"><span class="hs-identifier hs-var">hi</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074606"><span class="hs-identifier hs-var">hi'</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074612"><span class="hs-identifier hs-var">lo</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074606"><span class="hs-identifier hs-var">hi'</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074611"><span class="hs-identifier hs-var">hi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074605"><span class="hs-identifier hs-var">loDiff</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074600"><span class="hs-identifier hs-var">hiDiff</span></a></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span>
+</span><span id="line-48"></span><span>    </span><span id="local-6989586621679074614"><span class="annot"><span class="annottext">img' :: Interval Double
+</span><a href="#local-6989586621679074614"><span class="hs-identifier hs-var hs-var">img'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ImgFun
+</span><a href="#local-6989586621679074619"><span class="hs-identifier hs-var">imgfun</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074618"><span class="hs-identifier hs-var">domains</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074616"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074615"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="annot"><a href="IT.Shape.html#violationNonIncreasing"><span class="hs-identifier hs-type">violationNonIncreasing</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Shape.html#violationNonDecreasing"><span class="hs-identifier hs-type">violationNonDecreasing</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Interval</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span>
+</span><span id="line-51"></span><span id="violationNonIncreasing"><span class="annot"><span class="annottext">violationNonIncreasing :: Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationNonIncreasing"><span class="hs-identifier hs-var hs-var">violationNonIncreasing</span></a></span></span><span> </span><span id="local-6989586621679074596"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074596"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074595"><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074595"><span class="hs-identifier hs-var">domains</span></a></span></span><span> </span><span id="local-6989586621679074594"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074594"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679074593"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074593"><span class="hs-identifier hs-var">ws</span></a></span></span><span>  </span><span class="hs-comment">-- (-Infinity .. 0)</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074592"><span class="hs-identifier hs-var">img</span></a></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Interval Double -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+forall a. Interval a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">max</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">sup</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074592"><span class="hs-identifier hs-var">img</span></a></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679074592"><span class="annot"><span class="annottext">img :: Interval Double
+</span><a href="#local-6989586621679074592"><span class="hs-identifier hs-var hs-var">img</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ImgFun
+</span><a href="IT.Eval.html#evalDiffImage"><span class="hs-identifier hs-var">evalDiffImage</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074596"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074595"><span class="hs-identifier hs-var">domains</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074594"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074593"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span id="violationNonDecreasing"><span class="annot"><span class="annottext">violationNonDecreasing :: Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationNonDecreasing"><span class="hs-identifier hs-var hs-var">violationNonDecreasing</span></a></span></span><span> </span><span id="local-6989586621679074589"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074589"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074588"><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074588"><span class="hs-identifier hs-var">domains</span></a></span></span><span> </span><span id="local-6989586621679074587"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074587"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679074586"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074586"><span class="hs-identifier hs-var">ws</span></a></span></span><span> </span><span class="hs-comment">-- (0 .. Infinity)</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074585"><span class="hs-identifier hs-var">img</span></a></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Interval Double -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+forall a. Interval a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">negate</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">min</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">inf</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074585"><span class="hs-identifier hs-var">img</span></a></span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679074585"><span class="annot"><span class="annottext">img :: Interval Double
+</span><a href="#local-6989586621679074585"><span class="hs-identifier hs-var hs-var">img</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; ImgFun
+</span><a href="IT.Eval.html#evalDiffImage"><span class="hs-identifier hs-var">evalDiffImage</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074589"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074588"><span class="hs-identifier hs-var">domains</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074587"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074586"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="annot"><a href="IT.Shape.html#violationInflection"><span class="hs-identifier hs-type">violationInflection</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Shape.html#violationConcave"><span class="hs-identifier hs-type">violationConcave</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="IT.Shape.html#violationConvex"><span class="hs-identifier hs-type">violationConvex</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Interval</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span>
+</span><span id="line-62"></span><span id="violationInflection"><span class="annot"><span class="annottext">violationInflection :: Int -&gt; Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationInflection"><span class="hs-identifier hs-var hs-var">violationInflection</span></a></span></span><span> </span><span id="local-6989586621679074580"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074580"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074579"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074579"><span class="hs-identifier hs-var">iy</span></a></span></span><span> </span><span id="local-6989586621679074578"><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074578"><span class="hs-identifier hs-var">domains</span></a></span></span><span> </span><span id="local-6989586621679074577"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074577"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679074576"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074576"><span class="hs-identifier hs-var">ws</span></a></span></span><span> </span><span class="hs-comment">-- (0 .. 0)</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074575"><span class="hs-identifier hs-var">img</span></a></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Interval Double -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+forall a. Interval a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">inf</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074575"><span class="hs-identifier hs-var">img</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">sup</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074575"><span class="hs-identifier hs-var">img</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e-2</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">inf</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074575"><span class="hs-identifier hs-var">img</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">sup</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074575"><span class="hs-identifier hs-var">img</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679074575"><span class="annot"><span class="annottext">img :: Interval Double
+</span><a href="#local-6989586621679074575"><span class="hs-identifier hs-var hs-var">img</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; ImgFun
+</span><a href="IT.Eval.html#evalSndDiffImage"><span class="hs-identifier hs-var">evalSndDiffImage</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074580"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074579"><span class="hs-identifier hs-var">iy</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074578"><span class="hs-identifier hs-var">domains</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074577"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074576"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span id="violationConvex"><span class="annot"><span class="annottext">violationConvex :: Int -&gt; Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationConvex"><span class="hs-identifier hs-var hs-var">violationConvex</span></a></span></span><span> </span><span id="local-6989586621679074573"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074573"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074572"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074572"><span class="hs-identifier hs-var">iy</span></a></span></span><span> </span><span id="local-6989586621679074571"><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074571"><span class="hs-identifier hs-var">domains</span></a></span></span><span> </span><span id="local-6989586621679074570"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074570"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679074569"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074569"><span class="hs-identifier hs-var">ws</span></a></span></span><span> </span><span class="hs-comment">-- (0 .. Infinity)</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074568"><span class="hs-identifier hs-var">img</span></a></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Interval Double -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+forall a. Interval a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">negate</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">min</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">inf</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074568"><span class="hs-identifier hs-var">img</span></a></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679074568"><span class="annot"><span class="annottext">img :: Interval Double
+</span><a href="#local-6989586621679074568"><span class="hs-identifier hs-var hs-var">img</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; ImgFun
+</span><a href="IT.Eval.html#evalSndDiffImage"><span class="hs-identifier hs-var">evalSndDiffImage</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074573"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074572"><span class="hs-identifier hs-var">iy</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074571"><span class="hs-identifier hs-var">domains</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074570"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074569"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span id="violationConcave"><span class="annot"><span class="annottext">violationConcave :: Int -&gt; Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationConcave"><span class="hs-identifier hs-var hs-var">violationConcave</span></a></span></span><span> </span><span id="local-6989586621679074567"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074567"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074566"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074566"><span class="hs-identifier hs-var">iy</span></a></span></span><span> </span><span id="local-6989586621679074565"><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074565"><span class="hs-identifier hs-var">domains</span></a></span></span><span> </span><span id="local-6989586621679074564"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074564"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679074563"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074563"><span class="hs-identifier hs-var">ws</span></a></span></span><span> </span><span class="hs-comment">-- (-Infinity .. 0)</span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074562"><span class="hs-identifier hs-var">img</span></a></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Interval Double -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+forall a. Interval a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">max</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Interval Double -&gt; Double
+forall a. Interval a -&gt; a
+</span><span class="hs-identifier hs-var">sup</span></span><span> </span><span class="annot"><span class="annottext">Interval Double
+</span><a href="#local-6989586621679074562"><span class="hs-identifier hs-var">img</span></a></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679074562"><span class="annot"><span class="annottext">img :: Interval Double
+</span><a href="#local-6989586621679074562"><span class="hs-identifier hs-var hs-var">img</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; ImgFun
+</span><a href="IT.Eval.html#evalSndDiffImage"><span class="hs-identifier hs-var">evalSndDiffImage</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074567"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074566"><span class="hs-identifier hs-var">iy</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074565"><span class="hs-identifier hs-var">domains</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074564"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074563"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="annot"><a href="IT.Shape.html#constraintFrom"><span class="hs-identifier hs-type">constraintFrom</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span>
+</span><span id="line-78"></span><span id="constraintFrom"><span class="annot"><span class="annottext">constraintFrom :: [Constraint] -&gt; Constraint
+</span><a href="IT.Shape.html#constraintFrom"><span class="hs-identifier hs-var hs-var">constraintFrom</span></a></span></span><span> </span><span id="local-6989586621679074560"><span class="annot"><span class="annottext">[Constraint]
+</span><a href="#local-6989586621679074560"><span class="hs-identifier hs-var">funs</span></a></span></span><span> </span><span id="local-6989586621679074559"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074559"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679074558"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074558"><span class="hs-identifier hs-var">ws</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679074557"><span class="annot"><span class="annottext">c :: Double
+</span><a href="#local-6989586621679074557"><span class="hs-identifier hs-var hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Constraint -&gt; Double -&gt; Double)
+-&gt; Double -&gt; [Constraint] -&gt; Double
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldr</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679074555"><span class="annot"><span class="annottext">Constraint
+</span><a href="#local-6989586621679074555"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679074554"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074554"><span class="hs-identifier hs-var">tot</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Constraint
+</span><a href="#local-6989586621679074555"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074559"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074558"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074554"><span class="hs-identifier hs-var">tot</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">[Constraint]
+</span><a href="#local-6989586621679074560"><span class="hs-identifier hs-var">funs</span></a></span><span>
+</span><span id="line-79"></span><span>                              </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074557"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e-60</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074557"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="annot"><a href="IT.Shape.html#fromShapes"><span class="hs-identifier hs-type">fromShapes</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Shape.html#Shape"><span class="hs-identifier hs-type">Shape</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Shape.html#Domains"><span class="hs-identifier hs-type">Domains</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span>
+</span><span id="line-82"></span><span id="fromShapes"><span class="annot"><span class="annottext">fromShapes :: [Shape] -&gt; Domains -&gt; Constraint
+</span><a href="IT.Shape.html#fromShapes"><span class="hs-identifier hs-var hs-var">fromShapes</span></a></span></span><span> </span><span class="annot"><span class="annottext">[Shape]
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">Domains
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Constraint
+</span><a href="IT.Shape.html#unconstrained"><span class="hs-identifier hs-var">unconstrained</span></a></span><span>
+</span><span id="line-83"></span><span class="annot"><a href="IT.Shape.html#fromShapes"><span class="hs-identifier hs-var">fromShapes</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="annot"><span class="annottext">Domains
+</span><span class="hs-identifier">_</span></span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Constraint
+</span><a href="IT.Shape.html#unconstrained"><span class="hs-identifier hs-var">unconstrained</span></a></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="IT.Shape.html#fromShapes"><span class="hs-identifier hs-var">fromShapes</span></a></span><span> </span><span id="local-6989586621679074552"><span class="annot"><span class="annottext">[Shape]
+</span><a href="#local-6989586621679074552"><span class="hs-identifier hs-var">shapes</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679074551"><span class="annot"><span class="annottext">[(Double, Double)]
+</span><a href="#local-6989586621679074551"><span class="hs-identifier hs-var">domains</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Constraint] -&gt; Constraint
+</span><a href="IT.Shape.html#constraintFrom"><span class="hs-identifier hs-var">constraintFrom</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Shape -&gt; Constraint) -&gt; [Shape] -&gt; [Constraint]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Shape -&gt; Constraint
+</span><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="annot"><span class="annottext">[Shape]
+</span><a href="#local-6989586621679074552"><span class="hs-identifier hs-var">shapes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-86"></span><span>    </span><span id="local-6989586621679074549"><span class="annot"><span class="annottext">domains' :: [Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var hs-var">domains'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Double, Double) -&gt; Interval Double)
+-&gt; [(Double, Double)] -&gt; [Interval Double]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Interval Double)
+-&gt; (Double, Double) -&gt; Interval Double
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Interval Double
+forall a. Ord a =&gt; a -&gt; a -&gt; Interval a
+</span><span class="hs-operator hs-var">(...)</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(Double, Double)]
+</span><a href="#local-6989586621679074551"><span class="hs-identifier hs-var">domains</span></a></span><span>
+</span><span id="line-87"></span><span>    </span><span id="local-6989586621679074546"><span class="annot"><span class="annottext">replace :: [Interval a] -&gt; Int -&gt; (a, a) -&gt; [Interval a]
+</span><a href="#local-6989586621679074546"><span class="hs-identifier hs-var hs-var">replace</span></a></span></span><span> </span><span id="local-6989586621679074545"><span class="annot"><span class="annottext">[Interval a]
+</span><a href="#local-6989586621679074545"><span class="hs-identifier hs-var">ds</span></a></span></span><span> </span><span id="local-6989586621679074544"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074544"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074543"><span class="annot"><span class="annottext">(a, a)
+</span><a href="#local-6989586621679074543"><span class="hs-identifier hs-var">rng</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679074542"><span class="annot"><span class="annottext">rng' :: Interval a
+</span><a href="#local-6989586621679074542"><span class="hs-identifier hs-var hs-var">rng'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a, a) -&gt; a
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(a, a)
+</span><a href="#local-6989586621679074543"><span class="hs-identifier hs-var">rng</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; Interval a
+forall a. Ord a =&gt; a -&gt; a -&gt; Interval a
+</span><span class="hs-operator hs-var">...</span></span><span> </span><span class="annot"><span class="annottext">(a, a) -&gt; a
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(a, a)
+</span><a href="#local-6989586621679074543"><span class="hs-identifier hs-var">rng</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span>                        </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">Int -&gt; [Interval a] -&gt; [Interval a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074544"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval a]
+</span><a href="#local-6989586621679074545"><span class="hs-identifier hs-var">ds</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval a] -&gt; [Interval a] -&gt; [Interval a]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Interval a
+</span><a href="#local-6989586621679074542"><span class="hs-identifier hs-var">rng'</span></a></span><span> </span><span class="annot"><span class="annottext">Interval a -&gt; [Interval a] -&gt; [Interval a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Interval a] -&gt; [Interval a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074544"><span class="hs-identifier hs-var">ix</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Interval a]
+</span><a href="#local-6989586621679074545"><span class="hs-identifier hs-var">ds</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span>    </span><span id="local-6989586621679074550"><span class="annot"><span class="annottext">toFun :: Shape -&gt; Constraint
+</span><a href="#local-6989586621679074550"><span class="hs-identifier hs-var hs-var">toFun</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#Image"><span class="hs-identifier hs-type">Image</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074539"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074539"><span class="hs-identifier hs-var">lo</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074538"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074538"><span class="hs-identifier hs-var">hi</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ImgFun -&gt; [Interval Double] -&gt; Interval Double -&gt; Constraint
+</span><a href="IT.Shape.html#violationImg"><span class="hs-identifier hs-var">violationImg</span></a></span><span> </span><span class="annot"><span class="annottext">ImgFun
+</span><a href="IT.Eval.html#evalImage"><span class="hs-identifier hs-var">evalImage</span></a></span><span>          </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074539"><span class="hs-identifier hs-var">lo</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Interval Double
+forall a. Ord a =&gt; a -&gt; a -&gt; Interval a
+</span><span class="hs-operator hs-var">...</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074538"><span class="hs-identifier hs-var">hi</span></a></span><span class="hs-special">)</span><span> </span><span>
+</span><span id="line-91"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#DiffImg"><span class="hs-identifier hs-type">DiffImg</span></a></span><span> </span><span id="local-6989586621679074536"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074536"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074535"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074535"><span class="hs-identifier hs-var">lo</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074534"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074534"><span class="hs-identifier hs-var">hi</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ImgFun -&gt; [Interval Double] -&gt; Interval Double -&gt; Constraint
+</span><a href="IT.Shape.html#violationImg"><span class="hs-identifier hs-var">violationImg</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; ImgFun
+</span><a href="IT.Eval.html#evalDiffImage"><span class="hs-identifier hs-var">evalDiffImage</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074536"><span class="hs-identifier hs-var">ix</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074535"><span class="hs-identifier hs-var">lo</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Interval Double
+forall a. Ord a =&gt; a -&gt; a -&gt; Interval a
+</span><span class="hs-operator hs-var">...</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074534"><span class="hs-identifier hs-var">hi</span></a></span><span class="hs-special">)</span><span> </span><span>
+</span><span id="line-92"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#NonIncreasing"><span class="hs-identifier hs-type">NonIncreasing</span></a></span><span> </span><span id="local-6989586621679074533"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074533"><span class="hs-identifier hs-var">ix</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationNonIncreasing"><span class="hs-identifier hs-var">violationNonIncreasing</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074533"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span> </span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#NonDecreasing"><span class="hs-identifier hs-type">NonDecreasing</span></a></span><span> </span><span id="local-6989586621679074532"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074532"><span class="hs-identifier hs-var">ix</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationNonDecreasing"><span class="hs-identifier hs-var">violationNonDecreasing</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074532"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span> </span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#PartialNonIncreasing"><span class="hs-identifier hs-type">PartialNonIncreasing</span></a></span><span> </span><span id="local-6989586621679074531"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074531"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074530"><span class="annot"><span class="annottext">(Double, Double)
+</span><a href="#local-6989586621679074530"><span class="hs-identifier hs-var">range</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationNonIncreasing"><span class="hs-identifier hs-var">violationNonIncreasing</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074531"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">([Interval Double] -&gt; Constraint)
+-&gt; [Interval Double] -&gt; Constraint
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Interval Double] -&gt; Int -&gt; (Double, Double) -&gt; [Interval Double]
+forall a. Ord a =&gt; [Interval a] -&gt; Int -&gt; (a, a) -&gt; [Interval a]
+</span><a href="#local-6989586621679074546"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074531"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">(Double, Double)
+</span><a href="#local-6989586621679074530"><span class="hs-identifier hs-var">range</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#PartialNonDecreasing"><span class="hs-identifier hs-type">PartialNonDecreasing</span></a></span><span> </span><span id="local-6989586621679074529"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074529"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074528"><span class="annot"><span class="annottext">(Double, Double)
+</span><a href="#local-6989586621679074528"><span class="hs-identifier hs-var">range</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationNonDecreasing"><span class="hs-identifier hs-var">violationNonDecreasing</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074529"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">([Interval Double] -&gt; Constraint)
+-&gt; [Interval Double] -&gt; Constraint
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Interval Double] -&gt; Int -&gt; (Double, Double) -&gt; [Interval Double]
+forall a. Ord a =&gt; [Interval a] -&gt; Int -&gt; (a, a) -&gt; [Interval a]
+</span><a href="#local-6989586621679074546"><span class="hs-identifier hs-var">replace</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074529"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">(Double, Double)
+</span><a href="#local-6989586621679074528"><span class="hs-identifier hs-var">range</span></a></span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#Inflection"><span class="hs-identifier hs-type">Inflection</span></a></span><span> </span><span id="local-6989586621679074527"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074527"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074526"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074526"><span class="hs-identifier hs-var">iy</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationInflection"><span class="hs-identifier hs-var">violationInflection</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074527"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074526"><span class="hs-identifier hs-var">iy</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#Convex"><span class="hs-identifier hs-type">Convex</span></a></span><span> </span><span id="local-6989586621679074525"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074525"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074524"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074524"><span class="hs-identifier hs-var">iy</span></a></span></span><span class="hs-special">)</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationConvex"><span class="hs-identifier hs-var">violationConvex</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074525"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074524"><span class="hs-identifier hs-var">iy</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><a href="#local-6989586621679074550"><span class="hs-identifier hs-var">toFun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Shape.html#Concave"><span class="hs-identifier hs-type">Concave</span></a></span><span> </span><span id="local-6989586621679074523"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074523"><span class="hs-identifier hs-var">ix</span></a></span></span><span> </span><span id="local-6989586621679074522"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074522"><span class="hs-identifier hs-var">iy</span></a></span></span><span class="hs-special">)</span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; [Interval Double] -&gt; Constraint
+</span><a href="IT.Shape.html#violationConcave"><span class="hs-identifier hs-var">violationConcave</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074523"><span class="hs-identifier hs-var">ix</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074522"><span class="hs-identifier hs-var">iy</span></a></span><span> </span><span class="annot"><span class="annottext">[Interval Double]
+</span><a href="#local-6989586621679074549"><span class="hs-identifier hs-var">domains'</span></a></span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span></pre></body></html>
