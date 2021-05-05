@@ -125,7 +125,7 @@ varnames = []
         inds2 = np.where(np.isinf(Z))[0]
         Z[inds] = 0
         Z[inds2] = 0
-        print(Z)
+        #print(Z)
 
         return Z
 
