@@ -15,7 +15,7 @@ import Data.List (nub)
 import Data.IntMap.Strict as M
 import Control.Monad
 
-import IT -- (itea, addTerm, dropTerm)
+import IT
 import IT.Algorithms
 import IT.Random
 

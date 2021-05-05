@@ -17,26 +17,25 @@ Definitions of IT data structure and support functions.
 </span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Eval.html"><span class="hs-identifier">IT.Eval</span></a></span><span>
 </span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Metrics.html"><span class="hs-identifier">IT.Metrics</span></a></span><span>
 </span><span id="line-19"></span><span>
-</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
-</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
-</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NonEmpty</span></span><span class="hs-special">)</span><span>
-</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NE</span></span><span>
-</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Vector.Storable</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">V</span></span><span>
-</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.LinearAlgebra</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LA</span></span><span>
-</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">MachineLearning.Classification.Binary</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">BC</span></span><span>
-</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">MachineLearning.LogisticModel</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LM</span></span><span>
-</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">MachineLearning.Classification.OneVsAll</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">OVA</span></span><span>
-</span><span id="line-29"></span><span>
-</span><span id="line-30"></span><span class="hs-comment">-- * IT specific stuff</span><span>
-</span><span id="line-31"></span><span class="hs-keyword">data</span><span> </span><span id="Task"><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-var">Task</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Regression"><span class="annot"><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-var">Regression</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Classification"><span class="annot"><a href="IT.Regression.html#Classification"><span class="hs-identifier hs-var">Classification</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="ClassMult"><span class="annot"><a href="IT.Regression.html#ClassMult"><span class="hs-identifier hs-var">ClassMult</span></a></span></span><span>
-</span><span id="line-32"></span><span>         </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679114538"><span id="local-6989586621679114540"><span class="annot"><span class="annottext">Task -&gt; Task -&gt; Bool
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NonEmpty</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NE</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Vector.Storable</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">V</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.LinearAlgebra</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LA</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">MachineLearning.Classification.Binary</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">BC</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">MachineLearning.LogisticModel</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LM</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">MachineLearning.Classification.OneVsAll</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">OVA</span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- * IT specific stuff</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="Task"><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-var">Task</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Regression"><span class="annot"><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-var">Regression</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Classification"><span class="annot"><a href="IT.Regression.html#Classification"><span class="hs-identifier hs-var">Classification</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="ClassMult"><span class="annot"><a href="IT.Regression.html#ClassMult"><span class="hs-identifier hs-var">ClassMult</span></a></span></span><span>
+</span><span id="line-31"></span><span>         </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074451"><span id="local-6989586621679074453"><span class="annot"><span class="annottext">Task -&gt; Task -&gt; Bool
 (Task -&gt; Task -&gt; Bool) -&gt; (Task -&gt; Task -&gt; Bool) -&gt; Eq Task
 forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
 /= :: Task -&gt; Task -&gt; Bool
 $c/= :: Task -&gt; Task -&gt; Bool
 == :: Task -&gt; Task -&gt; Bool
 $c== :: Task -&gt; Task -&gt; Bool
-</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679114529"><span id="local-6989586621679114531"><span id="local-6989586621679114533"><span id="local-6989586621679114535"><span class="annot"><span class="annottext">ReadPrec [Task]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074442"><span id="local-6989586621679074444"><span id="local-6989586621679074446"><span id="local-6989586621679074448"><span class="annot"><span class="annottext">ReadPrec [Task]
 ReadPrec Task
 Int -&gt; ReadS Task
 ReadS [Task]
@@ -54,112 +53,120 @@ $creadList :: ReadS [Task]
 readsPrec :: Int -&gt; ReadS Task
 $creadsPrec :: Int -&gt; ReadS Task
 </span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">)</span><span>
-</span><span id="line-33"></span><span>
-</span><span id="line-34"></span><span class="hs-keyword">type</span><span> </span><span id="FitFun"><span class="annot"><a href="IT.Regression.html#FitFun"><span class="hs-identifier hs-var">FitFun</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
-</span><span id="line-35"></span><span>
-</span><span id="line-36"></span><span class="hs-comment">-- | Predict a linear model</span><span>
-</span><span id="line-37"></span><span class="annot"><a href="IT.Regression.html#predict"><span class="hs-identifier hs-type">predict</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>
-</span><span id="line-38"></span><span id="predict"><span class="annot"><span class="annottext">predict :: Matrix Double -&gt; Vector -&gt; Vector
-</span><a href="IT.Regression.html#predict"><span class="hs-identifier hs-var hs-var">predict</span></a></span></span><span> </span><span id="local-6989586621679114525"><span class="annot"><span class="annottext">xs :: Matrix Double
-</span><a href="#local-6989586621679114525"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679114524"><span class="annot"><span class="annottext">w :: Vector
-</span><a href="#local-6989586621679114524"><span class="hs-identifier hs-var">w</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114525"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">type</span><span> </span><span id="FitFun"><span class="annot"><a href="IT.Regression.html#FitFun"><span class="hs-identifier hs-var">FitFun</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">data</span><span> </span><span id="Penalty"><span class="annot"><a href="IT.Regression.html#Penalty"><span class="hs-identifier hs-var">Penalty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="NoPenalty"><span class="annot"><a href="IT.Regression.html#NoPenalty"><span class="hs-identifier hs-var">NoPenalty</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Len"><span class="annot"><a href="IT.Regression.html#Len"><span class="hs-identifier hs-var">Len</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Shape"><span class="annot"><a href="IT.Regression.html#Shape"><span class="hs-identifier hs-var">Shape</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074431"><span id="local-6989586621679074433"><span id="local-6989586621679074435"><span class="annot"><span class="annottext">Int -&gt; Penalty -&gt; ShowS
+[Penalty] -&gt; ShowS
+Penalty -&gt; String
+(Int -&gt; Penalty -&gt; ShowS)
+-&gt; (Penalty -&gt; String) -&gt; ([Penalty] -&gt; ShowS) -&gt; Show Penalty
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Penalty] -&gt; ShowS
+$cshowList :: [Penalty] -&gt; ShowS
+show :: Penalty -&gt; String
+$cshow :: Penalty -&gt; String
+showsPrec :: Int -&gt; Penalty -&gt; ShowS
+$cshowsPrec :: Int -&gt; Penalty -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074422"><span id="local-6989586621679074424"><span id="local-6989586621679074426"><span id="local-6989586621679074428"><span class="annot"><span class="annottext">ReadPrec [Penalty]
+ReadPrec Penalty
+Int -&gt; ReadS Penalty
+ReadS [Penalty]
+(Int -&gt; ReadS Penalty)
+-&gt; ReadS [Penalty]
+-&gt; ReadPrec Penalty
+-&gt; ReadPrec [Penalty]
+-&gt; Read Penalty
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Penalty]
+$creadListPrec :: ReadPrec [Penalty]
+readPrec :: ReadPrec Penalty
+$creadPrec :: ReadPrec Penalty
+readList :: ReadS [Penalty]
+$creadList :: ReadS [Penalty]
+readsPrec :: Int -&gt; ReadS Penalty
+$creadsPrec :: Int -&gt; ReadS Penalty
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- | Predict a linear model</span><span>
+</span><span id="line-39"></span><span class="annot"><a href="IT.Regression.html#predict"><span class="hs-identifier hs-type">predict</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>
+</span><span id="line-40"></span><span id="predict"><span class="annot"><span class="annottext">predict :: Matrix Double -&gt; Vector -&gt; Vector
+</span><a href="IT.Regression.html#predict"><span class="hs-identifier hs-var hs-var">predict</span></a></span></span><span> </span><span id="local-6989586621679074420"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074420"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679074419"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074419"><span class="hs-identifier hs-var">w</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074420"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
 forall t. Numeric t =&gt; Matrix t -&gt; Vector t -&gt; Vector t
 </span><span class="hs-operator hs-var">LA.#&gt;</span></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114524"><span class="hs-identifier hs-var">w</span></a></span><span>
-</span><span id="line-39"></span><span>
-</span><span id="line-40"></span><span class="hs-comment">-- | Solve the OLS *zss*w = ys*</span><span>
-</span><span id="line-41"></span><span class="annot"><a href="IT.Regression.html#solveOLS"><span class="hs-identifier hs-type">solveOLS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>
-</span><span id="line-42"></span><span id="solveOLS"><span class="annot"><span class="annottext">solveOLS :: Matrix Double -&gt; Vector -&gt; Vector
-</span><a href="IT.Regression.html#solveOLS"><span class="hs-identifier hs-var hs-var">solveOLS</span></a></span></span><span> </span><span id="local-6989586621679114521"><span class="annot"><span class="annottext">zss :: Matrix Double
-</span><a href="#local-6989586621679114521"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span id="local-6989586621679114520"><span class="annot"><span class="annottext">ys :: Vector
-</span><a href="#local-6989586621679114520"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector
+</span><a href="#local-6989586621679074419"><span class="hs-identifier hs-var">w</span></a></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- | Solve the OLS *zss*w = ys*</span><span>
+</span><span id="line-43"></span><span class="annot"><a href="IT.Regression.html#solveOLS"><span class="hs-identifier hs-type">solveOLS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>
+</span><span id="line-44"></span><span id="solveOLS"><span class="annot"><span class="annottext">solveOLS :: Matrix Double -&gt; Vector -&gt; Vector
+</span><a href="IT.Regression.html#solveOLS"><span class="hs-identifier hs-var hs-var">solveOLS</span></a></span></span><span> </span><span id="local-6989586621679074416"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074416"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector
 forall t. Element t =&gt; Matrix t -&gt; Vector t
-</span><span class="hs-identifier hs-var">LA.flatten</span></span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Vector) -&gt; Matrix Double -&gt; Vector
-forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Matrix Double -&gt; Matrix Double
+</span><span class="hs-identifier hs-var">LA.flatten</span></span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Vector)
+-&gt; (Vector -&gt; Matrix Double) -&gt; Vector -&gt; Vector
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Matrix Double -&gt; Matrix Double
 forall t. Field t =&gt; Matrix t -&gt; Matrix t -&gt; Matrix t
 </span><span class="hs-identifier hs-var">LA.linearSolveSVD</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114521"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector -&gt; Matrix Double
+</span><a href="#local-6989586621679074416"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Matrix Double)
+-&gt; (Vector -&gt; Matrix Double) -&gt; Vector -&gt; Matrix Double
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Matrix Double
 forall a. Storable a =&gt; Vector a -&gt; Matrix a
-</span><span class="hs-identifier hs-var">LA.asColumn</span></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114520"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-43"></span><span>
-</span><span id="line-44"></span><span class="hs-comment">-- | Applies OLS and returns a Solution</span><span>
-</span><span id="line-45"></span><span class="hs-comment">-- if the expression is invalid, it returns Infinity as a fitness</span><span>
-</span><span id="line-46"></span><span class="annot"><a href="IT.Regression.html#regress"><span class="hs-identifier hs-type">regress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-47"></span><span id="regress"><span class="annot"><span class="annottext">regress :: Vector -&gt; Matrix Double -&gt; Maybe (Vector, [Vector])
-</span><a href="IT.Regression.html#regress"><span class="hs-identifier hs-var hs-var">regress</span></a></span></span><span> </span><span id="local-6989586621679114515"><span class="annot"><span class="annottext">ys :: Vector
-</span><a href="#local-6989586621679114515"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span id="local-6989586621679114514"><span class="annot"><span class="annottext">zss :: Matrix Double
-</span><a href="#local-6989586621679114514"><span class="hs-identifier hs-var">zss</span></a></span></span><span>
-</span><span id="line-48"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
+</span><span class="hs-identifier hs-var">LA.asColumn</span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="annot"><a href="IT.Regression.html#isInvalidMatrix"><span class="hs-identifier hs-type">isInvalidMatrix</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-47"></span><span id="isInvalidMatrix"><span class="annot"><span class="annottext">isInvalidMatrix :: Matrix Double -&gt; Bool
+</span><a href="IT.Regression.html#isInvalidMatrix"><span class="hs-identifier hs-var hs-var">isInvalidMatrix</span></a></span></span><span> </span><span id="local-6989586621679074410"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074410"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
 forall t. Matrix t -&gt; Int
 </span><span class="hs-identifier hs-var">LA.rows</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114514"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679074410"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
-</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
-</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Double] -&gt; Bool) -&gt; [[Double]] -&gt; Bool
-forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
-</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Bool
-</span><a href="IT.Eval.html#isValid"><span class="hs-identifier hs-var">isValid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; [[Double]]
-forall t. Element t =&gt; Matrix t -&gt; [[t]]
-</span><span class="hs-identifier hs-var">LA.toLists</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114514"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-49"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Vector, [Vector])
-forall a. Maybe a
-</span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-50"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">otherwise</span></span><span>
-</span><span id="line-51"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679114507"><span class="annot"><span class="annottext">ws :: Vector
-</span><a href="#local-6989586621679114507"><span class="hs-identifier hs-var hs-var">ws</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Bool) -&gt; Vector -&gt; Bool
+forall a. Storable a =&gt; (a -&gt; Bool) -&gt; Vector a -&gt; Bool
+</span><span class="hs-identifier hs-var">V.any</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Bool
+</span><a href="IT.Eval.html#isInvalid"><span class="hs-identifier hs-var">isInvalid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector
+forall t. Element t =&gt; Matrix t -&gt; Vector t
+</span><span class="hs-identifier hs-var">LA.flatten</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074410"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- | Applies OLS and returns a Solution</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- if the expression is invalid, it returns Infinity as a fitness</span><span>
+</span><span id="line-51"></span><span class="annot"><a href="IT.Regression.html#regress"><span class="hs-identifier hs-type">regress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-52"></span><span id="regress"><span class="annot"><span class="annottext">regress :: Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#regress"><span class="hs-identifier hs-var hs-var">regress</span></a></span></span><span> </span><span id="local-6989586621679074404"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074404"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span id="local-6989586621679074403"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074403"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
 </span><a href="IT.Regression.html#solveOLS"><span class="hs-identifier hs-var">solveOLS</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114514"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114515"><span class="hs-identifier hs-var">ys</span></a></span><span>
-</span><span id="line-52"></span><span>          </span><span id="local-6989586621679114506"><span class="annot"><span class="annottext">ysHat :: Vector
-</span><a href="#local-6989586621679114506"><span class="hs-identifier hs-var hs-var">ysHat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
-</span><a href="IT.Regression.html#predict"><span class="hs-identifier hs-var">predict</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114514"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114507"><span class="hs-identifier hs-var">ws</span></a></span><span>
-</span><span id="line-53"></span><span>      </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">(Vector, [Vector]) -&gt; Maybe (Vector, [Vector])
-forall a. a -&gt; Maybe a
-</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114506"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114507"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-54"></span><span>
-</span><span id="line-55"></span><span class="annot"><a href="IT.Regression.html#classify"><span class="hs-identifier hs-type">classify</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-56"></span><span id="classify"><span class="annot"><span class="annottext">classify :: Vector -&gt; Matrix Double -&gt; Maybe (Vector, [Vector])
-</span><a href="IT.Regression.html#classify"><span class="hs-identifier hs-var hs-var">classify</span></a></span></span><span> </span><span id="local-6989586621679114504"><span class="annot"><span class="annottext">ys :: Vector
-</span><a href="#local-6989586621679114504"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span id="local-6989586621679114503"><span class="annot"><span class="annottext">zss :: Matrix Double
-</span><a href="#local-6989586621679114503"><span class="hs-identifier hs-var">zss</span></a></span></span><span>
-</span><span id="line-57"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
-forall t. Matrix t -&gt; Int
-</span><span class="hs-identifier hs-var">LA.rows</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114503"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
-forall a. Eq a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
-</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
-</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Double] -&gt; Bool) -&gt; [[Double]] -&gt; Bool
-forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
-</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Bool
-</span><a href="IT.Eval.html#isValid"><span class="hs-identifier hs-var">isValid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; [[Double]]
-forall t. Element t =&gt; Matrix t -&gt; [[t]]
-</span><span class="hs-identifier hs-var">LA.toLists</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114503"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-58"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Vector, [Vector])
-forall a. Maybe a
-</span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-59"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">otherwise</span></span><span>
-</span><span id="line-60"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679114502"><span class="annot"><span class="annottext">ws0 :: Vector
-</span><a href="#local-6989586621679114502"><span class="hs-identifier hs-var hs-var">ws0</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Int -&gt; Vector
+</span><a href="#local-6989586621679074404"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074403"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span class="annot"><a href="IT.Regression.html#classify"><span class="hs-identifier hs-type">classify</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-55"></span><span id="classify"><span class="annot"><span class="annottext">classify :: Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#classify"><span class="hs-identifier hs-var hs-var">classify</span></a></span></span><span> </span><span id="local-6989586621679074401"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074401"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span id="local-6989586621679074400"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074400"><span class="hs-identifier hs-var">ys</span></a></span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679074399"><span class="annot"><span class="annottext">ws0 :: Vector
+</span><a href="#local-6989586621679074399"><span class="hs-identifier hs-var hs-var">ws0</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Int -&gt; Vector
 forall e d (c :: * -&gt; *). Konst e d c =&gt; e -&gt; d -&gt; c e
-</span><span class="hs-identifier hs-var">LA.konst</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
+</span><span class="hs-identifier hs-var">LA.konst</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
 forall t. Matrix t -&gt; Int
 </span><span class="hs-identifier hs-var">LA.cols</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114503"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-61"></span><span>          </span><span class="hs-special">(</span><span id="local-6989586621679114499"><span class="annot"><span class="annottext">ws :: Vector
-</span><a href="#local-6989586621679114499"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="hs-special">,</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MinimizeMethod
+</span><a href="#local-6989586621679074401"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>          </span><span class="hs-special">(</span><span id="local-6989586621679074396"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074396"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MinimizeMethod
 -&gt; Double
 -&gt; Int
 -&gt; Regularization
@@ -168,62 +175,38 @@ forall t. Matrix t -&gt; Int
 -&gt; Vector
 -&gt; (Vector, Matrix Double)
 </span><span class="hs-identifier hs-var">BC.learn</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; MinimizeMethod
-</span><span class="hs-identifier hs-var">BC.ConjugateGradientPR</span></span><span> </span><span class="annot"><span class="hs-number">0.1</span></span><span> </span><span class="annot"><span class="hs-number">0.1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-number">0.0001</span></span><span> </span><span class="annot"><span class="hs-number">500</span></span><span> </span><span class="annot"><span class="annottext">Regularization
+</span><span class="hs-identifier hs-var">BC.ConjugateGradientPR</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.1</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.0001</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">500</span></span><span> </span><span class="annot"><span class="annottext">Regularization
 </span><span class="hs-identifier hs-var">BC.RegNone</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114503"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114504"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114502"><span class="hs-identifier hs-var">ws0</span></a></span><span>
-</span><span id="line-62"></span><span>          </span><span id="local-6989586621679114495"><span class="annot"><span class="annottext">ysHat :: Vector
-</span><a href="#local-6989586621679114495"><span class="hs-identifier hs-var hs-var">ysHat</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogisticModel -&gt; Matrix Double -&gt; Vector -&gt; Vector
-forall a. Model a =&gt; a -&gt; Matrix Double -&gt; Vector -&gt; Vector
-</span><span class="hs-identifier hs-var">LM.hypothesis</span></span><span> </span><span class="annot"><span class="annottext">LogisticModel
-</span><span class="hs-identifier hs-var">LM.Logistic</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114503"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114499"><span class="hs-identifier hs-var">ws</span></a></span><span>
-</span><span id="line-63"></span><span>      </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">(Vector, [Vector]) -&gt; Maybe (Vector, [Vector])
-forall a. a -&gt; Maybe a
-</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114495"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114499"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-64"></span><span>
-</span><span id="line-65"></span><span class="annot"><a href="IT.Regression.html#classifyMult"><span class="hs-identifier hs-type">classifyMult</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-66"></span><span id="classifyMult"><span class="annot"><span class="annottext">classifyMult :: Vector -&gt; Matrix Double -&gt; Maybe (Vector, [Vector])
-</span><a href="IT.Regression.html#classifyMult"><span class="hs-identifier hs-var hs-var">classifyMult</span></a></span></span><span> </span><span id="local-6989586621679114491"><span class="annot"><span class="annottext">ys :: Vector
-</span><a href="#local-6989586621679114491"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span id="local-6989586621679114490"><span class="annot"><span class="annottext">zss :: Matrix Double
-</span><a href="#local-6989586621679114490"><span class="hs-identifier hs-var">zss</span></a></span></span><span>
-</span><span id="line-67"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
-forall t. Matrix t -&gt; Int
-</span><span class="hs-identifier hs-var">LA.rows</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114490"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
-forall a. Eq a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
-</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
-</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Double] -&gt; Bool) -&gt; [[Double]] -&gt; Bool
-forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
-</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Bool
-</span><a href="IT.Eval.html#isValid"><span class="hs-identifier hs-var">isValid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; [[Double]]
-forall t. Element t =&gt; Matrix t -&gt; [[t]]
-</span><span class="hs-identifier hs-var">LA.toLists</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114490"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><span id="line-68"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Vector, [Vector])
-forall a. Maybe a
-</span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-69"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">otherwise</span></span><span>
-</span><span id="line-70"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679114489"><span class="annot"><span class="annottext">ws0 :: [Vector]
-</span><a href="#local-6989586621679114489"><span class="hs-identifier hs-var hs-var">ws0</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Vector -&gt; [Vector]
+</span><a href="#local-6989586621679074401"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074400"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074399"><span class="hs-identifier hs-var">ws0</span></a></span><span>
+</span><span id="line-58"></span><span>      </span><span class="hs-keyword">in</span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074396"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="annot"><a href="IT.Regression.html#classifyMult"><span class="hs-identifier hs-type">classifyMult</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-61"></span><span id="classifyMult"><span class="annot"><span class="annottext">classifyMult :: Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#classifyMult"><span class="hs-identifier hs-var hs-var">classifyMult</span></a></span></span><span> </span><span id="local-6989586621679074391"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074391"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span id="local-6989586621679074390"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074390"><span class="hs-identifier hs-var">ys</span></a></span></span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679074389"><span class="annot"><span class="annottext">ws0 :: [Vector]
+</span><a href="#local-6989586621679074389"><span class="hs-identifier hs-var hs-var">ws0</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Vector -&gt; [Vector]
 forall a. Int -&gt; a -&gt; [a]
 </span><span class="hs-identifier hs-var">replicate</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679114487"><span class="hs-identifier hs-var">numLabels</span></a></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; [Vector]) -&gt; Vector -&gt; [Vector]
+</span><a href="#local-6989586621679074387"><span class="hs-identifier hs-var">numLabels</span></a></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; [Vector]) -&gt; Vector -&gt; [Vector]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Int -&gt; Vector
 forall e d (c :: * -&gt; *). Konst e d c =&gt; e -&gt; d -&gt; c e
-</span><span class="hs-identifier hs-var">LA.konst</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
+</span><span class="hs-identifier hs-var">LA.konst</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
 forall t. Matrix t -&gt; Int
 </span><span class="hs-identifier hs-var">LA.cols</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114490"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-71"></span><span>          </span><span id="local-6989586621679114487"><span class="annot"><span class="annottext">numLabels :: Int
-</span><a href="#local-6989586621679114487"><span class="hs-identifier hs-var hs-var">numLabels</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Int
+</span><a href="#local-6989586621679074391"><span class="hs-identifier hs-var">zss</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>          </span><span id="local-6989586621679074387"><span class="annot"><span class="annottext">numLabels :: Int
+</span><a href="#local-6989586621679074387"><span class="hs-identifier hs-var hs-var">numLabels</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">([Double] -&gt; Int) -&gt; [Double] -&gt; Int
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -234,9 +217,10 @@ forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; [Double]
 forall a. Storable a =&gt; Vector a -&gt; [a]
 </span><span class="hs-identifier hs-var">LA.toList</span></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114491"><span class="hs-identifier hs-var">ys</span></a></span><span>
-</span><span id="line-72"></span><span>          </span><span class="hs-special">(</span><span id="local-6989586621679114483"><span class="annot"><span class="annottext">ws :: [Vector]
-</span><a href="#local-6989586621679114483"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="hs-special">,</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MinimizeMethod
+</span><a href="#local-6989586621679074390"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-64"></span><span>          </span><span class="hs-special">(</span><span id="local-6989586621679074383"><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074383"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Matrix Double]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MinimizeMethod
 -&gt; Double
 -&gt; Int
 -&gt; Regularization
@@ -246,107 +230,105 @@ forall a. Storable a =&gt; Vector a -&gt; [a]
 -&gt; [Vector]
 -&gt; ([Vector], [Matrix Double])
 </span><span class="hs-identifier hs-var">OVA.learn</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; MinimizeMethod
-</span><span class="hs-identifier hs-var">OVA.ConjugateGradientPR</span></span><span> </span><span class="annot"><span class="hs-number">0.1</span></span><span> </span><span class="annot"><span class="hs-number">0.1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-number">0.0001</span></span><span> </span><span class="annot"><span class="hs-number">500</span></span><span> </span><span class="annot"><span class="annottext">Regularization
+</span><span class="hs-identifier hs-var">OVA.ConjugateGradientPR</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.1</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.0001</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">500</span></span><span> </span><span class="annot"><span class="annottext">Regularization
 </span><span class="hs-identifier hs-var">OVA.RegNone</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679114487"><span class="hs-identifier hs-var">numLabels</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114490"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114491"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114489"><span class="hs-identifier hs-var">ws0</span></a></span><span>
-</span><span id="line-73"></span><span>          </span><span id="local-6989586621679114481"><span class="annot"><span class="annottext">ysHat :: Vector
-</span><a href="#local-6989586621679114481"><span class="hs-identifier hs-var hs-var">ysHat</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; [Vector] -&gt; Vector
+</span><a href="#local-6989586621679074387"><span class="hs-identifier hs-var">numLabels</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074391"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074390"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074389"><span class="hs-identifier hs-var">ws0</span></a></span><span>
+</span><span id="line-65"></span><span>      </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074383"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- | Fitness function for regression</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- </span><span>
+</span><span id="line-69"></span><span class="hs-comment">--  Split the dataset into twice the available cores</span><span>
+</span><span id="line-70"></span><span class="hs-comment">--  evaluate the expressions in parallel</span><span>
+</span><span id="line-71"></span><span class="hs-comment">--  run a Linear regression on the evaluated expressions</span><span>
+</span><span id="line-72"></span><span class="hs-comment">--  Remove from the population any expression that leads to NaNs or Infs</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- it was fitnessReg</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span class="annot"><a href="IT.Regression.html#fitTask"><span class="hs-identifier hs-type">fitTask</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-type">Task</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-76"></span><span id="fitTask"><span class="annot"><span class="annottext">fitTask :: Task -&gt; Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#fitTask"><span class="hs-identifier hs-var hs-var">fitTask</span></a></span></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-var">Regression</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#regress"><span class="hs-identifier hs-var">regress</span></a></span><span>
+</span><span id="line-77"></span><span class="annot"><a href="IT.Regression.html#fitTask"><span class="hs-identifier hs-var">fitTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="IT.Regression.html#Classification"><span class="hs-identifier hs-var">Classification</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#classify"><span class="hs-identifier hs-var">classify</span></a></span><span>
+</span><span id="line-78"></span><span class="annot"><a href="IT.Regression.html#fitTask"><span class="hs-identifier hs-var">fitTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="IT.Regression.html#ClassMult"><span class="hs-identifier hs-var">ClassMult</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#classifyMult"><span class="hs-identifier hs-var">classifyMult</span></a></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="annot"><a href="IT.Regression.html#predictTask"><span class="hs-identifier hs-type">predictTask</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-type">Task</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>
+</span><span id="line-81"></span><span id="predictTask"><span class="annot"><span class="annottext">predictTask :: Task -&gt; Matrix Double -&gt; [Vector] -&gt; Vector
+</span><a href="IT.Regression.html#predictTask"><span class="hs-identifier hs-var hs-var">predictTask</span></a></span></span><span> </span><span class="annot"><span class="annottext">Task
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>                   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Vector
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;predictTask: empty coefficients matrix&quot;</span></span><span>
+</span><span id="line-82"></span><span class="annot"><a href="IT.Regression.html#predictTask"><span class="hs-identifier hs-var">predictTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-var">Regression</span></a></span><span> </span><span id="local-6989586621679074378"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074378"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074377"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074377"><span class="hs-identifier hs-var">w</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Vector]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
+</span><a href="IT.Regression.html#predict"><span class="hs-identifier hs-var">predict</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074378"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074377"><span class="hs-identifier hs-var">w</span></a></span><span>
+</span><span id="line-83"></span><span class="annot"><a href="IT.Regression.html#predictTask"><span class="hs-identifier hs-var">predictTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="IT.Regression.html#Classification"><span class="hs-identifier hs-var">Classification</span></a></span><span> </span><span id="local-6989586621679074376"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074376"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679074375"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074375"><span class="hs-identifier hs-var">w</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Vector]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogisticModel -&gt; Matrix Double -&gt; Vector -&gt; Vector
+forall a. Model a =&gt; a -&gt; Matrix Double -&gt; Vector -&gt; Vector
+</span><span class="hs-identifier hs-var">LM.hypothesis</span></span><span> </span><span class="annot"><span class="annottext">LogisticModel
+</span><span class="hs-identifier hs-var">LM.Logistic</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074376"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074375"><span class="hs-identifier hs-var">w</span></a></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="IT.Regression.html#predictTask"><span class="hs-identifier hs-var">predictTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="IT.Regression.html#ClassMult"><span class="hs-identifier hs-var">ClassMult</span></a></span><span> </span><span id="local-6989586621679074372"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074372"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span id="local-6989586621679074371"><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074371"><span class="hs-identifier hs-var">ws</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; [Vector] -&gt; Vector
 </span><span class="hs-identifier hs-var">OVA.predict</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114490"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114483"><span class="hs-identifier hs-var">ws</span></a></span><span>
-</span><span id="line-74"></span><span>      </span><span class="hs-keyword">in</span><span>  </span><span class="annot"><span class="annottext">(Vector, [Vector]) -&gt; Maybe (Vector, [Vector])
-forall a. a -&gt; Maybe a
-</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114481"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114483"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-75"></span><span>      </span><span>
-</span><span id="line-76"></span><span class="hs-comment">-- | Fitness function for regression</span><span>
-</span><span id="line-77"></span><span class="hs-comment">-- </span><span>
-</span><span id="line-78"></span><span class="hs-comment">--  Split the dataset into twice the available cores</span><span>
-</span><span id="line-79"></span><span class="hs-comment">--  evaluate the expressions in parallel</span><span>
-</span><span id="line-80"></span><span class="hs-comment">--  run a Linear regression on the evaluated expressions</span><span>
-</span><span id="line-81"></span><span class="hs-comment">--  Remove from the population any expression that leads to NaNs or Infs</span><span>
-</span><span id="line-82"></span><span class="hs-comment">-- it was fitnessReg</span><span>
-</span><span id="line-83"></span><span class="annot"><a href="IT.Regression.html#evalTrain"><span class="hs-identifier hs-type">evalTrain</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-type">Task</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonEmpty</span></span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Dataset"><span class="hs-identifier hs-type">Dataset</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span>
-</span><span id="line-84"></span><span id="evalTrain"><span class="annot"><span class="annottext">evalTrain :: Task
--&gt; NonEmpty Measure
--&gt; Dataset Double
--&gt; Vector
--&gt; Expr Double
--&gt; Maybe (Solution Double)
-</span><a href="IT.Regression.html#evalTrain"><span class="hs-identifier hs-var hs-var">evalTrain</span></a></span></span><span> </span><span id="local-6989586621679114478"><span class="annot"><span class="annottext">task :: Task
-</span><a href="#local-6989586621679114478"><span class="hs-identifier hs-var">task</span></a></span></span><span> </span><span id="local-6989586621679114477"><span class="annot"><span class="annottext">measures :: NonEmpty Measure
-</span><a href="#local-6989586621679114477"><span class="hs-identifier hs-var">measures</span></a></span></span><span> </span><span id="local-6989586621679114476"><span class="annot"><span class="annottext">xss :: Dataset Double
-</span><a href="#local-6989586621679114476"><span class="hs-identifier hs-var">xss</span></a></span></span><span> </span><span id="local-6989586621679114475"><span class="annot"><span class="annottext">ys :: Vector
-</span><a href="#local-6989586621679114475"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span id="local-6989586621679114474"><span class="annot"><span class="annottext">expr :: Expr Double
-</span><a href="#local-6989586621679114474"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-85"></span><span class="hs-comment">--  | notInfNan ps = Just ps </span><span>
-</span><span id="line-86"></span><span class="hs-comment">--  | otherwise    = Nothing</span><span>
-</span><span id="line-87"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe (Vector, [Vector])
-</span><a href="#local-6989586621679114473"><span class="hs-identifier hs-var">res</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-88"></span><span>       </span><span class="annot"><span class="hs-identifier hs-type">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe (Solution Double)
-forall a. Maybe a
-</span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-89"></span><span>       </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="hs-identifier">_</span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Solution Double -&gt; Maybe (Solution Double)
-forall a. a -&gt; Maybe a
-</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Solution Double
-</span><a href="#local-6989586621679114472"><span class="hs-identifier hs-var">ps</span></a></span><span> </span><span>
-</span><span id="line-90"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-91"></span><span>    </span><span id="local-6989586621679114471"><span class="annot"><span class="annottext">zss :: Matrix Double
-</span><a href="#local-6989586621679114471"><span class="hs-identifier hs-var hs-var">zss</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Expr Double -&gt; Matrix Double
-</span><a href="IT.Eval.html#exprToMatrix"><span class="hs-identifier hs-var">exprToMatrix</span></a></span><span> </span><span class="annot"><span class="annottext">Dataset Double
-</span><a href="#local-6989586621679114476"><span class="hs-identifier hs-var">xss</span></a></span><span> </span><span class="annot"><span class="annottext">Expr Double
-</span><a href="#local-6989586621679114474"><span class="hs-identifier hs-var">expr</span></a></span><span>
-</span><span id="line-92"></span><span>    </span><span id="local-6989586621679114469"><span class="annot"><span class="annottext">fitFun :: Vector -&gt; Vector -&gt; Double
-</span><a href="#local-6989586621679114469"><span class="hs-identifier hs-var hs-var">fitFun</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Measure -&gt; Vector -&gt; Vector -&gt; Double
-</span><a href="IT.Metrics.html#_fun"><span class="hs-identifier hs-var hs-var">_fun</span></a></span><span> </span><span class="annot"><span class="annottext">(Measure -&gt; Vector -&gt; Vector -&gt; Double)
--&gt; (NonEmpty Measure -&gt; Measure)
--&gt; NonEmpty Measure
--&gt; Vector
--&gt; Vector
--&gt; Double
-forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
-</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure -&gt; Measure
-forall a. NonEmpty a -&gt; a
-</span><span class="hs-identifier hs-var">NE.head</span></span><span> </span><span class="annot"><span class="annottext">(NonEmpty Measure -&gt; Vector -&gt; Vector -&gt; Double)
--&gt; NonEmpty Measure -&gt; Vector -&gt; Vector -&gt; Double
-forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure
-</span><a href="#local-6989586621679114477"><span class="hs-identifier hs-var">measures</span></a></span><span>
-</span><span id="line-93"></span><span>    </span><span id="local-6989586621679114473"><span class="annot"><span class="annottext">res :: Maybe (Vector, [Vector])
-</span><a href="#local-6989586621679114473"><span class="hs-identifier hs-var hs-var">res</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Task
-</span><a href="#local-6989586621679114478"><span class="hs-identifier hs-var">task</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-94"></span><span>                    </span><span class="annot"><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-type">Regression</span></a></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; Double)
--&gt; Matrix Double -&gt; (Vector, [Vector]) -&gt; (Vector, [Vector])
-</span><a href="IT.Regression.html#tryToRound"><span class="hs-identifier hs-var">tryToRound</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector -&gt; Vector -&gt; Double
-</span><a href="#local-6989586621679114469"><span class="hs-operator hs-var">`fitFun`</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114475"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114471"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">((Vector, [Vector]) -&gt; (Vector, [Vector]))
--&gt; Maybe (Vector, [Vector]) -&gt; Maybe (Vector, [Vector])
-forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
-</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Matrix Double -&gt; Maybe (Vector, [Vector])
-</span><a href="IT.Regression.html#regress"><span class="hs-identifier hs-var">regress</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114475"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114471"><span class="hs-identifier hs-var">zss</span></a></span><span>
-</span><span id="line-95"></span><span>                    </span><span class="annot"><a href="IT.Regression.html#Classification"><span class="hs-identifier hs-type">Classification</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Matrix Double -&gt; Maybe (Vector, [Vector])
-</span><a href="IT.Regression.html#classify"><span class="hs-identifier hs-var">classify</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114475"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114471"><span class="hs-identifier hs-var">zss</span></a></span><span>
-</span><span id="line-96"></span><span>                    </span><span class="annot"><a href="IT.Regression.html#ClassMult"><span class="hs-identifier hs-type">ClassMult</span></a></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Matrix Double -&gt; Maybe (Vector, [Vector])
-</span><a href="IT.Regression.html#classifyMult"><span class="hs-identifier hs-var">classifyMult</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114475"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114471"><span class="hs-identifier hs-var">zss</span></a></span><span>
-</span><span id="line-97"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679114463"><span class="annot"><span class="annottext">ysHat :: Vector
-</span><a href="#local-6989586621679114463"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679114462"><span class="annot"><span class="annottext">ws :: [Vector]
-</span><a href="#local-6989586621679114462"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Vector, [Vector]) -&gt; (Vector, [Vector])
-forall a. HasCallStack =&gt; Maybe a -&gt; a
-</span><span class="hs-identifier hs-var">fromJust</span></span><span> </span><span class="annot"><span class="annottext">Maybe (Vector, [Vector])
-</span><a href="#local-6989586621679114473"><span class="hs-identifier hs-var">res</span></a></span><span>
-</span><span id="line-98"></span><span>    </span><span id="local-6989586621679114460"><span class="annot"><span class="annottext">fit :: [Double]
-</span><a href="#local-6989586621679114460"><span class="hs-identifier hs-var hs-var">fit</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonEmpty Double -&gt; [Double]
+</span><a href="#local-6989586621679074372"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074371"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="annot"><a href="IT.Regression.html#evalPenalty"><span class="hs-identifier hs-type">evalPenalty</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Regression.html#Penalty"><span class="hs-identifier hs-type">Penalty</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-87"></span><span id="evalPenalty"><span class="annot"><span class="annottext">evalPenalty :: Penalty -&gt; Int -&gt; Double -&gt; Double
+</span><a href="IT.Regression.html#evalPenalty"><span class="hs-identifier hs-var hs-var">evalPenalty</span></a></span></span><span> </span><span class="annot"><span class="annottext">Penalty
+</span><a href="IT.Regression.html#NoPenalty"><span class="hs-identifier hs-var">NoPenalty</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.0</span></span><span>
+</span><span id="line-88"></span><span class="annot"><a href="IT.Regression.html#evalPenalty"><span class="hs-identifier hs-var">evalPenalty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Regression.html#Len"><span class="hs-identifier hs-type">Len</span></a></span><span> </span><span id="local-6989586621679074368"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074368"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span>   </span><span id="local-6989586621679074367"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074367"><span class="hs-identifier hs-var">len</span></a></span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074367"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074368"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-89"></span><span class="annot"><a href="IT.Regression.html#evalPenalty"><span class="hs-identifier hs-var">evalPenalty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Regression.html#Shape"><span class="hs-identifier hs-type">Shape</span></a></span><span> </span><span id="local-6989586621679074365"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074365"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span>   </span><span id="local-6989586621679074364"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074364"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074364"><span class="hs-identifier hs-var">val</span></a></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074365"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="annot"><a href="IT.Regression.html#applyMeasures"><span class="hs-identifier hs-type">applyMeasures</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonEmpty</span></span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span>
+</span><span id="line-92"></span><span id="applyMeasures"><span class="annot"><span class="annottext">applyMeasures :: NonEmpty Measure -&gt; Vector -&gt; Vector -&gt; [Double]
+</span><a href="IT.Regression.html#applyMeasures"><span class="hs-identifier hs-var hs-var">applyMeasures</span></a></span></span><span> </span><span id="local-6989586621679074362"><span class="annot"><span class="annottext">NonEmpty Measure
+</span><a href="#local-6989586621679074362"><span class="hs-identifier hs-var">measures</span></a></span></span><span> </span><span id="local-6989586621679074361"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074361"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span> </span><span id="local-6989586621679074360"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074360"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonEmpty Double -&gt; [Double]
 forall a. NonEmpty a -&gt; [a]
 </span><span class="hs-identifier hs-var">NE.toList</span></span><span> </span><span class="annot"><span class="annottext">(NonEmpty Double -&gt; [Double]) -&gt; NonEmpty Double -&gt; [Double]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
@@ -355,177 +337,195 @@ forall a b. (a -&gt; b) -&gt; NonEmpty a -&gt; NonEmpty b
 </span><span class="hs-identifier hs-var">NE.map</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Vector -&gt; Vector -&gt; Double) -&gt; (Vector, Vector) -&gt; Double
 forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
 </span><span class="hs-operator hs-var">`uncurry`</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114463"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114475"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Vector -&gt; Vector -&gt; Double) -&gt; Double)
+</span><a href="#local-6989586621679074361"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074360"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Vector -&gt; Vector -&gt; Double) -&gt; Double)
 -&gt; (Measure -&gt; Vector -&gt; Vector -&gt; Double) -&gt; Measure -&gt; Double
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Measure -&gt; Vector -&gt; Vector -&gt; Double
 </span><a href="IT.Metrics.html#_fun"><span class="hs-identifier hs-var hs-var">_fun</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure
-</span><a href="#local-6989586621679114477"><span class="hs-identifier hs-var">measures</span></a></span><span>
-</span><span id="line-99"></span><span>    </span><span id="local-6989586621679114472"><span class="annot"><span class="annottext">ps :: Solution Double
-</span><a href="#local-6989586621679114472"><span class="hs-identifier hs-var hs-var">ps</span></a></span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Expr Double -&gt; [Double] -&gt; [Vector] -&gt; Solution Double
-forall a. Expr a -&gt; [Double] -&gt; [Vector] -&gt; Solution a
-</span><a href="IT.Algorithms.html#Sol"><span class="hs-identifier hs-var">Sol</span></a></span><span> </span><span class="annot"><span class="annottext">Expr Double
-</span><a href="#local-6989586621679114474"><span class="hs-identifier hs-var">expr</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679114460"><span class="hs-identifier hs-var">fit</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114462"><span class="hs-identifier hs-var">ws</span></a></span><span>
-</span><span id="line-100"></span><span>
-</span><span id="line-101"></span><span>
-</span><span id="line-102"></span><span class="hs-comment">-- | Evaluates an expression into the test set. This is different from `fitnessReg` since</span><span>
-</span><span id="line-103"></span><span class="hs-comment">-- it doesn't apply OLS.</span><span>
-</span><span id="line-104"></span><span class="hs-comment">-- It was: fitnessTest</span><span>
-</span><span id="line-105"></span><span class="annot"><a href="IT.Regression.html#evalTest"><span class="hs-identifier hs-type">evalTest</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-type">Task</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonEmpty</span></span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Dataset"><span class="hs-identifier hs-type">Dataset</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span>
-</span><span id="line-106"></span><span id="evalTest"><span class="annot"><span class="annottext">evalTest :: Task
+</span><a href="#local-6989586621679074362"><span class="hs-identifier hs-var">measures</span></a></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="annot"><a href="IT.Regression.html#evalTrain"><span class="hs-identifier hs-type">evalTrain</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-type">Task</span></a></span><span>
+</span><span id="line-95"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonEmpty</span></span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span>
+</span><span id="line-96"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Constraint"><span class="hs-identifier hs-type">Constraint</span></a></span><span>
+</span><span id="line-97"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Regression.html#Penalty"><span class="hs-identifier hs-type">Penalty</span></a></span><span>
+</span><span id="line-98"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Dataset"><span class="hs-identifier hs-type">Dataset</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-99"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>
+</span><span id="line-100"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Dataset"><span class="hs-identifier hs-type">Dataset</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-101"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span>
+</span><span id="line-102"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-103"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span>
+</span><span id="line-104"></span><span id="evalTrain"><span class="annot"><span class="annottext">evalTrain :: Task
+-&gt; NonEmpty Measure
+-&gt; Constraint
+-&gt; Penalty
+-&gt; Dataset Double
+-&gt; Vector
+-&gt; Dataset Double
+-&gt; Vector
+-&gt; Expr
+-&gt; Maybe Solution
+</span><a href="IT.Regression.html#evalTrain"><span class="hs-identifier hs-var hs-var">evalTrain</span></a></span></span><span> </span><span id="local-6989586621679074354"><span class="annot"><span class="annottext">Task
+</span><a href="#local-6989586621679074354"><span class="hs-identifier hs-var">task</span></a></span></span><span> </span><span id="local-6989586621679074353"><span class="annot"><span class="annottext">NonEmpty Measure
+</span><a href="#local-6989586621679074353"><span class="hs-identifier hs-var">measures</span></a></span></span><span> </span><span id="local-6989586621679074352"><span class="annot"><span class="annottext">Constraint
+</span><a href="#local-6989586621679074352"><span class="hs-identifier hs-var">cnstrFun</span></a></span></span><span> </span><span id="local-6989586621679074351"><span class="annot"><span class="annottext">Penalty
+</span><a href="#local-6989586621679074351"><span class="hs-identifier hs-var">penalty</span></a></span></span><span> </span><span id="local-6989586621679074350"><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679074350"><span class="hs-identifier hs-var">xss_train</span></a></span></span><span> </span><span id="local-6989586621679074349"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074349"><span class="hs-identifier hs-var">ys_train</span></a></span></span><span> </span><span id="local-6989586621679074348"><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679074348"><span class="hs-identifier hs-var">xss_val</span></a></span></span><span> </span><span id="local-6989586621679074347"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074347"><span class="hs-identifier hs-var">ys_val</span></a></span></span><span> </span><span id="local-6989586621679074346"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074346"><span class="hs-identifier hs-var">expr</span></a></span></span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074344"><span class="hs-identifier hs-var">expr'</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Solution
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Solution -&gt; Maybe Solution
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Solution -&gt; Maybe Solution) -&gt; Solution -&gt; Maybe Solution
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Expr -&gt; [Double] -&gt; Double -&gt; Int -&gt; Double -&gt; [Vector] -&gt; Solution
+</span><a href="IT.Algorithms.html#Sol"><span class="hs-identifier hs-var">Sol</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074344"><span class="hs-identifier hs-var">expr'</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074342"><span class="hs-identifier hs-var">fit</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074341"><span class="hs-identifier hs-var">cnst</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074340"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074339"><span class="hs-identifier hs-var">pnlty</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074338"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-108"></span><span>    </span><span id="local-6989586621679074338"><span class="annot"><span class="annottext">ws :: [Vector]
+</span><a href="#local-6989586621679074338"><span class="hs-identifier hs-var hs-var">ws</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Task -&gt; Matrix Double -&gt; Vector -&gt; [Vector]
+</span><a href="IT.Regression.html#fitTask"><span class="hs-identifier hs-var">fitTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="#local-6989586621679074354"><span class="hs-identifier hs-var">task</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074337"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074349"><span class="hs-identifier hs-var">ys_train</span></a></span><span>
+</span><span id="line-109"></span><span>    </span><span id="local-6989586621679074336"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679074336"><span class="hs-identifier hs-var hs-var">ysHat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Task -&gt; Matrix Double -&gt; [Vector] -&gt; Vector
+</span><a href="IT.Regression.html#predictTask"><span class="hs-identifier hs-var">predictTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="#local-6989586621679074354"><span class="hs-identifier hs-var">task</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074335"><span class="hs-identifier hs-var">zss_val</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074338"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span id="local-6989586621679074342"><span class="annot"><span class="annottext">fit :: [Double]
+</span><a href="#local-6989586621679074342"><span class="hs-identifier hs-var hs-var">fit</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure -&gt; Vector -&gt; Vector -&gt; [Double]
+</span><a href="IT.Regression.html#applyMeasures"><span class="hs-identifier hs-var">applyMeasures</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure
+</span><a href="#local-6989586621679074353"><span class="hs-identifier hs-var">measures</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074336"><span class="hs-identifier hs-var">ysHat</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074347"><span class="hs-identifier hs-var">ys_val</span></a></span><span>
+</span><span id="line-111"></span><span>    </span><span id="local-6989586621679074334"><span class="annot"><span class="annottext">ws' :: [Double]
+</span><a href="#local-6989586621679074334"><span class="hs-identifier hs-var hs-var">ws'</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; [Double]
+forall a. Storable a =&gt; Vector a -&gt; [a]
+</span><span class="hs-identifier hs-var">V.toList</span></span><span> </span><span class="annot"><span class="annottext">(Vector -&gt; [Double]) -&gt; Vector -&gt; [Double]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Vector] -&gt; Vector
+forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074338"><span class="hs-identifier hs-var">ws</span></a></span><span>
+</span><span id="line-112"></span><span>    </span><span id="local-6989586621679074340"><span class="annot"><span class="annottext">len :: Int
+</span><a href="#local-6989586621679074340"><span class="hs-identifier hs-var hs-var">len</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; [Double] -&gt; Int
+</span><a href="IT.html#exprLength"><span class="hs-identifier hs-var">exprLength</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074344"><span class="hs-identifier hs-var">expr'</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074334"><span class="hs-identifier hs-var">ws'</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span id="local-6989586621679074341"><span class="annot"><span class="annottext">cnst :: Double
+</span><a href="#local-6989586621679074341"><span class="hs-identifier hs-var hs-var">cnst</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Constraint
+</span><a href="#local-6989586621679074352"><span class="hs-identifier hs-var">cnstrFun</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074344"><span class="hs-identifier hs-var">expr'</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679074334"><span class="hs-identifier hs-var">ws'</span></a></span><span>
+</span><span id="line-114"></span><span>    </span><span id="local-6989586621679074339"><span class="annot"><span class="annottext">pnlty :: Double
+</span><a href="#local-6989586621679074339"><span class="hs-identifier hs-var hs-var">pnlty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Penalty -&gt; Int -&gt; Double -&gt; Double
+</span><a href="IT.Regression.html#evalPenalty"><span class="hs-identifier hs-var">evalPenalty</span></a></span><span> </span><span class="annot"><span class="annottext">Penalty
+</span><a href="#local-6989586621679074351"><span class="hs-identifier hs-var">penalty</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679074340"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679074341"><span class="hs-identifier hs-var">cnst</span></a></span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679074344"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074344"><span class="hs-identifier hs-var">expr'</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679074337"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074337"><span class="hs-identifier hs-var">zss</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Expr -&gt; (Expr, Matrix Double)
+</span><a href="IT.Eval.html#cleanExpr"><span class="hs-identifier hs-var">cleanExpr</span></a></span><span> </span><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679074350"><span class="hs-identifier hs-var">xss_train</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074346"><span class="hs-identifier hs-var">expr</span></a></span><span>
+</span><span id="line-117"></span><span>    </span><span id="local-6989586621679074335"><span class="annot"><span class="annottext">zss_val :: Matrix Double
+</span><a href="#local-6989586621679074335"><span class="hs-identifier hs-var hs-var">zss_val</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Expr -&gt; Matrix Double
+</span><a href="IT.Eval.html#exprToMatrix"><span class="hs-identifier hs-var">exprToMatrix</span></a></span><span> </span><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679074348"><span class="hs-identifier hs-var">xss_val</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679074344"><span class="hs-identifier hs-var">expr'</span></a></span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- | Evaluates an expression into the test set. This is different from `fitnessReg` since</span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- it doesn't apply OLS.</span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- It was: fitnessTest</span><span>
+</span><span id="line-122"></span><span class="annot"><a href="IT.Regression.html#evalTest"><span class="hs-identifier hs-type">evalTest</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Regression.html#Task"><span class="hs-identifier hs-type">Task</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonEmpty</span></span><span> </span><span class="annot"><a href="IT.Metrics.html#Measure"><span class="hs-identifier hs-type">Measure</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.html#Dataset"><span class="hs-identifier hs-type">Dataset</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span>
+</span><span id="line-123"></span><span id="evalTest"><span class="annot"><span class="annottext">evalTest :: Task
 -&gt; NonEmpty Measure
 -&gt; Dataset Double
 -&gt; Vector
--&gt; Solution Double
+-&gt; Solution
 -&gt; Maybe [Double]
-</span><a href="IT.Regression.html#evalTest"><span class="hs-identifier hs-var hs-var">evalTest</span></a></span></span><span> </span><span id="local-6989586621679114454"><span class="annot"><span class="annottext">task :: Task
-</span><a href="#local-6989586621679114454"><span class="hs-identifier hs-var">task</span></a></span></span><span> </span><span id="local-6989586621679114453"><span class="annot"><span class="annottext">measures :: NonEmpty Measure
-</span><a href="#local-6989586621679114453"><span class="hs-identifier hs-var">measures</span></a></span></span><span> </span><span id="local-6989586621679114452"><span class="annot"><span class="annottext">xss :: Dataset Double
-</span><a href="#local-6989586621679114452"><span class="hs-identifier hs-var">xss</span></a></span></span><span> </span><span id="local-6989586621679114451"><span class="annot"><span class="annottext">ys :: Vector
-</span><a href="#local-6989586621679114451"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span id="local-6989586621679114450"><span class="annot"><span class="annottext">sol :: Solution Double
-</span><a href="#local-6989586621679114450"><span class="hs-identifier hs-var">sol</span></a></span></span><span> </span><span>
-</span><span id="line-107"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Int
+</span><a href="IT.Regression.html#evalTest"><span class="hs-identifier hs-var hs-var">evalTest</span></a></span></span><span> </span><span id="local-6989586621679074327"><span class="annot"><span class="annottext">Task
+</span><a href="#local-6989586621679074327"><span class="hs-identifier hs-var">task</span></a></span></span><span> </span><span id="local-6989586621679074326"><span class="annot"><span class="annottext">NonEmpty Measure
+</span><a href="#local-6989586621679074326"><span class="hs-identifier hs-var">measures</span></a></span></span><span> </span><span id="local-6989586621679074325"><span class="annot"><span class="annottext">Dataset Double
+</span><a href="#local-6989586621679074325"><span class="hs-identifier hs-var">xss</span></a></span></span><span> </span><span id="local-6989586621679074324"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074324"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span id="local-6989586621679074323"><span class="annot"><span class="annottext">Solution
+</span><a href="#local-6989586621679074323"><span class="hs-identifier hs-var">sol</span></a></span></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Int
 forall a. Storable a =&gt; Vector a -&gt; Int
 </span><span class="hs-identifier hs-var">V.length</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Vector] -&gt; Vector
 forall a. [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114447"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+</span><a href="#local-6989586621679074321"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
 </span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
 forall t. Matrix t -&gt; Int
 </span><span class="hs-identifier hs-var">LA.cols</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114445"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe [Double]
+</span><a href="#local-6989586621679074319"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe [Double]
 forall a. Maybe a
 </span><span class="hs-identifier hs-var">Nothing</span></span><span>
-</span><span id="line-108"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">otherwise</span></span><span>                  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Maybe [Double]
+</span><span id="line-125"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>                         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Maybe [Double]
 forall a. a -&gt; Maybe a
 </span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679114444"><span class="hs-identifier hs-var">fit</span></a></span><span>
-</span><span id="line-109"></span><span>  </span><span class="hs-keyword">where</span><span>
-</span><span id="line-110"></span><span>    </span><span id="local-6989586621679114445"><span class="annot"><span class="annottext">zss :: Matrix Double
-</span><a href="#local-6989586621679114445"><span class="hs-identifier hs-var hs-var">zss</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Expr Double -&gt; Matrix Double
+</span><a href="#local-6989586621679074318"><span class="hs-identifier hs-var">fit</span></a></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-127"></span><span>    </span><span id="local-6989586621679074319"><span class="annot"><span class="annottext">zss :: Matrix Double
+</span><a href="#local-6989586621679074319"><span class="hs-identifier hs-var hs-var">zss</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Dataset Double -&gt; Expr -&gt; Matrix Double
 </span><a href="IT.Eval.html#exprToMatrix"><span class="hs-identifier hs-var">exprToMatrix</span></a></span><span> </span><span class="annot"><span class="annottext">Dataset Double
-</span><a href="#local-6989586621679114452"><span class="hs-identifier hs-var">xss</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Solution Double -&gt; Expr Double
-forall a. Solution a -&gt; Expr a
-</span><a href="IT.Algorithms.html#_expr"><span class="hs-identifier hs-var hs-var">_expr</span></a></span><span> </span><span class="annot"><span class="annottext">Solution Double
-</span><a href="#local-6989586621679114450"><span class="hs-identifier hs-var">sol</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-111"></span><span>    </span><span id="local-6989586621679114447"><span class="annot"><span class="annottext">ws :: [Vector]
-</span><a href="#local-6989586621679114447"><span class="hs-identifier hs-var hs-var">ws</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Solution Double -&gt; [Vector]
-forall a. Solution a -&gt; [Vector]
-</span><a href="IT.Algorithms.html#_weights"><span class="hs-identifier hs-var hs-var">_weights</span></a></span><span> </span><span class="annot"><span class="annottext">Solution Double
-</span><a href="#local-6989586621679114450"><span class="hs-identifier hs-var">sol</span></a></span><span>
-</span><span id="line-112"></span><span>    </span><span id="local-6989586621679114441"><span class="annot"><span class="annottext">ysHat :: Vector
-</span><a href="#local-6989586621679114441"><span class="hs-identifier hs-var hs-var">ysHat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Task
-</span><a href="#local-6989586621679114454"><span class="hs-identifier hs-var">task</span></a></span><span> </span><span class="hs-keyword">of</span><span>
-</span><span id="line-113"></span><span>              </span><span class="annot"><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-type">Regression</span></a></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
-</span><a href="IT.Regression.html#predict"><span class="hs-identifier hs-var">predict</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114445"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Vector] -&gt; Vector
-forall a. [a] -&gt; a
-</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114447"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-114"></span><span>              </span><span class="annot"><a href="IT.Regression.html#Classification"><span class="hs-identifier hs-type">Classification</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LogisticModel -&gt; Matrix Double -&gt; Vector -&gt; Vector
-forall a. Model a =&gt; a -&gt; Matrix Double -&gt; Vector -&gt; Vector
-</span><span class="hs-identifier hs-var">LM.hypothesis</span></span><span> </span><span class="annot"><span class="annottext">LogisticModel
-</span><span class="hs-identifier hs-var">LM.Logistic</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114445"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Vector] -&gt; Vector
-forall a. [a] -&gt; a
-</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114447"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-115"></span><span>              </span><span class="annot"><a href="IT.Regression.html#ClassMult"><span class="hs-identifier hs-type">ClassMult</span></a></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; [Vector] -&gt; Vector
-</span><span class="hs-identifier hs-var">OVA.predict</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114445"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679114447"><span class="hs-identifier hs-var">ws</span></a></span><span>   </span><span>
-</span><span id="line-116"></span><span>    </span><span id="local-6989586621679114444"><span class="annot"><span class="annottext">fit :: [Double]
-</span><a href="#local-6989586621679114444"><span class="hs-identifier hs-var hs-var">fit</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonEmpty Double -&gt; [Double]
-forall a. NonEmpty a -&gt; [a]
-</span><span class="hs-identifier hs-var">NE.toList</span></span><span> </span><span class="annot"><span class="annottext">(NonEmpty Double -&gt; [Double]) -&gt; NonEmpty Double -&gt; [Double]
-forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(Measure -&gt; Double) -&gt; NonEmpty Measure -&gt; NonEmpty Double
-forall a b. (a -&gt; b) -&gt; NonEmpty a -&gt; NonEmpty b
-</span><span class="hs-identifier hs-var">NE.map</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Vector -&gt; Vector -&gt; Double) -&gt; (Vector, Vector) -&gt; Double
-forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
-</span><span class="hs-operator hs-var">`uncurry`</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114441"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114451"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Vector -&gt; Vector -&gt; Double) -&gt; Double)
--&gt; (Measure -&gt; Vector -&gt; Vector -&gt; Double) -&gt; Measure -&gt; Double
-forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
-</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Measure -&gt; Vector -&gt; Vector -&gt; Double
-</span><a href="IT.Metrics.html#_fun"><span class="hs-identifier hs-var hs-var">_fun</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure
-</span><a href="#local-6989586621679114453"><span class="hs-identifier hs-var">measures</span></a></span><span>
-</span><span id="line-117"></span><span>
-</span><span id="line-118"></span><span class="hs-comment">-- | Experimental: round off floating point to the 1e-10 place.</span><span>
-</span><span id="line-119"></span><span id="local-6989586621679114545"><span class="annot"><a href="IT.Regression.html#roundoff"><span class="hs-identifier hs-type">roundoff</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">RealFrac</span></span><span> </span><span class="annot"><a href="#local-6989586621679114545"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679114545"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679114545"><span class="hs-identifier hs-type">a</span></a></span></span><span>
-</span><span id="line-120"></span><span id="roundoff"><span class="annot"><span class="annottext">roundoff :: a -&gt; a
-</span><a href="IT.Regression.html#roundoff"><span class="hs-identifier hs-var hs-var">roundoff</span></a></span></span><span> </span><span id="local-6989586621679114439"><span class="annot"><span class="annottext">x :: a
-</span><a href="#local-6989586621679114439"><span class="hs-identifier hs-var">x</span></a></span></span><span>
-</span><span id="line-121"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679114439"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; Bool
-forall a. Ord a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679114437"><span class="hs-identifier hs-var">thr</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-number">0.0</span></span><span>
-</span><span id="line-122"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679114439"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; Bool
-forall a. Ord a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="hs-number">1e200</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679114439"><span class="hs-identifier hs-var">x</span></a></span><span>
-</span><span id="line-123"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
-</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; a
-forall a. Num a =&gt; Integer -&gt; a
-</span><span class="hs-identifier hs-var">fromInteger</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Integer
-forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
-</span><span class="hs-identifier hs-var">round</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679114439"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
-forall a. Fractional a =&gt; a -&gt; a -&gt; a
-</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679114437"><span class="hs-identifier hs-var">thr</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
-forall a. Num a =&gt; a -&gt; a -&gt; a
-</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679114437"><span class="hs-identifier hs-var">thr</span></a></span><span>
-</span><span id="line-124"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679114437"><span class="annot"><span class="annottext">thr :: a
-</span><a href="#local-6989586621679114437"><span class="hs-identifier hs-var hs-var">thr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-number">1e-10</span></span><span>
-</span><span id="line-125"></span><span>
-</span><span id="line-126"></span><span class="hs-comment">-- what to do with you?</span><span>
-</span><span id="line-127"></span><span class="annot"><a href="IT.Regression.html#tryToRound"><span class="hs-identifier hs-type">tryToRound</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LA.Matrix</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.Metrics.html#Vector"><span class="hs-identifier hs-type">Vector</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-128"></span><span id="tryToRound"><span class="annot"><span class="annottext">tryToRound :: (Vector -&gt; Double)
--&gt; Matrix Double -&gt; (Vector, [Vector]) -&gt; (Vector, [Vector])
-</span><a href="IT.Regression.html#tryToRound"><span class="hs-identifier hs-var hs-var">tryToRound</span></a></span></span><span> </span><span id="local-6989586621679114432"><span class="annot"><span class="annottext">f :: Vector -&gt; Double
-</span><a href="#local-6989586621679114432"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679114431"><span class="annot"><span class="annottext">zss :: Matrix Double
-</span><a href="#local-6989586621679114431"><span class="hs-identifier hs-var">zss</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679114430"><span class="annot"><span class="annottext">ysHat :: Vector
-</span><a href="#local-6989586621679114430"><span class="hs-identifier hs-var">ysHat</span></a></span></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679114429"><span class="annot"><span class="annottext">ws :: Vector
-</span><a href="#local-6989586621679114429"><span class="hs-identifier hs-var">ws</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="hs-identifier">_</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><span id="line-129"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679114428"><span class="annot"><span class="annottext">ws' :: Vector
-</span><a href="#local-6989586621679114428"><span class="hs-identifier hs-var hs-var">ws'</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double) -&gt; Vector -&gt; Vector
-forall a b.
-(Storable a, Storable b) =&gt;
-(a -&gt; b) -&gt; Vector a -&gt; Vector b
-</span><span class="hs-identifier hs-var">V.map</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
-forall a. RealFrac a =&gt; a -&gt; a
-</span><a href="IT.Regression.html#roundoff"><span class="hs-identifier hs-var">roundoff</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114429"><span class="hs-identifier hs-var">ws</span></a></span><span>
-</span><span id="line-130"></span><span>      </span><span id="local-6989586621679114426"><span class="annot"><span class="annottext">ysHat' :: Vector
-</span><a href="#local-6989586621679114426"><span class="hs-identifier hs-var hs-var">ysHat'</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector -&gt; Vector
-</span><a href="IT.Regression.html#predict"><span class="hs-identifier hs-var">predict</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679114431"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114428"><span class="hs-identifier hs-var">ws'</span></a></span><span>
-</span><span id="line-131"></span><span>  </span><span class="hs-keyword">in</span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
-forall a. Num a =&gt; a -&gt; a
-</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector -&gt; Double
-</span><a href="#local-6989586621679114432"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114426"><span class="hs-identifier hs-var">ysHat'</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
-forall a. Num a =&gt; a -&gt; a -&gt; a
-</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Double
-</span><a href="#local-6989586621679114432"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114430"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
-forall a. Ord a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="hs-number">0.01</span></span><span>
-</span><span id="line-132"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114426"><span class="hs-identifier hs-var">ysHat'</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114428"><span class="hs-identifier hs-var">ws'</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-133"></span><span>          </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114430"><span class="hs-identifier hs-var">ysHat</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679114429"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><span id="line-134"></span></pre></body></html>
+</span><a href="#local-6989586621679074325"><span class="hs-identifier hs-var">xss</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Solution -&gt; Expr
+</span><a href="IT.Algorithms.html#_expr"><span class="hs-identifier hs-var hs-var">_expr</span></a></span><span> </span><span class="annot"><span class="annottext">Solution
+</span><a href="#local-6989586621679074323"><span class="hs-identifier hs-var">sol</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>    </span><span id="local-6989586621679074321"><span class="annot"><span class="annottext">ws :: [Vector]
+</span><a href="#local-6989586621679074321"><span class="hs-identifier hs-var hs-var">ws</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Solution -&gt; [Vector]
+</span><a href="IT.Algorithms.html#_weights"><span class="hs-identifier hs-var hs-var">_weights</span></a></span><span> </span><span class="annot"><span class="annottext">Solution
+</span><a href="#local-6989586621679074323"><span class="hs-identifier hs-var">sol</span></a></span><span>
+</span><span id="line-129"></span><span>    </span><span id="local-6989586621679074315"><span class="annot"><span class="annottext">ysHat :: Vector
+</span><a href="#local-6989586621679074315"><span class="hs-identifier hs-var hs-var">ysHat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Task -&gt; Matrix Double -&gt; [Vector] -&gt; Vector
+</span><a href="IT.Regression.html#predictTask"><span class="hs-identifier hs-var">predictTask</span></a></span><span> </span><span class="annot"><span class="annottext">Task
+</span><a href="#local-6989586621679074327"><span class="hs-identifier hs-var">task</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679074319"><span class="hs-identifier hs-var">zss</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679074321"><span class="hs-identifier hs-var">ws</span></a></span><span> </span><span>
+</span><span id="line-130"></span><span>    </span><span id="local-6989586621679074318"><span class="annot"><span class="annottext">fit :: [Double]
+</span><a href="#local-6989586621679074318"><span class="hs-identifier hs-var hs-var">fit</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure -&gt; Vector -&gt; Vector -&gt; [Double]
+</span><a href="IT.Regression.html#applyMeasures"><span class="hs-identifier hs-var">applyMeasures</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure
+</span><a href="#local-6989586621679074326"><span class="hs-identifier hs-var">measures</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074315"><span class="hs-identifier hs-var">ysHat</span></a></span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679074324"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="hs-comment">{-
+-- | Experimental: round off floating point to the 1e-10 place.
+roundoff :: RealFrac a =&gt; a -&gt; a
+roundoff x
+  | abs x &lt; thr   = 0.0
+  | abs x &gt; 1e200 = x
+  | otherwise = fromInteger (round (x / thr)) * thr
+  where thr = 1e-15
+
+-- what to do with you?
+tryToRound :: (Vector -&gt; Double) -&gt; LA.Matrix Double -&gt; (Vector, [Vector]) -&gt; (Vector, [Vector])
+tryToRound f zss (ysHat, (ws:_)) =
+  let ws'         = V.map roundoff ws
+      ysHat'      = predict zss ws'
+  in  (ysHat', [ws']) --if abs (f ysHat' - f ysHat) &lt; 0.01
+          --then (ysHat', [ws'])
+          --else (ysHat, [ws])
+tryToRound _ _ _ = error &quot;empty weight list&quot;
+-}</span><span>
+</span><span id="line-151"></span></pre></body></html>

@@ -66,6 +66,8 @@ instance NFData Solution where
 --type Fitness    a b = [Expr a] -> Population a b -- (Expr a, Double, b)
 type Fitness = Expr -> Maybe Solution
 
+-- | 'Constraint' is a function that receives an expression and its coefficients
+-- and return the penalty associated with the constraint violation.
 type Constraint = Expr -> [Double] -> Double
 
 -- | 'Mutation' function with signature 'Solution a b -> Rnd (Solution a b)'

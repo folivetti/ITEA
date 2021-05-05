@@ -9,173 +9,177 @@ Portability : POSIX
 
 Run a 5-fold cross-validation on the training set to find the best
 combination of hyperparameters.
+
+TODO: refactor, document, write the best configuration in a config file
 -}</span><span>
-</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">RunCrossVal</span><span> </span><span class="hs-keyword">where</span><span>
-</span><span id="line-14"></span><span>
-</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.LinearAlgebra</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LA</span></span><span>
-</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Vector</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">V</span></span><span>
-</span><span id="line-17"></span><span>
-</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
-</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NE</span></span><span>
-</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Ord</span></span><span>
-</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
-</span><span id="line-22"></span><span>
-</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
-</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.State</span></span><span>
-</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Random</span></span><span>
-</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Random.Shuffle</span></span><span>
-</span><span id="line-27"></span><span>
-</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ITEA.Config.html"><span class="hs-identifier">ITEA.Config</span></a></span><span>
-</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ITEA.Report.html"><span class="hs-identifier">ITEA.Report</span></a></span><span>
-</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.ITEA.html"><span class="hs-identifier">IT.ITEA</span></a></span><span>
-</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Regression.html"><span class="hs-identifier">IT.Regression</span></a></span><span>
-</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Algorithms.html"><span class="hs-identifier">IT.Algorithms</span></a></span><span>
-</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Metrics.html"><span class="hs-identifier">IT.Metrics</span></a></span><span>
-</span><span id="line-34"></span><span>
-</span><span id="line-35"></span><span class="hs-comment">-- | Returns the mutation configuration, population size and number of generations.</span><span>
-</span><span id="line-36"></span><span class="hs-comment">--</span><span>
-</span><span id="line-37"></span><span class="hs-comment">-- * '(e1, e2)' are the minimum and maximum exponentes.</span><span>
-</span><span id="line-38"></span><span class="hs-comment">-- * 'tmax' is the maximum number of terms.</span><span>
-</span><span id="line-39"></span><span class="hs-comment">-- * 'pop' is the population size.</span><span>
-</span><span id="line-40"></span><span id="local-6989586621679115399"><span class="annot"><a href="RunCrossVal.html#createMutCfg"><span class="hs-identifier hs-type">createMutCfg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679115399"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679115399"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ITEA.Config.html#MutationCfg"><span class="hs-identifier hs-type">MutationCfg</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679115399"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679115399"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span></span><span>
-</span><span id="line-41"></span><span id="createMutCfg"><span class="annot"><span class="annottext">createMutCfg :: (Int, Int) -&gt; Int -&gt; c -&gt; (MutationCfg, c, c)
-</span><a href="RunCrossVal.html#createMutCfg"><span class="hs-identifier hs-var hs-var">createMutCfg</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679115383"><span class="annot"><span class="annottext">e1 :: Int
-</span><a href="#local-6989586621679115383"><span class="hs-identifier hs-var">e1</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679115382"><span class="annot"><span class="annottext">e2 :: Int
-</span><a href="#local-6989586621679115382"><span class="hs-identifier hs-var">e2</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679115381"><span class="annot"><span class="annottext">tmax :: Int
-</span><a href="#local-6989586621679115381"><span class="hs-identifier hs-var">tmax</span></a></span></span><span> </span><span id="local-6989586621679115380"><span class="annot"><span class="annottext">pop :: c
-</span><a href="#local-6989586621679115380"><span class="hs-identifier hs-var">pop</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MutationCfg
-</span><a href="#local-6989586621679115379"><span class="hs-identifier hs-var">cfg</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">c
-</span><a href="#local-6989586621679115380"><span class="hs-identifier hs-var">pop</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-number">100000</span></span><span> </span><span class="annot"><span class="annottext">c -&gt; c -&gt; c
-forall a. Integral a =&gt; a -&gt; a -&gt; a
-</span><span class="hs-operator hs-var">`div`</span></span><span> </span><span class="annot"><span class="annottext">c
-</span><a href="#local-6989586621679115380"><span class="hs-identifier hs-var">pop</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-42"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679115379"><span class="annot"><span class="annottext">cfg :: MutationCfg
-</span><a href="#local-6989586621679115379"><span class="hs-identifier hs-var hs-var">cfg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UncheckedMutationCfg -&gt; MutationCfg
+</span><span id="line-15"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">RunCrossVal</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.LinearAlgebra</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LA</span></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Vector</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">V</span></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NE</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Ord</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.State</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bifunctor</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Random</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Random.Shuffle</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ConfigFile</span></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Either.Utils</span></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.html"><span class="hs-identifier">IT</span></a></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Shape.html"><span class="hs-identifier">IT.Shape</span></a></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ITEA.Config.html"><span class="hs-identifier">ITEA.Config</span></a></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ITEA.Report.html"><span class="hs-identifier">ITEA.Report</span></a></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.ITEA.html"><span class="hs-identifier">IT.ITEA</span></a></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.FI2POP.html"><span class="hs-identifier">IT.FI2POP</span></a></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Regression.html"><span class="hs-identifier">IT.Regression</span></a></span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Algorithms.html"><span class="hs-identifier">IT.Algorithms</span></a></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="IT.Metrics.html"><span class="hs-identifier">IT.Metrics</span></a></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="RunConfig.html"><span class="hs-identifier">RunConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="RunConfig.html#Alg"><span class="hs-identifier">Alg</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span class="annot"><a href="RunConfig.html#getSetting"><span class="hs-identifier">getSetting</span></a></span><span class="hs-special">,</span><span class="annot"><a href="RunConfig.html#getWithDefault"><span class="hs-identifier">getWithDefault</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- | Returns the mutation configuration, population size and number of generations.</span><span>
+</span><span id="line-46"></span><span class="hs-comment">--</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- * '(e1, e2)' are the minimum and maximum exponentes.</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- * 'tmax' is the maximum number of terms.</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- * 'pop' is the population size.</span><span>
+</span><span id="line-50"></span><span class="annot"><a href="RunCrossVal.html#createMutCfg"><span class="hs-identifier hs-type">createMutCfg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="IT.html#Transformation"><span class="hs-identifier hs-type">Transformation</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ITEA.Config.html#MutationCfg"><span class="hs-identifier hs-type">MutationCfg</span></a></span><span>
+</span><span id="line-51"></span><span id="createMutCfg"><span class="annot"><span class="annottext">createMutCfg :: (Int, Int) -&gt; Int -&gt; [Transformation] -&gt; MutationCfg
+</span><a href="RunCrossVal.html#createMutCfg"><span class="hs-identifier hs-var hs-var">createMutCfg</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679075589"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075589"><span class="hs-identifier hs-var">e1</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679075588"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075588"><span class="hs-identifier hs-var">e2</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679075587"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075587"><span class="hs-identifier hs-var">tmax</span></a></span></span><span> </span><span id="local-6989586621679075586"><span class="annot"><span class="annottext">[Transformation]
+</span><a href="#local-6989586621679075586"><span class="hs-identifier hs-var">tfuncs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075585"><span class="hs-identifier hs-var">cfg</span></a></span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679075585"><span class="annot"><span class="annottext">cfg :: MutationCfg
+</span><a href="#local-6989586621679075585"><span class="hs-identifier hs-var hs-var">cfg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UncheckedMutationCfg -&gt; MutationCfg
 forall a b. Valid a b =&gt; a -&gt; b
 </span><a href="ITEA.Config.html#validateConfig"><span class="hs-identifier hs-var">validateConfig</span></a></span><span>
-</span><span id="line-43"></span><span>            </span><span class="annot"><span class="annottext">(UncheckedMutationCfg -&gt; MutationCfg)
+</span><span id="line-53"></span><span>            </span><span class="annot"><span class="annottext">(UncheckedMutationCfg -&gt; MutationCfg)
 -&gt; UncheckedMutationCfg -&gt; MutationCfg
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span>  </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; UncheckedMutationCfg
 </span><a href="ITEA.Config.html#exponents"><span class="hs-identifier hs-var">exponents</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115383"><span class="hs-identifier hs-var">e1</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115382"><span class="hs-identifier hs-var">e2</span></a></span><span>
-</span><span id="line-44"></span><span>            </span><span class="annot"><span class="annottext">UncheckedMutationCfg
+</span><a href="#local-6989586621679075589"><span class="hs-identifier hs-var">e1</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075588"><span class="hs-identifier hs-var">e2</span></a></span><span>
+</span><span id="line-54"></span><span>            </span><span class="annot"><span class="annottext">UncheckedMutationCfg
 -&gt; UncheckedMutationCfg -&gt; UncheckedMutationCfg
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; UncheckedMutationCfg
-</span><a href="ITEA.Config.html#termLimit"><span class="hs-identifier hs-var">termLimit</span></a></span><span> </span><span class="annot"><span class="hs-number">2</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115381"><span class="hs-identifier hs-var">tmax</span></a></span><span>
-</span><span id="line-45"></span><span>            </span><span class="annot"><span class="annottext">UncheckedMutationCfg
+</span><a href="ITEA.Config.html#termLimit"><span class="hs-identifier hs-var">termLimit</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075587"><span class="hs-identifier hs-var">tmax</span></a></span><span>
+</span><span id="line-55"></span><span>            </span><span class="annot"><span class="annottext">UncheckedMutationCfg
 -&gt; UncheckedMutationCfg -&gt; UncheckedMutationCfg
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; UncheckedMutationCfg
-</span><a href="ITEA.Config.html#nonzeroExps"><span class="hs-identifier hs-var">nonzeroExps</span></a></span><span> </span><span class="annot"><span class="hs-number">1</span></span><span>
-</span><span id="line-46"></span><span>            </span><span class="annot"><span class="annottext">UncheckedMutationCfg
+</span><a href="ITEA.Config.html#nonzeroExps"><span class="hs-identifier hs-var">nonzeroExps</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-56"></span><span>            </span><span class="annot"><span class="annottext">UncheckedMutationCfg
+-&gt; UncheckedMutationCfg -&gt; UncheckedMutationCfg
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Transformation] -&gt; UncheckedMutationCfg
+</span><a href="ITEA.Config.html#transFunctions"><span class="hs-identifier hs-var">transFunctions</span></a></span><span> </span><span class="annot"><span class="annottext">[Transformation]
+</span><a href="#local-6989586621679075586"><span class="hs-identifier hs-var">tfuncs</span></a></span><span> </span><span class="hs-comment">-- [Id, Sin, Cos, Tanh, SqrtAbs, Log, Exp]</span><span>
+</span><span id="line-57"></span><span>            </span><span class="annot"><span class="annottext">UncheckedMutationCfg
 -&gt; UncheckedMutationCfg -&gt; UncheckedMutationCfg
 forall a. Semigroup a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; UncheckedMutationCfg
-</span><a href="ITEA.Config.html#transFunctions"><span class="hs-identifier hs-var">transFunctions</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-string">&quot;id&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-string">&quot;sin&quot;</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-string">&quot;cos&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-string">&quot;tanh&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-string">&quot;sqrt.abs&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-string">&quot;log&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-string">&quot;exp&quot;</span></span><span class="hs-special">]</span><span>
-</span><span id="line-47"></span><span>
-</span><span id="line-48"></span><span class="hs-comment">-- | Validates the program arguments</span><span>
-</span><span id="line-49"></span><span class="annot"><a href="RunCrossVal.html#validateArgs"><span class="hs-identifier hs-type">validateArgs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span>
-</span><span id="line-50"></span><span id="validateArgs"><span class="annot"><span class="annottext">validateArgs :: [String] -&gt; (String, Int)
-</span><a href="RunCrossVal.html#validateArgs"><span class="hs-identifier hs-var hs-var">validateArgs</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679115371"><span class="annot"><span class="annottext">x :: String
-</span><a href="#local-6989586621679115371"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679115370"><span class="annot"><span class="annottext">y :: String
-</span><a href="#local-6989586621679115370"><span class="hs-identifier hs-var">y</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115371"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
+</span><a href="ITEA.Config.html#measures"><span class="hs-identifier hs-var">measures</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;NMSE&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- | Validates the program arguments</span><span>
+</span><span id="line-60"></span><span class="annot"><a href="RunCrossVal.html#validateArgs"><span class="hs-identifier hs-type">validateArgs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span id="validateArgs"><span class="annot"><span class="annottext">validateArgs :: [String] -&gt; (String, Int)
+</span><a href="RunCrossVal.html#validateArgs"><span class="hs-identifier hs-var hs-var">validateArgs</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679075577"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679075577"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679075576"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679075576"><span class="hs-identifier hs-var">y</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679075577"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
 forall a. Read a =&gt; String -&gt; a
 </span><span class="hs-identifier hs-var">read</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115370"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-51"></span><span class="annot"><a href="RunCrossVal.html#validateArgs"><span class="hs-identifier hs-var">validateArgs</span></a></span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (String, Int)
+</span><a href="#local-6989586621679075576"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span class="annot"><a href="RunCrossVal.html#validateArgs"><span class="hs-identifier hs-var">validateArgs</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (String, Int)
 forall a. HasCallStack =&gt; String -&gt; a
-</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="hs-string">&quot;Usage: crossval dataname fold&quot;</span></span><span>
-</span><span id="line-52"></span><span>
-</span><span id="line-53"></span><span class="hs-comment">-- | Runs a single experiment with a given configuration</span><span>
-</span><span id="line-54"></span><span class="annot"><a href="RunCrossVal.html#runITEARegCV"><span class="hs-identifier hs-type">runITEARegCV</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>                         </span><span class="hs-comment">-- ^ Training fitness function</span><span>
-</span><span id="line-55"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>          </span><span class="hs-comment">-- ^ Test fitness function</span><span>
-</span><span id="line-56"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ Problem dimension</span><span>
-</span><span id="line-57"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ITEA.Config.html#MutationCfg"><span class="hs-identifier hs-type">MutationCfg</span></a></span><span>                                         </span><span class="hs-comment">-- ^ Mutation configuration</span><span>
-</span><span id="line-58"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ population size</span><span>
-</span><span id="line-59"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ number of generations</span><span>
-</span><span id="line-60"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
-</span><span id="line-61"></span><span id="runITEARegCV"><span class="annot"><span class="annottext">runITEARegCV :: Fitness Double
--&gt; (Solution Double -&gt; Maybe [Double])
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Usage: crossval dataname fold&quot;</span></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | Runs a single experiment with a given configuration</span><span>
+</span><span id="line-65"></span><span class="annot"><a href="RunCrossVal.html#runITEARegCV"><span class="hs-identifier hs-type">runITEARegCV</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span>                                             </span><span class="hs-comment">-- ^ Training fitness function</span><span>
+</span><span id="line-66"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>                        </span><span class="hs-comment">-- ^ Test fitness function</span><span>
+</span><span id="line-67"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ Problem dimension</span><span>
+</span><span id="line-68"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ITEA.Config.html#MutationCfg"><span class="hs-identifier hs-type">MutationCfg</span></a></span><span>                                         </span><span class="hs-comment">-- ^ Mutation configuration</span><span>
+</span><span id="line-69"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ population size</span><span>
+</span><span id="line-70"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ number of generations</span><span>
+</span><span id="line-71"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-72"></span><span id="runITEARegCV"><span class="annot"><span class="annottext">runITEARegCV :: Fitness
+-&gt; (Solution -&gt; Maybe [Double])
 -&gt; Int
 -&gt; MutationCfg
 -&gt; Int
 -&gt; Int
 -&gt; IO Double
-</span><a href="RunCrossVal.html#runITEARegCV"><span class="hs-identifier hs-var hs-var">runITEARegCV</span></a></span></span><span> </span><span id="local-6989586621679115366"><span class="annot"><span class="annottext">fitTrain :: Fitness Double
-</span><a href="#local-6989586621679115366"><span class="hs-identifier hs-var">fitTrain</span></a></span></span><span> </span><span id="local-6989586621679115365"><span class="annot"><span class="annottext">fitTest :: Solution Double -&gt; Maybe [Double]
-</span><a href="#local-6989586621679115365"><span class="hs-identifier hs-var">fitTest</span></a></span></span><span> </span><span id="local-6989586621679115364"><span class="annot"><span class="annottext">dim :: Int
-</span><a href="#local-6989586621679115364"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679115363"><span class="annot"><span class="annottext">mcfg :: MutationCfg
-</span><a href="#local-6989586621679115363"><span class="hs-identifier hs-var">mcfg</span></a></span></span><span> </span><span id="local-6989586621679115362"><span class="annot"><span class="annottext">nPop :: Int
-</span><a href="#local-6989586621679115362"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679115361"><span class="annot"><span class="annottext">nGens :: Int
-</span><a href="#local-6989586621679115361"><span class="hs-identifier hs-var">nGens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-62"></span><span>  </span><span class="hs-comment">-- random seed</span><span>
-</span><span id="line-63"></span><span>  </span><span id="local-6989586621679115360"><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679115360"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen
+</span><a href="RunCrossVal.html#runITEARegCV"><span class="hs-identifier hs-var hs-var">runITEARegCV</span></a></span></span><span> </span><span id="local-6989586621679075572"><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075572"><span class="hs-identifier hs-var">fitTrain</span></a></span></span><span> </span><span id="local-6989586621679075571"><span class="annot"><span class="annottext">Solution -&gt; Maybe [Double]
+</span><a href="#local-6989586621679075571"><span class="hs-identifier hs-var">fitTest</span></a></span></span><span> </span><span id="local-6989586621679075570"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075570"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679075569"><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075569"><span class="hs-identifier hs-var">mcfg</span></a></span></span><span> </span><span id="local-6989586621679075568"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075568"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679075567"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075567"><span class="hs-identifier hs-var">nGens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-comment">-- random seed</span><span>
+</span><span id="line-74"></span><span>  </span><span id="local-6989586621679075566"><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679075566"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen
 forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
 </span><span class="hs-identifier hs-var">newStdGen</span></span><span>
-</span><span id="line-64"></span><span>
-</span><span id="line-65"></span><span>  </span><span class="hs-comment">-- run ITEA with given configuration</span><span>
-</span><span id="line-66"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679115358"><span class="annot"><span class="annottext">mutFun :: Mutation Double
-</span><a href="#local-6989586621679115358"><span class="hs-identifier hs-var">mutFun</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679115357"><span class="annot"><span class="annottext">rndTerm :: Rnd (Term Double)
-</span><a href="#local-6989586621679115357"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MutationCfg -&gt; Int -&gt; (Mutation Double, Rnd (Term Double))
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-comment">-- run ITEA with given configuration</span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679075564"><span class="annot"><span class="annottext">Mutation
+</span><a href="#local-6989586621679075564"><span class="hs-identifier hs-var">mutFun</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679075563"><span class="annot"><span class="annottext">Rnd Term
+</span><a href="#local-6989586621679075563"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MutationCfg -&gt; Int -&gt; (Mutation, Rnd Term)
 </span><a href="ITEA.Config.html#withMutation"><span class="hs-identifier hs-var">withMutation</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
-</span><a href="#local-6989586621679115363"><span class="hs-identifier hs-var">mcfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115364"><span class="hs-identifier hs-var">dim</span></a></span><span>
-</span><span id="line-67"></span><span>      </span><span id="local-6989586621679115355"><span class="annot"><span class="annottext">p0 :: Rnd (Population Double)
-</span><a href="#local-6989586621679115355"><span class="hs-identifier hs-var hs-var">p0</span></a></span></span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
--&gt; Int
--&gt; Rnd (Term Double)
--&gt; Fitness Double
--&gt; Rnd (Population Double)
-forall a.
-NFData a =&gt;
-Int -&gt; Int -&gt; Rnd (Term a) -&gt; Fitness a -&gt; Rnd (Population a)
-</span><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-var">initialPop</span></a></span><span> </span><span class="annot"><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115362"><span class="hs-identifier hs-var">nPop</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Term Double)
-</span><a href="#local-6989586621679115357"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness Double
-</span><a href="#local-6989586621679115366"><span class="hs-identifier hs-var">fitTrain</span></a></span><span>
-</span><span id="line-68"></span><span>      </span><span id="local-6989586621679115353"><span class="annot"><span class="annottext">gens :: [Population Double]
-</span><a href="#local-6989586621679115353"><span class="hs-identifier hs-var hs-var">gens</span></a></span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rnd (Population Double)
-</span><a href="#local-6989586621679115355"><span class="hs-identifier hs-var">p0</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd (Population Double)
--&gt; (Population Double
-    -&gt; StateT StdGen Identity [Population Double])
--&gt; StateT StdGen Identity [Population Double]
+</span><a href="#local-6989586621679075569"><span class="hs-identifier hs-var">mcfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075570"><span class="hs-identifier hs-var">dim</span></a></span><span>
+</span><span id="line-78"></span><span>      </span><span id="local-6989586621679075561"><span class="annot"><span class="annottext">p0 :: Rnd Population
+</span><a href="#local-6989586621679075561"><span class="hs-identifier hs-var hs-var">p0</span></a></span></span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Term -&gt; Fitness -&gt; Rnd Population
+</span><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-var">initialPop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075568"><span class="hs-identifier hs-var">nPop</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd Term
+</span><a href="#local-6989586621679075563"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075572"><span class="hs-identifier hs-var">fitTrain</span></a></span><span> </span><span>
+</span><span id="line-79"></span><span>      </span><span id="local-6989586621679075559"><span class="annot"><span class="annottext">gens :: [Population]
+</span><a href="#local-6989586621679075559"><span class="hs-identifier hs-var hs-var">gens</span></a></span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Rnd Population
+</span><a href="#local-6989586621679075561"><span class="hs-identifier hs-var">p0</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd Population
+-&gt; (Population -&gt; StateT StdGen Identity [Population])
+-&gt; StateT StdGen Identity [Population]
 forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
-</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Mutation Double
--&gt; Fitness Double
--&gt; Population Double
--&gt; StateT StdGen Identity [Population Double]
-forall a.
-NFData a =&gt;
-Mutation a -&gt; Fitness a -&gt; Population a -&gt; Rnd [Population a]
-</span><a href="IT.ITEA.html#itea"><span class="hs-identifier hs-var">itea</span></a></span><span> </span><span class="annot"><span class="annottext">Mutation Double
-</span><a href="#local-6989586621679115358"><span class="hs-identifier hs-var">mutFun</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness Double
-</span><a href="#local-6989586621679115366"><span class="hs-identifier hs-var">fitTrain</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">StateT StdGen Identity [Population Double]
--&gt; StdGen -&gt; [Population Double]
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Mutation
+-&gt; Fitness -&gt; Population -&gt; StateT StdGen Identity [Population]
+</span><a href="IT.ITEA.html#itea"><span class="hs-identifier hs-var">itea</span></a></span><span> </span><span class="annot"><span class="annottext">Mutation
+</span><a href="#local-6989586621679075564"><span class="hs-identifier hs-var">mutFun</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075572"><span class="hs-identifier hs-var">fitTrain</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">StateT StdGen Identity [Population] -&gt; StdGen -&gt; [Population]
 forall s a. State s a -&gt; s -&gt; a
 </span><span class="hs-operator hs-var">`evalState`</span></span><span> </span><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679115360"><span class="hs-identifier hs-var">g</span></a></span><span>
-</span><span id="line-69"></span><span>      </span><span id="local-6989586621679115350"><span class="annot"><span class="annottext">best :: Solution Double
-</span><a href="#local-6989586621679115350"><span class="hs-identifier hs-var hs-var">best</span></a></span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Population Double] -&gt; Solution Double
+</span><a href="#local-6989586621679075566"><span class="hs-identifier hs-var">g</span></a></span><span>
+</span><span id="line-80"></span><span>      </span><span id="local-6989586621679075556"><span class="annot"><span class="annottext">best :: Solution
+</span><a href="#local-6989586621679075556"><span class="hs-identifier hs-var hs-var">best</span></a></span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Population] -&gt; Solution
 </span><a href="ITEA.Report.html#getBest"><span class="hs-identifier hs-var">getBest</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115361"><span class="hs-identifier hs-var">nGens</span></a></span><span> </span><span class="annot"><span class="annottext">[Population Double]
-</span><a href="#local-6989586621679115353"><span class="hs-identifier hs-var">gens</span></a></span><span>
-</span><span id="line-70"></span><span>      </span><span id="local-6989586621679115348"><span class="annot"><span class="annottext">result :: [Double]
-</span><a href="#local-6989586621679115348"><span class="hs-identifier hs-var hs-var">result</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Maybe [Double] -&gt; [Double]
+</span><a href="#local-6989586621679075567"><span class="hs-identifier hs-var">nGens</span></a></span><span> </span><span class="annot"><span class="annottext">[Population]
+</span><a href="#local-6989586621679075559"><span class="hs-identifier hs-var">gens</span></a></span><span>
+</span><span id="line-81"></span><span>      </span><span id="local-6989586621679075554"><span class="annot"><span class="annottext">result :: [Double]
+</span><a href="#local-6989586621679075554"><span class="hs-identifier hs-var hs-var">result</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Maybe [Double] -&gt; [Double]
 forall a. a -&gt; Maybe a -&gt; a
-</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-number">1</span></span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
-forall a. Fractional a =&gt; a -&gt; a -&gt; a
-</span><span class="hs-operator hs-var">/</span></span><span class="annot"><span class="hs-number">0</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">(Maybe [Double] -&gt; [Double]) -&gt; Maybe [Double] -&gt; [Double]
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">(Maybe [Double] -&gt; [Double]) -&gt; Maybe [Double] -&gt; [Double]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
-</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Solution Double -&gt; Maybe [Double]
-</span><a href="#local-6989586621679115365"><span class="hs-identifier hs-var">fitTest</span></a></span><span> </span><span class="annot"><span class="annottext">Solution Double
-</span><a href="#local-6989586621679115350"><span class="hs-identifier hs-var">best</span></a></span><span>
-</span><span id="line-71"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; IO Double
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Solution -&gt; Maybe [Double]
+</span><a href="#local-6989586621679075571"><span class="hs-identifier hs-var">fitTest</span></a></span><span> </span><span class="annot"><span class="annottext">Solution
+</span><a href="#local-6989586621679075556"><span class="hs-identifier hs-var">best</span></a></span><span>
+</span><span id="line-82"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; IO Double
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span class="annot"><span class="annottext">(Double -&gt; IO Double)
 -&gt; ([Double] -&gt; Double) -&gt; [Double] -&gt; IO Double
@@ -183,207 +187,363 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">[Double] -&gt; Double
 forall a. [a] -&gt; a
 </span><span class="hs-identifier hs-var">head</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679115348"><span class="hs-identifier hs-var">result</span></a></span><span>
-</span><span id="line-72"></span><span>
-</span><span id="line-73"></span><span>
-</span><span id="line-74"></span><span class="hs-comment">-- | runs a configuration for a given data set</span><span>
-</span><span id="line-75"></span><span class="annot"><a href="RunCrossVal.html#runCfg"><span class="hs-identifier hs-type">runCfg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ITEA.Config.html#MutationCfg"><span class="hs-identifier hs-type">MutationCfg</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
-</span><span id="line-76"></span><span id="runCfg"><span class="annot"><span class="annottext">runCfg :: String -&gt; Int -&gt; (MutationCfg, Int, Int) -&gt; IO Double
-</span><a href="RunCrossVal.html#runCfg"><span class="hs-identifier hs-var hs-var">runCfg</span></a></span></span><span> </span><span id="local-6989586621679115342"><span class="annot"><span class="annottext">dname :: String
-</span><a href="#local-6989586621679115342"><span class="hs-identifier hs-var">dname</span></a></span></span><span> </span><span id="local-6989586621679115341"><span class="annot"><span class="annottext">fold :: Int
-</span><a href="#local-6989586621679115341"><span class="hs-identifier hs-var">fold</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679115340"><span class="annot"><span class="annottext">mutCfg :: MutationCfg
-</span><a href="#local-6989586621679115340"><span class="hs-identifier hs-var">mutCfg</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679115339"><span class="annot"><span class="annottext">pop :: Int
-</span><a href="#local-6989586621679115339"><span class="hs-identifier hs-var">pop</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679115338"><span class="annot"><span class="annottext">gen :: Int
-</span><a href="#local-6989586621679115338"><span class="hs-identifier hs-var">gen</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-77"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679115337"><span class="annot"><span class="annottext">fname :: String
-</span><a href="#local-6989586621679115337"><span class="hs-identifier hs-var hs-var">fname</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-string">&quot;datasets/&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
-forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115342"><span class="hs-identifier hs-var">dname</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
-forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
-forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115342"><span class="hs-identifier hs-var">dname</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
-forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;-train-&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
-forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
-forall a. Show a =&gt; a -&gt; String
-</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115341"><span class="hs-identifier hs-var">fold</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
-forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;.dat&quot;</span></span><span>
-</span><span id="line-78"></span><span>
-</span><span id="line-79"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679115335"><span class="annot"><span class="annottext">trainX :: Matrix Double
-</span><a href="#local-6989586621679115335"><span class="hs-identifier hs-var">trainX</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679115334"><span class="annot"><span class="annottext">trainY :: Vector
-</span><a href="#local-6989586621679115334"><span class="hs-identifier hs-var">trainY</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; (Matrix Double, Vector)
+</span><a href="#local-6989586621679075554"><span class="hs-identifier hs-var">result</span></a></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="RunCrossVal.html#runFI2POPRegCV"><span class="hs-identifier hs-type">runFI2POPRegCV</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="IT.Algorithms.html#Fitness"><span class="hs-identifier hs-type">Fitness</span></a></span><span>                                           </span><span class="hs-comment">-- ^ Training fitness function</span><span>
+</span><span id="line-85"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="IT.Algorithms.html#Solution"><span class="hs-identifier hs-type">Solution</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>                        </span><span class="hs-comment">-- ^ Test fitness function</span><span>
+</span><span id="line-86"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ Problem dimension</span><span>
+</span><span id="line-87"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ITEA.Config.html#MutationCfg"><span class="hs-identifier hs-type">MutationCfg</span></a></span><span>                                         </span><span class="hs-comment">-- ^ Mutation configuration</span><span>
+</span><span id="line-88"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ population size</span><span>
+</span><span id="line-89"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>                                                 </span><span class="hs-comment">-- ^ number of generations</span><span>
+</span><span id="line-90"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-91"></span><span id="runFI2POPRegCV"><span class="annot"><span class="annottext">runFI2POPRegCV :: Fitness
+-&gt; (Solution -&gt; Maybe [Double])
+-&gt; Int
+-&gt; MutationCfg
+-&gt; Int
+-&gt; Int
+-&gt; IO Double
+</span><a href="RunCrossVal.html#runFI2POPRegCV"><span class="hs-identifier hs-var hs-var">runFI2POPRegCV</span></a></span></span><span> </span><span id="local-6989586621679075549"><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075549"><span class="hs-identifier hs-var">fitTrain</span></a></span></span><span> </span><span id="local-6989586621679075548"><span class="annot"><span class="annottext">Solution -&gt; Maybe [Double]
+</span><a href="#local-6989586621679075548"><span class="hs-identifier hs-var">fitTest</span></a></span></span><span> </span><span id="local-6989586621679075547"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075547"><span class="hs-identifier hs-var">dim</span></a></span></span><span> </span><span id="local-6989586621679075546"><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075546"><span class="hs-identifier hs-var">mcfg</span></a></span></span><span> </span><span id="local-6989586621679075545"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075545"><span class="hs-identifier hs-var">nPop</span></a></span></span><span> </span><span id="local-6989586621679075544"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075544"><span class="hs-identifier hs-var">nGens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-comment">-- random seed</span><span>
+</span><span id="line-93"></span><span>  </span><span id="local-6989586621679075543"><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679075543"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen
+forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
+</span><span class="hs-identifier hs-var">newStdGen</span></span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-comment">-- run ITEA with given configuration</span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679075542"><span class="annot"><span class="annottext">Mutation
+</span><a href="#local-6989586621679075542"><span class="hs-identifier hs-var">mutFun</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679075541"><span class="annot"><span class="annottext">Rnd Term
+</span><a href="#local-6989586621679075541"><span class="hs-identifier hs-var">rndTerm</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MutationCfg -&gt; Int -&gt; (Mutation, Rnd Term)
+</span><a href="ITEA.Config.html#withMutation"><span class="hs-identifier hs-var">withMutation</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075546"><span class="hs-identifier hs-var">mcfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075547"><span class="hs-identifier hs-var">dim</span></a></span><span>
+</span><span id="line-97"></span><span>      </span><span id="local-6989586621679075540"><span class="annot"><span class="annottext">p0 :: StateT StdGen Identity (Population, Population)
+</span><a href="#local-6989586621679075540"><span class="hs-identifier hs-var hs-var">p0</span></a></span></span><span>                 </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Population -&gt; (Population, Population)
+</span><a href="IT.FI2POP.html#splitPop"><span class="hs-identifier hs-var">splitPop</span></a></span><span> </span><span class="annot"><span class="annottext">(Population -&gt; (Population, Population))
+-&gt; Rnd Population
+-&gt; StateT StdGen Identity (Population, Population)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Rnd Term -&gt; Fitness -&gt; Rnd Population
+</span><a href="IT.ITEA.html#initialPop"><span class="hs-identifier hs-var">initialPop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075545"><span class="hs-identifier hs-var">nPop</span></a></span><span> </span><span class="annot"><span class="annottext">Rnd Term
+</span><a href="#local-6989586621679075541"><span class="hs-identifier hs-var">rndTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075549"><span class="hs-identifier hs-var">fitTrain</span></a></span><span> </span><span>
+</span><span id="line-98"></span><span>      </span><span id="local-6989586621679075537"><span class="annot"><span class="annottext">gens :: [Population]
+</span><a href="#local-6989586621679075537"><span class="hs-identifier hs-var hs-var">gens</span></a></span></span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Population, Population) -&gt; Population)
+-&gt; [(Population, Population)] -&gt; [Population]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">(Population, Population) -&gt; Population
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">([(Population, Population)] -&gt; [Population])
+-&gt; [(Population, Population)] -&gt; [Population]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">StateT StdGen Identity (Population, Population)
+</span><a href="#local-6989586621679075540"><span class="hs-identifier hs-var">p0</span></a></span><span> </span><span class="annot"><span class="annottext">StateT StdGen Identity (Population, Population)
+-&gt; ((Population, Population)
+    -&gt; StateT StdGen Identity [(Population, Population)])
+-&gt; StateT StdGen Identity [(Population, Population)]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Mutation
+-&gt; Fitness
+-&gt; (Population, Population)
+-&gt; StateT StdGen Identity [(Population, Population)]
+</span><a href="IT.FI2POP.html#fi2pop"><span class="hs-identifier hs-var">fi2pop</span></a></span><span> </span><span class="annot"><span class="annottext">Mutation
+</span><a href="#local-6989586621679075542"><span class="hs-identifier hs-var">mutFun</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075549"><span class="hs-identifier hs-var">fitTrain</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">StateT StdGen Identity [(Population, Population)]
+-&gt; StdGen -&gt; [(Population, Population)]
+forall s a. State s a -&gt; s -&gt; a
+</span><span class="hs-operator hs-var">`evalState`</span></span><span> </span><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679075543"><span class="hs-identifier hs-var">g</span></a></span><span>
+</span><span id="line-99"></span><span>      </span><span id="local-6989586621679075535"><span class="annot"><span class="annottext">mBest :: Maybe Solution
+</span><a href="#local-6989586621679075535"><span class="hs-identifier hs-var hs-var">mBest</span></a></span></span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Population] -&gt; Maybe Solution
+</span><a href="ITEA.Report.html#getBestMaybe"><span class="hs-identifier hs-var">getBestMaybe</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075544"><span class="hs-identifier hs-var">nGens</span></a></span><span> </span><span class="annot"><span class="annottext">[Population]
+</span><a href="#local-6989586621679075537"><span class="hs-identifier hs-var">gens</span></a></span><span>
+</span><span id="line-100"></span><span>      </span><span id="local-6989586621679075533"><span class="annot"><span class="annottext">result :: [Double]
+</span><a href="#local-6989586621679075533"><span class="hs-identifier hs-var hs-var">result</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe Solution
+</span><a href="#local-6989586621679075535"><span class="hs-identifier hs-var">mBest</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-101"></span><span>                                </span><span class="annot"><span class="annottext">Maybe Solution
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span class="hs-special">]</span><span>
+</span><span id="line-102"></span><span>                                </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679075532"><span class="annot"><span class="annottext">Solution
+</span><a href="#local-6989586621679075532"><span class="hs-identifier hs-var">best</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Maybe [Double] -&gt; [Double]
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">1e+10</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">(Maybe [Double] -&gt; [Double]) -&gt; Maybe [Double] -&gt; [Double]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Solution -&gt; Maybe [Double]
+</span><a href="#local-6989586621679075548"><span class="hs-identifier hs-var">fitTest</span></a></span><span> </span><span class="annot"><span class="annottext">Solution
+</span><a href="#local-6989586621679075532"><span class="hs-identifier hs-var">best</span></a></span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; IO Double
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span class="annot"><span class="annottext">(Double -&gt; IO Double)
+-&gt; ([Double] -&gt; Double) -&gt; [Double] -&gt; IO Double
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">[Double] -&gt; Double
+forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679075533"><span class="hs-identifier hs-var">result</span></a></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- | runs a configuration for a given data set</span><span>
+</span><span id="line-106"></span><span class="annot"><a href="RunCrossVal.html#runCfg"><span class="hs-identifier hs-type">runCfg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ITEA.Config.html#MutationCfg"><span class="hs-identifier hs-type">MutationCfg</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-107"></span><span id="runCfg"><span class="annot"><span class="annottext">runCfg :: String -&gt; Int -&gt; MutationCfg -&gt; IO Double
+</span><a href="RunCrossVal.html#runCfg"><span class="hs-identifier hs-var hs-var">runCfg</span></a></span></span><span> </span><span id="local-6989586621679075529"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679075529"><span class="hs-identifier hs-var">fname</span></a></span></span><span> </span><span id="local-6989586621679075528"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075528"><span class="hs-identifier hs-var">fold</span></a></span></span><span> </span><span id="local-6989586621679075527"><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075527"><span class="hs-identifier hs-var">mutCfg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span>  </span><span id="local-6989586621679075526"><span class="annot"><span class="annottext">ConfigParser
+</span><a href="#local-6989586621679075526"><span class="hs-identifier hs-var">cp</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Either CPError ConfigParser -&gt; ConfigParser
+forall e a. Show e =&gt; Either e a -&gt; a
+</span><span class="hs-identifier hs-var">forceEither</span></span><span> </span><span class="annot"><span class="annottext">(Either CPError ConfigParser -&gt; ConfigParser)
+-&gt; IO (Either CPError ConfigParser) -&gt; IO ConfigParser
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; String -&gt; IO (Either CPError ConfigParser)
+forall (m :: * -&gt; *).
+MonadError CPError m =&gt;
+ConfigParser -&gt; String -&gt; IO (m ConfigParser)
+</span><span class="hs-identifier hs-var">readfile</span></span><span> </span><span class="annot"><span class="annottext">ConfigParser
+</span><span class="hs-identifier hs-var">emptyCP</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679075529"><span class="hs-identifier hs-var">fname</span></a></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-keyword">let</span><span>
+</span><span id="line-111"></span><span>    </span><span id="local-6989586621679075522"><span class="annot"><span class="annottext">trainname :: String
+</span><a href="#local-6989586621679075522"><span class="hs-identifier hs-var hs-var">trainname</span></a></span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; String -&gt; String -&gt; String
+forall a. Get_C a =&gt; ConfigParser -&gt; String -&gt; String -&gt; a
+</span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
+</span><a href="#local-6989586621679075526"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;IO&quot;</span></span><span>   </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;train&quot;</span></span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-comment">--nPop               = getSetting cp &quot;Algorithm&quot;   &quot;npop&quot;</span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-comment">--nGens              = getSetting cp &quot;Algorithm&quot;   &quot;ngens&quot;</span><span>
+</span><span id="line-115"></span><span>    </span><span id="local-6989586621679075521"><span class="annot"><span class="annottext">alg :: Alg
+</span><a href="#local-6989586621679075521"><span class="hs-identifier hs-var hs-var">alg</span></a></span></span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfigParser -&gt; String -&gt; String -&gt; Alg
+forall a. Get_C a =&gt; ConfigParser -&gt; String -&gt; String -&gt; a
+</span><a href="RunConfig.html#getSetting"><span class="hs-identifier hs-var">getSetting</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigParser
+</span><a href="#local-6989586621679075526"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Algorithm&quot;</span></span><span>   </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;algorithm&quot;</span></span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-comment">-- penalty            = getWithDefault NoPenalty cp &quot;Constraints&quot; &quot;penalty&quot;</span><span>
+</span><span id="line-118"></span><span>    </span><span id="local-6989586621679075520"><span class="annot"><span class="annottext">shapes :: [Shape]
+</span><a href="#local-6989586621679075520"><span class="hs-identifier hs-var hs-var">shapes</span></a></span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Shape] -&gt; ConfigParser -&gt; String -&gt; String -&gt; [Shape]
+forall a. Get_C a =&gt; a -&gt; ConfigParser -&gt; String -&gt; String -&gt; a
+</span><a href="RunConfig.html#getWithDefault"><span class="hs-identifier hs-var">getWithDefault</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">ConfigParser
+</span><a href="#local-6989586621679075526"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Constraints&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;shapes&quot;</span></span><span>
+</span><span id="line-119"></span><span>    </span><span id="local-6989586621679075519"><span class="annot"><span class="annottext">domains :: Maybe [(Double, Double)]
+</span><a href="#local-6989586621679075519"><span class="hs-identifier hs-var hs-var">domains</span></a></span></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe [(Double, Double)]
+-&gt; ConfigParser -&gt; String -&gt; String -&gt; Maybe [(Double, Double)]
+forall a. Get_C a =&gt; a -&gt; ConfigParser -&gt; String -&gt; String -&gt; a
+</span><a href="RunConfig.html#getWithDefault"><span class="hs-identifier hs-var">getWithDefault</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [(Double, Double)]
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">ConfigParser
+</span><a href="#local-6989586621679075526"><span class="hs-identifier hs-var">cp</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Constraints&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;domains&quot;</span></span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679075518"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679075518"><span class="hs-identifier hs-var">trainX</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679075517"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679075517"><span class="hs-identifier hs-var">trainY</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Matrix Double)
+-&gt; (Matrix Double, Vector) -&gt; (Matrix Double, Vector)
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span><span class="hs-identifier hs-var">first</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double
+</span><span class="hs-number">1.0</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Matrix Double -&gt; Matrix Double
+forall t. Element t =&gt; Matrix t -&gt; Matrix t -&gt; Matrix t
+</span><span class="hs-operator hs-var">LA.|||</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Matrix Double, Vector) -&gt; (Matrix Double, Vector))
+-&gt; (String -&gt; (Matrix Double, Vector))
+-&gt; String
+-&gt; (Matrix Double, Vector)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; (Matrix Double, Vector)
 </span><a href="ITEA.Config.html#parseFile"><span class="hs-identifier hs-var">parseFile</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; (Matrix Double, Vector))
 -&gt; IO String -&gt; IO (Matrix Double, Vector)
 forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
 </span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
 </span><span class="hs-identifier hs-var">readFile</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115337"><span class="hs-identifier hs-var">fname</span></a></span><span>
-</span><span id="line-80"></span><span>  </span><span id="local-6989586621679115330"><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679115330"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen
+</span><a href="#local-6989586621679075522"><span class="hs-identifier hs-var">trainname</span></a></span><span>
+</span><span id="line-122"></span><span>  </span><span id="local-6989586621679075512"><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679075512"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO StdGen
 forall (m :: * -&gt; *). MonadIO m =&gt; m StdGen
 </span><span class="hs-identifier hs-var">newStdGen</span></span><span>
-</span><span id="line-81"></span><span>
-</span><span id="line-82"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679115329"><span class="annot"><span class="annottext">nRows :: Int
-</span><a href="#local-6989586621679115329"><span class="hs-identifier hs-var hs-var">nRows</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
+</span><span id="line-123"></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679075511"><span class="annot"><span class="annottext">nRows :: Int
+</span><a href="#local-6989586621679075511"><span class="hs-identifier hs-var hs-var">nRows</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
 forall t. Matrix t -&gt; Int
 </span><span class="hs-identifier hs-var">LA.rows</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679115335"><span class="hs-identifier hs-var">trainX</span></a></span><span>
-</span><span id="line-83"></span><span>      </span><span id="local-6989586621679115327"><span class="annot"><span class="annottext">dim :: Int
-</span><a href="#local-6989586621679115327"><span class="hs-identifier hs-var hs-var">dim</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
+</span><a href="#local-6989586621679075518"><span class="hs-identifier hs-var">trainX</span></a></span><span>
+</span><span id="line-125"></span><span>      </span><span id="local-6989586621679075509"><span class="annot"><span class="annottext">dim :: Int
+</span><a href="#local-6989586621679075509"><span class="hs-identifier hs-var hs-var">dim</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Int
 forall t. Matrix t -&gt; Int
 </span><span class="hs-identifier hs-var">LA.cols</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679115335"><span class="hs-identifier hs-var">trainX</span></a></span><span>
-</span><span id="line-84"></span><span>
-</span><span id="line-85"></span><span>      </span><span class="hs-comment">-- random 5-cv split</span><span>
-</span><span id="line-86"></span><span>      </span><span id="local-6989586621679115325"><span class="annot"><span class="annottext">cycle' :: [a] -&gt; [a]
-</span><a href="#local-6989586621679115325"><span class="hs-identifier hs-var hs-var">cycle'</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
-</span><span id="line-87"></span><span>      </span><span class="annot"><a href="#local-6989586621679115325"><span class="hs-identifier hs-var">cycle'</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679115324"><span class="annot"><span class="annottext">x :: a
-</span><a href="#local-6989586621679115324"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679115323"><span class="annot"><span class="annottext">xs :: [a]
-</span><a href="#local-6989586621679115323"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a]
-</span><a href="#local-6989586621679115323"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679075518"><span class="hs-identifier hs-var">trainX</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span>      </span><span class="hs-comment">-- random 5-cv split</span><span>
+</span><span id="line-128"></span><span>      </span><span id="local-6989586621679075507"><span class="annot"><span class="annottext">cycle' :: [a] -&gt; [a]
+</span><a href="#local-6989586621679075507"><span class="hs-identifier hs-var hs-var">cycle'</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-129"></span><span>      </span><span class="annot"><a href="#local-6989586621679075507"><span class="hs-identifier hs-var">cycle'</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679075506"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679075506"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679075505"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679075505"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679075505"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a]
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">a
-</span><a href="#local-6989586621679115324"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-88"></span><span>      </span><span id="local-6989586621679115322"><span class="annot"><span class="annottext">rndix :: [Int]
-</span><a href="#local-6989586621679115322"><span class="hs-identifier hs-var hs-var">rndix</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; StdGen -&gt; [Int]
+</span><a href="#local-6989586621679075506"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-130"></span><span>      </span><span id="local-6989586621679075504"><span class="annot"><span class="annottext">rndix :: [Int]
+</span><a href="#local-6989586621679075504"><span class="hs-identifier hs-var hs-var">rndix</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int -&gt; StdGen -&gt; [Int]
 forall gen a. RandomGen gen =&gt; [a] -&gt; Int -&gt; gen -&gt; [a]
-</span><span class="hs-identifier hs-var">shuffle'</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">..</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115329"><span class="hs-identifier hs-var">nRows</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><span class="hs-identifier hs-var">shuffle'</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">..</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075511"><span class="hs-identifier hs-var">nRows</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
-</span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115329"><span class="hs-identifier hs-var">nRows</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
-</span><a href="#local-6989586621679115330"><span class="hs-identifier hs-var">g</span></a></span><span>
-</span><span id="line-89"></span><span>      </span><span id="local-6989586621679115320"><span class="annot"><span class="annottext">nRows' :: Int
-</span><a href="#local-6989586621679115320"><span class="hs-identifier hs-var hs-var">nRows'</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115329"><span class="hs-identifier hs-var">nRows</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075511"><span class="hs-identifier hs-var">nRows</span></a></span><span> </span><span class="annot"><span class="annottext">StdGen
+</span><a href="#local-6989586621679075512"><span class="hs-identifier hs-var">g</span></a></span><span>
+</span><span id="line-131"></span><span>      </span><span id="local-6989586621679075502"><span class="annot"><span class="annottext">nRows' :: Int
+</span><a href="#local-6989586621679075502"><span class="hs-identifier hs-var hs-var">nRows'</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075511"><span class="hs-identifier hs-var">nRows</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Integral a =&gt; a -&gt; a -&gt; a
-</span><span class="hs-operator hs-var">`div`</span></span><span> </span><span class="annot"><span class="hs-number">5</span></span><span>
-</span><span id="line-90"></span><span>      </span><span id="local-6989586621679115319"><span class="annot"><span class="annottext">idxs :: [[Int]]
-</span><a href="#local-6989586621679115319"><span class="hs-identifier hs-var hs-var">idxs</span></a></span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; [Int]
+</span><span class="hs-operator hs-var">`div`</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075528"><span class="hs-identifier hs-var">fold</span></a></span><span>
+</span><span id="line-132"></span><span>      </span><span id="local-6989586621679075500"><span class="annot"><span class="annottext">idxs :: [[Int]]
+</span><a href="#local-6989586621679075500"><span class="hs-identifier hs-var hs-var">idxs</span></a></span></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; [Int]
 forall a. Int -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115320"><span class="hs-identifier hs-var">nRows'</span></a></span><span> </span><span class="annot"><span class="annottext">([Int] -&gt; [Int]) -&gt; [Int] -&gt; [Int]
+</span><a href="#local-6989586621679075502"><span class="hs-identifier hs-var">nRows'</span></a></span><span> </span><span class="annot"><span class="annottext">([Int] -&gt; [Int]) -&gt; [Int] -&gt; [Int]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Int] -&gt; [Int]
 forall a. Int -&gt; [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115316"><span class="hs-identifier hs-var">i</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+</span><a href="#local-6989586621679075497"><span class="hs-identifier hs-var">i</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
 forall a. Num a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">*</span></span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115320"><span class="hs-identifier hs-var">nRows'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679115322"><span class="hs-identifier hs-var">rndix</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679115316"><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115316"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-number">0</span></span><span class="hs-glyph">..</span><span class="annot"><span class="hs-number">4</span></span><span class="hs-special">]</span><span class="hs-special">]</span><span>
-</span><span id="line-91"></span><span>      </span><span id="local-6989586621679115314"><span class="annot"><span class="annottext">folds :: [([Int], [Int])]
-</span><a href="#local-6989586621679115314"><span class="hs-identifier hs-var hs-var">folds</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [([Int], [Int])] -&gt; [([Int], [Int])]
+</span><a href="#local-6989586621679075502"><span class="hs-identifier hs-var">nRows'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679075504"><span class="hs-identifier hs-var">rndix</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679075497"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075497"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">..</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075528"><span class="hs-identifier hs-var">fold</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">]</span><span class="hs-special">]</span><span>
+</span><span id="line-133"></span><span>      </span><span id="local-6989586621679075495"><span class="annot"><span class="annottext">folds :: [([Int], [Int])]
+</span><a href="#local-6989586621679075495"><span class="hs-identifier hs-var hs-var">folds</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [([Int], [Int])] -&gt; [([Int], [Int])]
 forall a. Int -&gt; [a] -&gt; [a]
-</span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="hs-number">5</span></span><span> </span><span class="annot"><span class="annottext">([([Int], [Int])] -&gt; [([Int], [Int])])
+</span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075528"><span class="hs-identifier hs-var">fold</span></a></span><span> </span><span class="annot"><span class="annottext">([([Int], [Int])] -&gt; [([Int], [Int])])
 -&gt; [([Int], [Int])] -&gt; [([Int], [Int])]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">([[Int]] -&gt; ([Int], [Int])) -&gt; [[[Int]]] -&gt; [([Int], [Int])]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
-</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679115313"><span class="annot"><span class="annottext">x :: [Int]
-</span><a href="#local-6989586621679115313"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679115312"><span class="annot"><span class="annottext">xs :: [[Int]]
-</span><a href="#local-6989586621679115312"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Int]] -&gt; [Int]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679075494"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679075494"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679075493"><span class="annot"><span class="annottext">[[Int]]
+</span><a href="#local-6989586621679075493"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Int]] -&gt; [Int]
 forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
 </span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">[[Int]]
-</span><a href="#local-6989586621679115312"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679115313"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([[[Int]]] -&gt; [([Int], [Int])]) -&gt; [[[Int]]] -&gt; [([Int], [Int])]
+</span><a href="#local-6989586621679075493"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679075494"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([[[Int]]] -&gt; [([Int], [Int])]) -&gt; [[[Int]]] -&gt; [([Int], [Int])]
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">([[Int]] -&gt; [[Int]]) -&gt; [[Int]] -&gt; [[[Int]]]
 forall a. (a -&gt; a) -&gt; a -&gt; [a]
 </span><span class="hs-identifier hs-var">iterate</span></span><span> </span><span class="annot"><span class="annottext">[[Int]] -&gt; [[Int]]
 forall a. [a] -&gt; [a]
-</span><a href="#local-6989586621679115325"><span class="hs-identifier hs-var">cycle'</span></a></span><span> </span><span class="annot"><span class="annottext">[[Int]]
-</span><a href="#local-6989586621679115319"><span class="hs-identifier hs-var">idxs</span></a></span><span>
-</span><span id="line-92"></span><span>
-</span><span id="line-93"></span><span>      </span><span class="hs-comment">-- tr = training, tv = validation</span><span>
-</span><span id="line-94"></span><span>      </span><span id="local-6989586621679115309"><span class="annot"><span class="annottext">getY :: [Int] -&gt; Vector
-</span><a href="#local-6989586621679115309"><span class="hs-identifier hs-var hs-var">getY</span></a></span></span><span> </span><span id="local-6989586621679115308"><span class="annot"><span class="annottext">is :: [Int]
-</span><a href="#local-6989586621679115308"><span class="hs-identifier hs-var">is</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector
+</span><a href="#local-6989586621679075507"><span class="hs-identifier hs-var">cycle'</span></a></span><span> </span><span class="annot"><span class="annottext">[[Int]]
+</span><a href="#local-6989586621679075500"><span class="hs-identifier hs-var">idxs</span></a></span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span>      </span><span class="hs-comment">-- tr = training, tv = validation</span><span>
+</span><span id="line-136"></span><span>      </span><span id="local-6989586621679075490"><span class="annot"><span class="annottext">getY :: [Int] -&gt; Vector
+</span><a href="#local-6989586621679075490"><span class="hs-identifier hs-var hs-var">getY</span></a></span></span><span> </span><span id="local-6989586621679075489"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679075489"><span class="hs-identifier hs-var">is</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector
 forall t. Element t =&gt; Matrix t -&gt; Vector t
 </span><span class="hs-identifier hs-var">LA.flatten</span></span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Vector) -&gt; Matrix Double -&gt; Vector
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Vector -&gt; Matrix Double
 forall a. Storable a =&gt; Vector a -&gt; Matrix a
 </span><span class="hs-identifier hs-var">LA.asColumn</span></span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679115334"><span class="hs-identifier hs-var">trainY</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; (Extractor, Extractor) -&gt; Matrix Double
+</span><a href="#local-6989586621679075517"><span class="hs-identifier hs-var">trainY</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; (Extractor, Extractor) -&gt; Matrix Double
 forall t.
 Element t =&gt;
 Matrix t -&gt; (Extractor, Extractor) -&gt; Matrix t
 </span><span class="hs-operator hs-var">LA.??</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector I -&gt; Extractor
 </span><span class="hs-identifier hs-var">LA.Pos</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Vector I
 </span><span class="hs-identifier hs-var">LA.idxs</span></span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679115308"><span class="hs-identifier hs-var">is</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Extractor
+</span><a href="#local-6989586621679075489"><span class="hs-identifier hs-var">is</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Extractor
 </span><span class="hs-identifier hs-var">LA.All</span></span><span class="hs-special">)</span><span>
-</span><span id="line-95"></span><span>      </span><span id="local-6989586621679115301"><span class="annot"><span class="annottext">getX :: [Int] -&gt; Matrix Double
-</span><a href="#local-6989586621679115301"><span class="hs-identifier hs-var hs-var">getX</span></a></span></span><span> </span><span id="local-6989586621679115300"><span class="annot"><span class="annottext">is :: [Int]
-</span><a href="#local-6989586621679115300"><span class="hs-identifier hs-var">is</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679115335"><span class="hs-identifier hs-var">trainX</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; (Extractor, Extractor) -&gt; Matrix Double
+</span><span id="line-137"></span><span>      </span><span id="local-6989586621679075482"><span class="annot"><span class="annottext">getX :: [Int] -&gt; Matrix Double
+</span><a href="#local-6989586621679075482"><span class="hs-identifier hs-var hs-var">getX</span></a></span></span><span> </span><span id="local-6989586621679075481"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679075481"><span class="hs-identifier hs-var">is</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679075518"><span class="hs-identifier hs-var">trainX</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; (Extractor, Extractor) -&gt; Matrix Double
 forall t.
 Element t =&gt;
 Matrix t -&gt; (Extractor, Extractor) -&gt; Matrix t
 </span><span class="hs-operator hs-var">LA.??</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Vector I -&gt; Extractor
 </span><span class="hs-identifier hs-var">LA.Pos</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Vector I
 </span><span class="hs-identifier hs-var">LA.idxs</span></span><span> </span><span class="annot"><span class="annottext">[Int]
-</span><a href="#local-6989586621679115300"><span class="hs-identifier hs-var">is</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Extractor
+</span><a href="#local-6989586621679075481"><span class="hs-identifier hs-var">is</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Extractor
 </span><span class="hs-identifier hs-var">LA.All</span></span><span class="hs-special">)</span><span>
-</span><span id="line-96"></span><span>
-</span><span id="line-97"></span><span>      </span><span id="local-6989586621679115299"><span class="annot"><span class="annottext">trYs :: [Vector]
-</span><a href="#local-6989586621679115299"><span class="hs-identifier hs-var hs-var">trYs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Vector) -&gt; [([Int], [Int])] -&gt; [Vector]
+</span><span id="line-138"></span><span>
+</span><span id="line-139"></span><span>      </span><span id="local-6989586621679075480"><span class="annot"><span class="annottext">trYs :: [Vector]
+</span><a href="#local-6989586621679075480"><span class="hs-identifier hs-var hs-var">trYs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Vector) -&gt; [([Int], [Int])] -&gt; [Vector]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Vector
-</span><a href="#local-6989586621679115309"><span class="hs-identifier hs-var">getY</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Vector)
+</span><a href="#local-6989586621679075490"><span class="hs-identifier hs-var">getY</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Vector)
 -&gt; (([Int], [Int]) -&gt; [Int]) -&gt; ([Int], [Int]) -&gt; Vector
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">([Int], [Int]) -&gt; [Int]
 forall a b. (a, b) -&gt; a
 </span><span class="hs-identifier hs-var">fst</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([Int], [Int])]
-</span><a href="#local-6989586621679115314"><span class="hs-identifier hs-var">folds</span></a></span><span>
-</span><span id="line-98"></span><span>      </span><span id="local-6989586621679115298"><span class="annot"><span class="annottext">tvYs :: [Vector]
-</span><a href="#local-6989586621679115298"><span class="hs-identifier hs-var hs-var">tvYs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Vector) -&gt; [([Int], [Int])] -&gt; [Vector]
+</span><a href="#local-6989586621679075495"><span class="hs-identifier hs-var">folds</span></a></span><span>
+</span><span id="line-140"></span><span>      </span><span id="local-6989586621679075479"><span class="annot"><span class="annottext">tvYs :: [Vector]
+</span><a href="#local-6989586621679075479"><span class="hs-identifier hs-var hs-var">tvYs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Vector) -&gt; [([Int], [Int])] -&gt; [Vector]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Vector
-</span><a href="#local-6989586621679115309"><span class="hs-identifier hs-var">getY</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Vector)
+</span><a href="#local-6989586621679075490"><span class="hs-identifier hs-var">getY</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Vector)
 -&gt; (([Int], [Int]) -&gt; [Int]) -&gt; ([Int], [Int]) -&gt; Vector
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">([Int], [Int]) -&gt; [Int]
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([Int], [Int])]
-</span><a href="#local-6989586621679115314"><span class="hs-identifier hs-var">folds</span></a></span><span>
-</span><span id="line-99"></span><span>
-</span><span id="line-100"></span><span>      </span><span id="local-6989586621679115297"><span class="annot"><span class="annottext">trXs :: [Matrix Double]
-</span><a href="#local-6989586621679115297"><span class="hs-identifier hs-var hs-var">trXs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Matrix Double)
+</span><a href="#local-6989586621679075495"><span class="hs-identifier hs-var">folds</span></a></span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span>      </span><span id="local-6989586621679075478"><span class="annot"><span class="annottext">trXs :: [Matrix Double]
+</span><a href="#local-6989586621679075478"><span class="hs-identifier hs-var hs-var">trXs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Matrix Double)
 -&gt; [([Int], [Int])] -&gt; [Matrix Double]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Matrix Double
-</span><a href="#local-6989586621679115301"><span class="hs-identifier hs-var">getX</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Matrix Double)
+</span><a href="#local-6989586621679075482"><span class="hs-identifier hs-var">getX</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Matrix Double)
 -&gt; (([Int], [Int]) -&gt; [Int]) -&gt; ([Int], [Int]) -&gt; Matrix Double
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">([Int], [Int]) -&gt; [Int]
 forall a b. (a, b) -&gt; a
 </span><span class="hs-identifier hs-var">fst</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([Int], [Int])]
-</span><a href="#local-6989586621679115314"><span class="hs-identifier hs-var">folds</span></a></span><span>
-</span><span id="line-101"></span><span>      </span><span id="local-6989586621679115296"><span class="annot"><span class="annottext">tvXs :: [Matrix Double]
-</span><a href="#local-6989586621679115296"><span class="hs-identifier hs-var hs-var">tvXs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Matrix Double)
+</span><a href="#local-6989586621679075495"><span class="hs-identifier hs-var">folds</span></a></span><span>
+</span><span id="line-143"></span><span>      </span><span id="local-6989586621679075477"><span class="annot"><span class="annottext">tvXs :: [Matrix Double]
+</span><a href="#local-6989586621679075477"><span class="hs-identifier hs-var hs-var">tvXs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([Int], [Int]) -&gt; Matrix Double)
 -&gt; [([Int], [Int])] -&gt; [Matrix Double]
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Matrix Double
-</span><a href="#local-6989586621679115301"><span class="hs-identifier hs-var">getX</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Matrix Double)
+</span><a href="#local-6989586621679075482"><span class="hs-identifier hs-var">getX</span></a></span><span class="annot"><span class="annottext">([Int] -&gt; Matrix Double)
 -&gt; (([Int], [Int]) -&gt; [Int]) -&gt; ([Int], [Int]) -&gt; Matrix Double
 forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">([Int], [Int]) -&gt; [Int]
 forall a b. (a, b) -&gt; b
 </span><span class="hs-identifier hs-var">snd</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[([Int], [Int])]
-</span><a href="#local-6989586621679115314"><span class="hs-identifier hs-var">folds</span></a></span><span>
-</span><span id="line-102"></span><span>
-</span><span id="line-103"></span><span>      </span><span id="local-6989586621679115295"><span class="annot"><span class="annottext">toRegMtx :: Matrix Double -&gt; Vector Vector
-</span><a href="#local-6989586621679115295"><span class="hs-identifier hs-var hs-var">toRegMtx</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Vector] -&gt; Vector Vector
+</span><a href="#local-6989586621679075495"><span class="hs-identifier hs-var">folds</span></a></span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span>      </span><span id="local-6989586621679075476"><span class="annot"><span class="annottext">toRegMtx :: Matrix Double -&gt; Vector Vector
+</span><a href="#local-6989586621679075476"><span class="hs-identifier hs-var hs-var">toRegMtx</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Vector] -&gt; Vector Vector
 forall a. [a] -&gt; Vector a
 </span><span class="hs-identifier hs-var">V.fromList</span></span><span> </span><span class="annot"><span class="annottext">([Vector] -&gt; Vector Vector)
 -&gt; (Matrix Double -&gt; [Vector]) -&gt; Matrix Double -&gt; Vector Vector
@@ -391,197 +551,253 @@ forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
 </span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Matrix Double -&gt; [Vector]
 forall t. Element t =&gt; Matrix t -&gt; [Vector t]
 </span><span class="hs-identifier hs-var">LA.toColumns</span></span><span>
-</span><span id="line-104"></span><span>      </span><span id="local-6989586621679115292"><span class="annot"><span class="annottext">criteria :: NonEmpty Measure
-</span><a href="#local-6989586621679115292"><span class="hs-identifier hs-var hs-var">criteria</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Measure] -&gt; NonEmpty Measure
+</span><span id="line-146"></span><span>      </span><span id="local-6989586621679075473"><span class="annot"><span class="annottext">criteria :: NonEmpty Measure
+</span><a href="#local-6989586621679075473"><span class="hs-identifier hs-var hs-var">criteria</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Measure] -&gt; NonEmpty Measure
 forall a. [a] -&gt; NonEmpty a
 </span><span class="hs-identifier hs-var">NE.fromList</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Measure
-</span><a href="IT.Metrics.html#_rmse"><span class="hs-identifier hs-var">_rmse</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-105"></span><span>
-</span><span id="line-106"></span><span>      </span><span id="local-6989586621679115289"><span class="annot"><span class="annottext">fitTrains :: [Fitness Double]
-</span><a href="#local-6989586621679115289"><span class="hs-identifier hs-var hs-var">fitTrains</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Vector -&gt; Fitness Double)
--&gt; [Matrix Double] -&gt; [Vector] -&gt; [Fitness Double]
+</span><a href="IT.Metrics.html#_nmse"><span class="hs-identifier hs-var">_nmse</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-147"></span><span>
+</span><span id="line-148"></span><span>      </span><span id="local-6989586621679075470"><span class="annot"><span class="annottext">fitTrains :: [Fitness]
+</span><a href="#local-6989586621679075470"><span class="hs-identifier hs-var hs-var">fitTrains</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Vector -&gt; Fitness)
+-&gt; [Matrix Double] -&gt; [Vector] -&gt; [Fitness]
 forall a b c. (a -&gt; b -&gt; c) -&gt; [a] -&gt; [b] -&gt; [c]
-</span><span class="hs-identifier hs-var">zipWith</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679115287"><span class="annot"><span class="annottext">x :: Matrix Double
-</span><a href="#local-6989586621679115287"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679115286"><span class="annot"><span class="annottext">y :: Vector
-</span><a href="#local-6989586621679115286"><span class="hs-identifier hs-var">y</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Task
--&gt; NonEmpty Measure -&gt; Vector Vector -&gt; Vector -&gt; Fitness Double
+</span><span class="hs-identifier hs-var">zipWith</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679075468"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679075468"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679075467"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679075467"><span class="hs-identifier hs-var">y</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Task
+-&gt; NonEmpty Measure
+-&gt; Constraint
+-&gt; Penalty
+-&gt; Vector Vector
+-&gt; Vector
+-&gt; Vector Vector
+-&gt; Vector
+-&gt; Fitness
 </span><a href="IT.Regression.html#evalTrain"><span class="hs-identifier hs-var">evalTrain</span></a></span><span> </span><span class="annot"><span class="annottext">Task
 </span><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-var">Regression</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure
-</span><a href="#local-6989586621679115292"><span class="hs-identifier hs-var">criteria</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector Vector
-</span><a href="#local-6989586621679115295"><span class="hs-identifier hs-var">toRegMtx</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679115287"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679115286"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Matrix Double]
-</span><a href="#local-6989586621679115297"><span class="hs-identifier hs-var">trXs</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679115299"><span class="hs-identifier hs-var">trYs</span></a></span><span>
-</span><span id="line-107"></span><span>      </span><span id="local-6989586621679115283"><span class="annot"><span class="annottext">fitTests :: [Solution Double -&gt; Maybe [Double]]
-</span><a href="#local-6989586621679115283"><span class="hs-identifier hs-var hs-var">fitTests</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Vector -&gt; Solution Double -&gt; Maybe [Double])
--&gt; [Matrix Double]
--&gt; [Vector]
--&gt; [Solution Double -&gt; Maybe [Double]]
+</span><a href="#local-6989586621679075473"><span class="hs-identifier hs-var">criteria</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Shape] -&gt; Maybe [(Double, Double)] -&gt; Constraint
+</span><a href="IT.Shape.html#fromShapes"><span class="hs-identifier hs-var">fromShapes</span></a></span><span> </span><span class="annot"><span class="annottext">[Shape]
+</span><a href="#local-6989586621679075520"><span class="hs-identifier hs-var">shapes</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [(Double, Double)]
+</span><a href="#local-6989586621679075519"><span class="hs-identifier hs-var">domains</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Penalty
+</span><a href="IT.Regression.html#NoPenalty"><span class="hs-identifier hs-var">NoPenalty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector Vector
+</span><a href="#local-6989586621679075476"><span class="hs-identifier hs-var">toRegMtx</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679075468"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679075467"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector Vector
+</span><a href="#local-6989586621679075476"><span class="hs-identifier hs-var">toRegMtx</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679075468"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679075467"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Matrix Double]
+</span><a href="#local-6989586621679075478"><span class="hs-identifier hs-var">trXs</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679075480"><span class="hs-identifier hs-var">trYs</span></a></span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span>      </span><span id="local-6989586621679075462"><span class="annot"><span class="annottext">fitTests :: [Solution -&gt; Maybe [Double]]
+</span><a href="#local-6989586621679075462"><span class="hs-identifier hs-var hs-var">fitTests</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">(Matrix Double -&gt; Vector -&gt; Solution -&gt; Maybe [Double])
+-&gt; [Matrix Double] -&gt; [Vector] -&gt; [Solution -&gt; Maybe [Double]]
 forall a b c. (a -&gt; b -&gt; c) -&gt; [a] -&gt; [b] -&gt; [c]
-</span><span class="hs-identifier hs-var">zipWith</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679115282"><span class="annot"><span class="annottext">x :: Matrix Double
-</span><a href="#local-6989586621679115282"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679115281"><span class="annot"><span class="annottext">y :: Vector
-</span><a href="#local-6989586621679115281"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Task
+</span><span class="hs-identifier hs-var">zipWith</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679075461"><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679075461"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679075460"><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679075460"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Task
 -&gt; NonEmpty Measure
 -&gt; Vector Vector
 -&gt; Vector
--&gt; Solution Double
+-&gt; Solution
 -&gt; Maybe [Double]
 </span><a href="IT.Regression.html#evalTest"><span class="hs-identifier hs-var">evalTest</span></a></span><span> </span><span class="annot"><span class="annottext">Task
 </span><a href="IT.Regression.html#Regression"><span class="hs-identifier hs-var">Regression</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmpty Measure
-</span><a href="#local-6989586621679115292"><span class="hs-identifier hs-var">criteria</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector Vector
-</span><a href="#local-6989586621679115295"><span class="hs-identifier hs-var">toRegMtx</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
-</span><a href="#local-6989586621679115282"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Vector
-</span><a href="#local-6989586621679115281"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Matrix Double]
-</span><a href="#local-6989586621679115296"><span class="hs-identifier hs-var">tvXs</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
-</span><a href="#local-6989586621679115298"><span class="hs-identifier hs-var">tvYs</span></a></span><span>
-</span><span id="line-108"></span><span>
-</span><span id="line-109"></span><span>      </span><span id="local-6989586621679115279"><span class="annot"><span class="annottext">average :: t a -&gt; a
-</span><a href="#local-6989586621679115279"><span class="hs-identifier hs-var hs-var">average</span></a></span></span><span> </span><span id="local-6989586621679115278"><span class="annot"><span class="annottext">xs :: t a
-</span><a href="#local-6989586621679115278"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">t a -&gt; a
+</span><a href="#local-6989586621679075473"><span class="hs-identifier hs-var">criteria</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Matrix Double -&gt; Vector Vector
+</span><a href="#local-6989586621679075476"><span class="hs-identifier hs-var">toRegMtx</span></a></span><span> </span><span class="annot"><span class="annottext">Matrix Double
+</span><a href="#local-6989586621679075461"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Vector
+</span><a href="#local-6989586621679075460"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Matrix Double]
+</span><a href="#local-6989586621679075477"><span class="hs-identifier hs-var">tvXs</span></a></span><span> </span><span class="annot"><span class="annottext">[Vector]
+</span><a href="#local-6989586621679075479"><span class="hs-identifier hs-var">tvYs</span></a></span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span>      </span><span id="local-6989586621679075458"><span class="annot"><span class="annottext">average :: t a -&gt; a
+</span><a href="#local-6989586621679075458"><span class="hs-identifier hs-var hs-var">average</span></a></span></span><span> </span><span id="local-6989586621679075457"><span class="annot"><span class="annottext">t a
+</span><a href="#local-6989586621679075457"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">t a -&gt; a
 forall (t :: * -&gt; *) a. (Foldable t, Num a) =&gt; t a -&gt; a
 </span><span class="hs-identifier hs-var">sum</span></span><span> </span><span class="annot"><span class="annottext">t a
-</span><a href="#local-6989586621679115278"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+</span><a href="#local-6989586621679075457"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
 forall a. Fractional a =&gt; a -&gt; a -&gt; a
 </span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; a
 forall a b. (Integral a, Num b) =&gt; a -&gt; b
 </span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">t a -&gt; Int
 forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
 </span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">t a
-</span><a href="#local-6989586621679115278"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-110"></span><span>
-</span><span id="line-111"></span><span>      </span><span id="local-6989586621679115275"><span class="annot"><span class="annottext">run :: Fitness Double -&gt; (Solution Double -&gt; Maybe [Double]) -&gt; IO Double
-</span><a href="#local-6989586621679115275"><span class="hs-identifier hs-var hs-var">run</span></a></span></span><span> </span><span id="local-6989586621679115274"><span class="annot"><span class="annottext">fitTr :: Fitness Double
-</span><a href="#local-6989586621679115274"><span class="hs-identifier hs-var">fitTr</span></a></span></span><span> </span><span id="local-6989586621679115273"><span class="annot"><span class="annottext">fitTe :: Solution Double -&gt; Maybe [Double]
-</span><a href="#local-6989586621679115273"><span class="hs-identifier hs-var">fitTe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fitness Double
--&gt; (Solution Double -&gt; Maybe [Double])
+</span><a href="#local-6989586621679075457"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-153"></span><span>      </span><span class="hs-comment">{-
+      standard xs = average $ map (\x -&gt; (x - x_m)^2) xs
+        where x_m = average xs
+
+      confidence xs n = x_m + 1.96 * sqrt (x_s / fromIntegral n)
+        where x_m = average xs
+              x_s = standard xs
+      -}</span><span>
+</span><span id="line-161"></span><span>      </span><span id="local-6989586621679075453"><span class="annot"><span class="annottext">run :: Fitness -&gt; (Solution -&gt; Maybe [Double]) -&gt; IO Double
+</span><a href="#local-6989586621679075453"><span class="hs-identifier hs-var hs-var">run</span></a></span></span><span> </span><span id="local-6989586621679075452"><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075452"><span class="hs-identifier hs-var">fitTr</span></a></span></span><span> </span><span id="local-6989586621679075451"><span class="annot"><span class="annottext">Solution -&gt; Maybe [Double]
+</span><a href="#local-6989586621679075451"><span class="hs-identifier hs-var">fitTe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
+</span><span id="line-162"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Alg
+</span><a href="#local-6989586621679075521"><span class="hs-identifier hs-var">alg</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-163"></span><span>          </span><span class="annot"><span class="annottext">Alg
+</span><a href="RunConfig.html#ITEA"><span class="hs-identifier hs-var">ITEA</span></a></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Fitness
+-&gt; (Solution -&gt; Maybe [Double])
 -&gt; Int
 -&gt; MutationCfg
 -&gt; Int
 -&gt; Int
 -&gt; IO Double
-</span><a href="RunCrossVal.html#runITEARegCV"><span class="hs-identifier hs-var">runITEARegCV</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness Double
-</span><a href="#local-6989586621679115274"><span class="hs-identifier hs-var">fitTr</span></a></span><span> </span><span class="annot"><span class="annottext">Solution Double -&gt; Maybe [Double]
-</span><a href="#local-6989586621679115273"><span class="hs-identifier hs-var">fitTe</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115327"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
-</span><a href="#local-6989586621679115340"><span class="hs-identifier hs-var">mutCfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115339"><span class="hs-identifier hs-var">pop</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115338"><span class="hs-identifier hs-var">gen</span></a></span><span>
-</span><span id="line-112"></span><span>
-</span><span id="line-113"></span><span>  </span><span id="local-6989586621679115272"><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679115272"><span class="hs-identifier hs-var">rmses</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Fitness Double
- -&gt; (Solution Double -&gt; Maybe [Double]) -&gt; IO Double)
--&gt; [Fitness Double]
--&gt; [Solution Double -&gt; Maybe [Double]]
--&gt; IO [Double]
+</span><a href="RunCrossVal.html#runITEARegCV"><span class="hs-identifier hs-var">runITEARegCV</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075452"><span class="hs-identifier hs-var">fitTr</span></a></span><span> </span><span class="annot"><span class="annottext">Solution -&gt; Maybe [Double]
+</span><a href="#local-6989586621679075451"><span class="hs-identifier hs-var">fitTe</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075509"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075527"><span class="hs-identifier hs-var">mutCfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">100</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">100</span></span><span>
+</span><span id="line-164"></span><span>          </span><span class="annot"><span class="annottext">Alg
+</span><a href="RunConfig.html#FI2POP"><span class="hs-identifier hs-var">FI2POP</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Fitness
+-&gt; (Solution -&gt; Maybe [Double])
+-&gt; Int
+-&gt; MutationCfg
+-&gt; Int
+-&gt; Int
+-&gt; IO Double
+</span><a href="RunCrossVal.html#runFI2POPRegCV"><span class="hs-identifier hs-var">runFI2POPRegCV</span></a></span><span> </span><span class="annot"><span class="annottext">Fitness
+</span><a href="#local-6989586621679075452"><span class="hs-identifier hs-var">fitTr</span></a></span><span> </span><span class="annot"><span class="annottext">Solution -&gt; Maybe [Double]
+</span><a href="#local-6989586621679075451"><span class="hs-identifier hs-var">fitTe</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075509"><span class="hs-identifier hs-var">dim</span></a></span><span> </span><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075527"><span class="hs-identifier hs-var">mutCfg</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">100</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">100</span></span><span>
+</span><span id="line-165"></span><span>
+</span><span id="line-166"></span><span>  </span><span id="local-6989586621679075448"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679075448"><span class="hs-identifier hs-var">rmses</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Fitness -&gt; (Solution -&gt; Maybe [Double]) -&gt; IO Double)
+-&gt; [Fitness] -&gt; [Solution -&gt; Maybe [Double]] -&gt; IO [Double]
 forall (m :: * -&gt; *) a b c.
 Applicative m =&gt;
 (a -&gt; b -&gt; m c) -&gt; [a] -&gt; [b] -&gt; m [c]
-</span><span class="hs-identifier hs-var">zipWithM</span></span><span> </span><span class="annot"><span class="annottext">Fitness Double -&gt; (Solution Double -&gt; Maybe [Double]) -&gt; IO Double
-</span><a href="#local-6989586621679115275"><span class="hs-identifier hs-var">run</span></a></span><span> </span><span class="annot"><span class="annottext">[Fitness Double]
-</span><a href="#local-6989586621679115289"><span class="hs-identifier hs-var">fitTrains</span></a></span><span> </span><span class="annot"><span class="annottext">[Solution Double -&gt; Maybe [Double]]
-</span><a href="#local-6989586621679115283"><span class="hs-identifier hs-var">fitTests</span></a></span><span>
-</span><span id="line-114"></span><span>
-</span><span id="line-115"></span><span>  </span><span class="annot"><span class="annottext">Double -&gt; IO Double
+</span><span class="hs-identifier hs-var">zipWithM</span></span><span> </span><span class="annot"><span class="annottext">Fitness -&gt; (Solution -&gt; Maybe [Double]) -&gt; IO Double
+</span><a href="#local-6989586621679075453"><span class="hs-identifier hs-var">run</span></a></span><span> </span><span class="annot"><span class="annottext">[Fitness]
+</span><a href="#local-6989586621679075470"><span class="hs-identifier hs-var">fitTrains</span></a></span><span> </span><span class="annot"><span class="annottext">[Solution -&gt; Maybe [Double]]
+</span><a href="#local-6989586621679075462"><span class="hs-identifier hs-var">fitTests</span></a></span><span> </span><span>
+</span><span id="line-167"></span><span>
+</span><span id="line-168"></span><span>  </span><span class="annot"><span class="annottext">Double -&gt; IO Double
 forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
 </span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; IO Double) -&gt; Double -&gt; IO Double
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Double] -&gt; Double
 forall a (t :: * -&gt; *). (Fractional a, Foldable t) =&gt; t a -&gt; a
-</span><a href="#local-6989586621679115279"><span class="hs-identifier hs-var">average</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679115272"><span class="hs-identifier hs-var">rmses</span></a></span><span>
-</span><span id="line-116"></span><span>
-</span><span id="line-117"></span><span class="hs-comment">-- | Main function</span><span>
-</span><span id="line-118"></span><span class="annot"><a href="RunCrossVal.html#runCrossVal"><span class="hs-identifier hs-type">runCrossVal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><span id="line-119"></span><span id="runCrossVal"><span class="annot"><span class="annottext">runCrossVal :: [String] -&gt; IO ()
-</span><a href="RunCrossVal.html#runCrossVal"><span class="hs-identifier hs-var hs-var">runCrossVal</span></a></span></span><span> </span><span id="local-6989586621679115269"><span class="annot"><span class="annottext">args :: [String]
-</span><a href="#local-6989586621679115269"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
-</span><span id="line-120"></span><span>  </span><span class="hs-keyword">let</span><span>
-</span><span id="line-121"></span><span>    </span><span class="hs-comment">-- generate all combination of configurations</span><span>
-</span><span id="line-122"></span><span>    </span><span id="local-6989586621679115268"><span class="annot"><span class="annottext">allCfgs :: [(MutationCfg, Int, Int)]
-</span><a href="#local-6989586621679115268"><span class="hs-identifier hs-var hs-var">allCfgs</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="annottext">(Int, Int) -&gt; Int -&gt; Int -&gt; (MutationCfg, Int, Int)
-forall c.
-Integral c =&gt;
-(Int, Int) -&gt; Int -&gt; c -&gt; (MutationCfg, c, c)
+</span><a href="#local-6989586621679075458"><span class="hs-identifier hs-var">average</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679075448"><span class="hs-identifier hs-var">rmses</span></a></span><span>
+</span><span id="line-169"></span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- | Main function</span><span>
+</span><span id="line-171"></span><span class="annot"><a href="RunCrossVal.html#runCrossVal"><span class="hs-identifier hs-type">runCrossVal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span id="runCrossVal"><span class="annot"><span class="annottext">runCrossVal :: [String] -&gt; IO ()
+</span><a href="RunCrossVal.html#runCrossVal"><span class="hs-identifier hs-var hs-var">runCrossVal</span></a></span></span><span> </span><span id="local-6989586621679075445"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679075445"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-173"></span><span>  </span><span class="hs-keyword">let</span><span>
+</span><span id="line-174"></span><span>    </span><span class="hs-comment">-- generate all combination of configurations</span><span>
+</span><span id="line-175"></span><span>    </span><span id="local-6989586621679075444"><span class="annot"><span class="annottext">allCfgs :: [MutationCfg]
+</span><a href="#local-6989586621679075444"><span class="hs-identifier hs-var hs-var">allCfgs</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="annottext">(Int, Int) -&gt; Int -&gt; [Transformation] -&gt; MutationCfg
 </span><a href="RunCrossVal.html#createMutCfg"><span class="hs-identifier hs-var">createMutCfg</span></a></span><span class="hs-special">]</span><span>
-</span><span id="line-123"></span><span>                  </span><span class="annot"><span class="annottext">[(Int, Int) -&gt; Int -&gt; Int -&gt; (MutationCfg, Int, Int)]
--&gt; [(Int, Int)] -&gt; [Int -&gt; Int -&gt; (MutationCfg, Int, Int)]
+</span><span id="line-176"></span><span>                  </span><span class="annot"><span class="annottext">[(Int, Int) -&gt; Int -&gt; [Transformation] -&gt; MutationCfg]
+-&gt; [(Int, Int)] -&gt; [Int -&gt; [Transformation] -&gt; MutationCfg]
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
-</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="hs-number">2</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-number">2</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="hs-number">3</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-number">3</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><span id="line-124"></span><span>                  </span><span class="annot"><span class="annottext">[Int -&gt; Int -&gt; (MutationCfg, Int, Int)]
--&gt; [Int] -&gt; [Int -&gt; (MutationCfg, Int, Int)]
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">3</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">5</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">5</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">3</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">5</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-177"></span><span>                  </span><span class="annot"><span class="annottext">[Int -&gt; [Transformation] -&gt; MutationCfg]
+-&gt; [Int] -&gt; [[Transformation] -&gt; MutationCfg]
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
-</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-number">10</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-number">15</span></span><span class="hs-special">]</span><span>
-</span><span id="line-125"></span><span>                  </span><span class="annot"><span class="annottext">[Int -&gt; (MutationCfg, Int, Int)]
--&gt; [Int] -&gt; [(MutationCfg, Int, Int)]
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">5</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">10</span></span><span class="hs-special">]</span><span>
+</span><span id="line-178"></span><span>                  </span><span class="annot"><span class="annottext">[[Transformation] -&gt; MutationCfg]
+-&gt; [[Transformation]] -&gt; [MutationCfg]
 forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
-</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-number">100</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-number">250</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-number">500</span></span><span class="hs-special">]</span><span>
-</span><span id="line-126"></span><span>
-</span><span id="line-127"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679115267"><span class="annot"><span class="annottext">dname :: String
-</span><a href="#local-6989586621679115267"><span class="hs-identifier hs-var">dname</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679115266"><span class="annot"><span class="annottext">nfold :: Int
-</span><a href="#local-6989586621679115266"><span class="hs-identifier hs-var">nfold</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; (String, Int)
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Id"><span class="hs-identifier hs-var">Id</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Id"><span class="hs-identifier hs-var">Id</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#SqrtAbs"><span class="hs-identifier hs-var">SqrtAbs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Log"><span class="hs-identifier hs-var">Log</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Exp"><span class="hs-identifier hs-var">Exp</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Id"><span class="hs-identifier hs-var">Id</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#SqrtAbs"><span class="hs-identifier hs-var">SqrtAbs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Log"><span class="hs-identifier hs-var">Log</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Exp"><span class="hs-identifier hs-var">Exp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Sin"><span class="hs-identifier hs-var">Sin</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Transformation
+</span><a href="IT.html#Tanh"><span class="hs-identifier hs-var">Tanh</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- , SqrtAbs, Log, Exp]</span><span>
+</span><span id="line-179"></span><span>
+</span><span id="line-180"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679075437"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679075437"><span class="hs-identifier hs-var">dname</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679075436"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075436"><span class="hs-identifier hs-var">nfold</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; (String, Int)
 </span><a href="RunCrossVal.html#validateArgs"><span class="hs-identifier hs-var">validateArgs</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679115269"><span class="hs-identifier hs-var">args</span></a></span><span>
-</span><span id="line-128"></span><span>
-</span><span id="line-129"></span><span>  </span><span id="local-6989586621679115265"><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679115265"><span class="hs-identifier hs-var">tests</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">((MutationCfg, Int, Int) -&gt; IO Double)
--&gt; [(MutationCfg, Int, Int)] -&gt; IO [Double]
+</span><a href="#local-6989586621679075445"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span>  </span><span id="local-6989586621679075435"><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679075435"><span class="hs-identifier hs-var">tests</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(MutationCfg -&gt; IO Double) -&gt; [MutationCfg] -&gt; IO [Double]
 forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
 (Traversable t, Monad m) =&gt;
 (a -&gt; m b) -&gt; t a -&gt; m (t b)
-</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int -&gt; (MutationCfg, Int, Int) -&gt; IO Double
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int -&gt; MutationCfg -&gt; IO Double
 </span><a href="RunCrossVal.html#runCfg"><span class="hs-identifier hs-var">runCfg</span></a></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115267"><span class="hs-identifier hs-var">dname</span></a></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115266"><span class="hs-identifier hs-var">nfold</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(MutationCfg, Int, Int)]
-</span><a href="#local-6989586621679115268"><span class="hs-identifier hs-var">allCfgs</span></a></span><span>
-</span><span id="line-130"></span><span>
-</span><span id="line-131"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679115263"><span class="annot"><span class="annottext">bestCfg :: (MutationCfg, Int, Int)
-</span><a href="#local-6989586621679115263"><span class="hs-identifier hs-var">bestCfg</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679115262"><span class="annot"><span class="annottext">bestRMSE :: Double
-</span><a href="#local-6989586621679115262"><span class="hs-identifier hs-var">bestRMSE</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(((MutationCfg, Int, Int), Double)
- -&gt; ((MutationCfg, Int, Int), Double) -&gt; Ordering)
--&gt; [((MutationCfg, Int, Int), Double)]
--&gt; ((MutationCfg, Int, Int), Double)
+</span><a href="#local-6989586621679075437"><span class="hs-identifier hs-var">dname</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679075436"><span class="hs-identifier hs-var">nfold</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[MutationCfg]
+</span><a href="#local-6989586621679075444"><span class="hs-identifier hs-var">allCfgs</span></a></span><span>
+</span><span id="line-183"></span><span>
+</span><span id="line-184"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679075433"><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075433"><span class="hs-identifier hs-var">bestCfg</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679075432"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679075432"><span class="hs-identifier hs-var">bestRMSE</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((MutationCfg, Double) -&gt; (MutationCfg, Double) -&gt; Ordering)
+-&gt; [(MutationCfg, Double)] -&gt; (MutationCfg, Double)
 forall (t :: * -&gt; *) a.
 Foldable t =&gt;
 (a -&gt; a -&gt; Ordering) -&gt; t a -&gt; a
-</span><span class="hs-identifier hs-var">minimumBy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(((MutationCfg, Int, Int), Double) -&gt; Double)
--&gt; ((MutationCfg, Int, Int), Double)
--&gt; ((MutationCfg, Int, Int), Double)
--&gt; Ordering
+</span><span class="hs-identifier hs-var">minimumBy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">((MutationCfg, Double) -&gt; Double)
+-&gt; (MutationCfg, Double) -&gt; (MutationCfg, Double) -&gt; Ordering
 forall a b. Ord a =&gt; (b -&gt; a) -&gt; b -&gt; b -&gt; Ordering
-</span><span class="hs-identifier hs-var">comparing</span></span><span> </span><span class="annot"><span class="annottext">((MutationCfg, Int, Int), Double) -&gt; Double
+</span><span class="hs-identifier hs-var">comparing</span></span><span> </span><span class="annot"><span class="annottext">(MutationCfg, Double) -&gt; Double
 forall a b. (a, b) -&gt; b
-</span><span class="hs-identifier hs-var">snd</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(MutationCfg, Int, Int)]
--&gt; [Double] -&gt; [((MutationCfg, Int, Int), Double)]
+</span><span class="hs-identifier hs-var">snd</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[MutationCfg] -&gt; [Double] -&gt; [(MutationCfg, Double)]
 forall a b. [a] -&gt; [b] -&gt; [(a, b)]
-</span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[(MutationCfg, Int, Int)]
-</span><a href="#local-6989586621679115268"><span class="hs-identifier hs-var">allCfgs</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
-</span><a href="#local-6989586621679115265"><span class="hs-identifier hs-var">tests</span></a></span><span class="hs-special">)</span><span>
-</span><span id="line-132"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[MutationCfg]
+</span><a href="#local-6989586621679075444"><span class="hs-identifier hs-var">allCfgs</span></a></span><span> </span><span class="annot"><span class="annottext">[Double]
+</span><a href="#local-6989586621679075435"><span class="hs-identifier hs-var">tests</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-185"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; IO ()
 forall a. Show a =&gt; a -&gt; IO ()
 </span><span class="hs-identifier hs-var">print</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
 forall a b. (a -&gt; b) -&gt; a -&gt; b
 </span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115267"><span class="hs-identifier hs-var">dname</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679075437"><span class="hs-identifier hs-var">dname</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
-</span><a href="#local-6989586621679115266"><span class="hs-identifier hs-var">nfold</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="#local-6989586621679075436"><span class="hs-identifier hs-var">nfold</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(MutationCfg, Int, Int) -&gt; String
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">MutationCfg -&gt; String
 forall a. Show a =&gt; a -&gt; String
-</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">(MutationCfg, Int, Int)
-</span><a href="#local-6989586621679115263"><span class="hs-identifier hs-var">bestCfg</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">MutationCfg
+</span><a href="#local-6989586621679075433"><span class="hs-identifier hs-var">bestCfg</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
-</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
 forall a. [a] -&gt; [a] -&gt; [a]
 </span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; String
 forall a. Show a =&gt; a -&gt; String
 </span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Double
-</span><a href="#local-6989586621679115262"><span class="hs-identifier hs-var">bestRMSE</span></a></span><span>
-</span><span id="line-133"></span></pre></body></html>
+</span><a href="#local-6989586621679075432"><span class="hs-identifier hs-var">bestRMSE</span></a></span><span>
+</span><span id="line-186"></span></pre></body></html>

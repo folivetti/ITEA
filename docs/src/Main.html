@@ -19,29 +19,33 @@ Main program to run ITEA with a configuration file.
 </span><span id="line-19"></span><span>
 </span><span id="line-20"></span><span class="annot"><a href="Main.html#parse"><span class="hs-identifier hs-type">parse</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span>  </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-21"></span><span id="parse"><span class="annot"><span class="annottext">parse :: [String] -&gt; IO ()
-</span><a href="Main.html#parse"><span class="hs-identifier hs-var hs-var">parse</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679115502"><span class="annot"><span class="annottext">mode :: String
-</span><a href="#local-6989586621679115502"><span class="hs-identifier hs-var">mode</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679115501"><span class="annot"><span class="annottext">cs :: [String]
-</span><a href="#local-6989586621679115501"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span>
+</span><a href="Main.html#parse"><span class="hs-identifier hs-var hs-var">parse</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679075726"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679075726"><span class="hs-identifier hs-var">mode</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679075725"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679075725"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span>
 </span><span id="line-22"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
 </span><span class="hs-identifier hs-var">toLower</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115502"><span class="hs-identifier hs-var">mode</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679075726"><span class="hs-identifier hs-var">mode</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-string">&quot;config&quot;</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;config&quot;</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
 </span><a href="RunConfig.html#parseConfigFile"><span class="hs-identifier hs-var">parseConfigFile</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679115501"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><a href="#local-6989586621679075725"><span class="hs-identifier hs-var">cs</span></a></span><span>
 </span><span id="line-23"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
 forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
 </span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
 </span><span class="hs-identifier hs-var">toLower</span></span><span> </span><span class="annot"><span class="annottext">String
-</span><a href="#local-6989586621679115502"><span class="hs-identifier hs-var">mode</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+</span><a href="#local-6989586621679075726"><span class="hs-identifier hs-var">mode</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
 forall a. Eq a =&gt; a -&gt; a -&gt; Bool
-</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="hs-string">&quot;crossval&quot;</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;crossval&quot;</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
 </span><a href="RunCrossVal.html#runCrossVal"><span class="hs-identifier hs-var">runCrossVal</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
-</span><a href="#local-6989586621679115501"><span class="hs-identifier hs-var">cs</span></a></span><span>
-</span><span id="line-24"></span><span class="annot"><a href="Main.html#parse"><span class="hs-identifier hs-var">parse</span></a></span><span> </span><span class="hs-identifier">_</span><span>                            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ()
-</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="annot"><span class="hs-string">&quot;Usage: ./itea {config/crossval} {config-file-name/dataset fold}&quot;</span></span><span>
+</span><a href="#local-6989586621679075725"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-24"></span><span class="annot"><a href="Main.html#parse"><span class="hs-identifier hs-var">parse</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>                            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Usage: ./itea {config/crossval} {config-file-name/dataset fold}&quot;</span></span><span>
 </span><span id="line-25"></span><span>
 </span><span id="line-26"></span><span class="annot"><a href="Main.html#main"><span class="hs-identifier hs-type">main</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><span id="line-27"></span><span id="main"><span class="annot"><span class="annottext">main :: IO ()

@@ -20,13 +20,17 @@ import ITEA.Regression
 import ITEA.Config
 import IT.Regression
 
-
+-- | Algorithm Choice 
+--
+-- ITEA is the mutation-based Symbolic Regression for IT representation
+-- FI2POP splits the population as feasible and infeasible to deal with constraints
 data Alg = ITEA | FI2POP deriving (Show, Read)
 
 -- | Read the option 'x' located at section 'cat' from configuration 'cp'.
 getSetting :: Get_C a => ConfigParser -> SectionSpec -> OptionSpec -> a
 getSetting cp cat x = forceEither $ get cp cat x
 
+-- | get a setting value if it exists in the config file, or return a default value 
 getWithDefault :: Get_C a => a -> ConfigParser -> SectionSpec -> OptionSpec -> a
 getWithDefault def cp cat x = 
   case get cp cat x of
