@@ -36,7 +36,7 @@ getBest :: Int  -> [Population] -> Solution
 getBest n ps     = minimum $ getAllBests n ps
 
 getBestMaybe :: Int -> [Population] -> Maybe Solution
-getBestMaybe n ps = case getAllBests n ps of 
+getBestMaybe n ps = case getAllBests n ps of
                        [] -> Nothing
                        xs -> Just (minimum xs)
 
@@ -104,7 +104,7 @@ genReports (PartialLog dirname) measures pop n fitTest refit = do
     nFit            = length (_fit best)
     bestTest        = fromMaybe (replicate nFit (1/0)) $ fitTest best
     measuresResults = map show $ interleave (_fit best) bestTest
-    exprWithWeight  = "\"" ++ show expr ++ "\",\"" ++ show ws ++ "\",\"" ++ toPython expr ws ++ "\"" 
+    exprWithWeight  = "\"" ++ show expr ++ "\",\"" ++ show ws ++ "\",\"" ++ toPython expr ws ++ "\""
     ws              = LA.toList . head $ _weights best
     expr            = _expr best
 

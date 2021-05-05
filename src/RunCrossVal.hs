@@ -30,7 +30,6 @@ import Data.Either.Utils
 
 import IT
 import IT.Shape
-import IT.Eval
 import ITEA.Config
 import ITEA.Report
 import IT.ITEA
@@ -63,39 +62,37 @@ validateArgs _ = error "Usage: crossval dataname fold"
 -- | Runs a single experiment with a given configuration
 runITEARegCV :: Fitness                         -- ^ Training fitness function
              -> (Solution -> Maybe [Double])          -- ^ Test fitness function
-             -> (Expr -> Expr)
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
              -> Int                                                 -- ^ number of generations
              -> IO Double
-runITEARegCV fitTrain fitTest cleaner dim mcfg nPop nGens = do
+runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
   -- random seed
   g <- newStdGen
 
   -- run ITEA with given configuration
   let (mutFun, rndTerm)  = withMutation mcfg dim
-      p0                 = initialPop 4 nPop rndTerm fitTrain cleaner
-      gens               = (p0 >>= itea mutFun fitTrain cleaner) `evalState` g
+      p0                 = initialPop 4 nPop rndTerm fitTrain 
+      gens               = (p0 >>= itea mutFun fitTrain) `evalState` g
       best               = getBest nGens gens
       result             = fromMaybe [1e+10] $ fitTest best
   (return.head) result
 
 runFI2POPRegCV :: Fitness                         -- ^ Training fitness function
              -> (Solution -> Maybe [Double])          -- ^ Test fitness function
-             -> (Expr -> Expr)
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
              -> Int                                                 -- ^ number of generations
              -> IO Double
-runFI2POPRegCV fitTrain fitTest cleaner dim mcfg nPop nGens = do
+runFI2POPRegCV fitTrain fitTest dim mcfg nPop nGens = do
   -- random seed
   g <- newStdGen
 
   -- run ITEA with given configuration
   let (mutFun, rndTerm)  = withMutation mcfg dim
-      p0                 = splitPop <$> initialPop 4 nPop rndTerm fitTrain cleaner
+      p0                 = splitPop <$> initialPop 4 nPop rndTerm fitTrain 
       gens               = map fst $ (p0 >>= fi2pop mutFun fitTrain) `evalState` g
       mBest              = getBestMaybe nGens gens
       result             = case mBest of
@@ -150,8 +147,6 @@ runCfg fname fold mutCfg = do
 
       fitTests  =  zipWith (\x y -> evalTest Regression criteria (toRegMtx x) y) tvXs tvYs
 
-      cleaners  = map (cleanExpr . toRegMtx) tvXs
-
       average xs = sum xs / fromIntegral (length xs)
       {-
       standard xs = average $ map (\x -> (x - x_m)^2) xs
@@ -161,11 +156,12 @@ runCfg fname fold mutCfg = do
         where x_m = average xs
               x_s = standard xs
       -}
-      run (fitTr, fitTe) cleaner = case alg of
-                          ITEA   -> runITEARegCV fitTr fitTe cleaner dim mutCfg 100 100
-                          FI2POP -> runFI2POPRegCV fitTr fitTe cleaner dim mutCfg 100 100
+      run fitTr fitTe = 
+        case alg of
+          ITEA   -> runITEARegCV fitTr fitTe dim mutCfg 100 100
+          FI2POP -> runFI2POPRegCV fitTr fitTe dim mutCfg 100 100
 
-  rmses <- zipWithM run (zip fitTrains fitTests) cleaners
+  rmses <- zipWithM run fitTrains fitTests 
 
   return $ average rmses
 
