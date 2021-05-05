@@ -11,8 +11,9 @@ Generic implementation of Interaction-Transformation Evolutionary Algorithm
 for any instance of IT expression.
 
 To run itea you just need to call 'itea mutFun pop0', 
-where 'mutFun' is a mutation function of the type 'Mutation a b',
-and 'pop0' is the initial 'Population a b' of solutions.
+where 'mutFun' is a mutation function of the type 'Mutation',
+a 'fitness' function of type 'Fitness',
+and 'pop0' is the initial 'Population' of solutions.
 This function will result in an infinite list of populations, with
 the /i/-th element being the population of the /i/-th generation.
 
@@ -25,7 +26,6 @@ import IT.Algorithms
 import IT.Random
 
 import Control.Monad.Extra (iterateM)
-
 import GHC.Conc (numCapabilities)
 
 import Control.Monad.State
@@ -77,6 +77,7 @@ tournamentSeq p n = do let p'   = Seq.fromList p
                        ixs2 <- replicateM n (sampleTo (npop-1))
                        return $ zipWith chooseOne ixs1 ixs2
 
+-- | For small population, do not convert to Finger Tree to avoid overhead
 tournament :: Population -> Int -> Rnd Population
 tournament [] _ = return []
 tournament p n = do let npop = length p
@@ -95,6 +96,7 @@ step mutFun fitFun nPop pop = do
      then tourn pop nPop
      else tourn (pop <> children) nPop
 
+-- | EXPERIMENTAL: step function with parallel evaluation 
 stepPar :: Mutation -> Fitness -> Int -> Population -> Rnd Population
 stepPar mutFun fitFun nPop pop = do
   let tourn  = if nPop >= 1000 then tournamentSeq else tournament

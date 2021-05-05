@@ -1,14 +1,17 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-|
-Module      : IT.Regression
-Description : Specific functions for Symbolic Regression
+Module      : IT.Eval
+Description : Evaluation function for IT expressions.
 Copyright   : (c) Fabricio Olivetti de Franca, 2020
 License     : GPL-3
 Maintainer  : fabricio.olivetti@gmail.com
 Stability   : experimental
 Portability : POSIX
 
-Definitions of IT data structure and support functions.
+Definition of functions pertaining to the conversion
+and evaluation of an IT-expression. 
+
+TODO: move interval evaluation to IT.Eval.Interval 
 -}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 
@@ -24,10 +27,14 @@ import Data.Bifunctor
 import IT
 import IT.Algorithms
 
+-- | log(x+1)
 log1p :: Floating a => a -> a
 log1p x = log (x+1)
 
--- * Transformation evaluation
+-- * Evaluation of the Transformation functions 
+-- It supports any type that is an instance of Floating.
+
+-- | Evaluate the transformation function 'f' in a data point 'x'.
 transform :: Floating a => Transformation -> a -> a
 transform Id      = id
 transform Sin     = sin
@@ -40,6 +47,7 @@ transform Exp     = exp
 transform Log     = log
 transform Log1p   = log1p
 
+-- | Evaluate the derivative of a transformation function. 
 derivative :: Floating a => Transformation -> a -> a
 derivative Id      = const 1
 derivative Sin     = cos
@@ -52,6 +60,7 @@ derivative Exp     = exp
 derivative Log     = recip
 derivative Log1p   = recip . (+1)
 
+-- | Evaluate the second derivative of the transformation function. 
 sndDerivative :: Floating a => Transformation -> a -> a
 sndDerivative Id      = const 0
 sndDerivative Sin     = negate.sin
@@ -64,57 +73,60 @@ sndDerivative Exp     = exp
 sndDerivative Log     = \x -> -(1/x**2)
 sndDerivative Log1p   = negate . recip . (**2.0) . (+1)
 
--- Interaction of dataset xss with strengths ks
--- ps = xss ** ks
--- it is faster to go through the nonzero strengths, since we can query a column in O(1)
-monomial :: Dataset Double -> Interaction -> Column Double
-monomial xss ks
+-- | Evaluates the interaction 'ks' in the dataset 'xss'
+--
+-- It folds the map of exponents with the key, retrieve the corresponding column,
+-- calculates x_i^k_i and multiplies to the accumulator.
+-- It return a column vector. 
+polynomial :: Dataset Double -> Interaction -> Column Double
+polynomial xss ks
   | V.length xss == 0 = LA.fromList []
   | otherwise         = M.foldrWithKey monoProduct 1 ks
 
   where
     monoProduct ix k ps = ps * (xss V.! ix) ^^ k
 
--- | Interaction of the domain interval
--- it is faster to fold through the list of domains and checking whether we 
+-- | Evaluates the interval of the interaction w.r.t. the domains of the variables.
+--
+-- In this case it is faster to fold through the list of domains and checking whether we 
 -- have a nonzero strength.
-monomialInterval :: [Interval Double] -> Interaction -> Interval Double
-monomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains
+polynomialInterval :: [Interval Double] -> Interaction -> Interval Double
+polynomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains
   where
     monoProduct (ix, x) img
       | ix `M.member` ks = img * x ** get ix
       | otherwise        = img
     get ix = fromIntegral (ks M.! ix)
 
--- | to evaluate a term we apply the transformation function
--- to the interaction monomial
+-- | Evaluates a term by applying the transformation function to
+-- the result of the interaction.
 evalTerm :: Dataset Double -> Term -> Column Double
-evalTerm xss (Term t ks) = transform t (monomial xss ks)
+evalTerm xss (Term t ks) = transform t (polynomial xss ks)
 
--- | apply the transformation function to the interaction monomial
+-- | Evaluates the term on the interval domains. 
 evalTermInterval :: [Interval Double] -> Term -> Interval Double
 evalTermInterval domains (Term t ks)
   | inter == empty = empty
   | otherwise      = protected (transform t) inter
-  where inter = monomialInterval domains ks
+  where inter = polynomialInterval domains ks
 
 -- | The partial derivative of a term w.r.t. the variable ix is:
 -- 
 -- If ix exists in the interaction, the derivative is:
---      derivative t (monomial xss ks) * (monomial xss ks') 
+--      derivative t (polynomial xss ks) * (polynomial xss ks') 
 --      ks' is the same as ks but with the strength of ix decremented by one
 -- Otherwise it is equal to 0
 --
--- w1 t1(p1(x)) + w2 t2(p2(x))
--- w1 t1'(p1(x))p1'(x) + w2 t2'(p2(x))p2'(x)
+-- Given the expression: w1 t1(p1(x)) + w2 t2(p2(x))
+-- The derivative is: w1 t1'(p1(x))p1'(x) + w2 t2'(p2(x))p2'(x)
 evalTermDiff :: Int -> Dataset Double -> Term -> Column Double
 evalTermDiff ix xss (Term t ks)
   | M.member ix ks = ki * it * p'
   | otherwise      = LA.fromList $ replicate n 0
   where
     ki = fromIntegral $ ks M.! ix
-    p  = monomial xss ks
-    p' = monomial xss (M.update dec ix ks)
+    p  = polynomial xss ks
+    p' = polynomial xss (M.update dec ix ks)
     t' = derivative t
     it = LA.cmap t' p
     n  = LA.size (xss V.! 0)
@@ -122,7 +134,18 @@ evalTermDiff ix xss (Term t ks)
     dec 1 = Nothing
     dec k = Just (k-1)
 
--- w1 t1''(p1(x))p1'(x)p1'(x) + w1 t1'(p1(x))p1''(x)
+-- | The second partial derivative of a term w.r.t. the variables ix and iy is:
+-- 
+-- given p(x) as the interaction function, t(x) the transformation function,
+-- f'(x)|i the first derivative of a function given i and f''(x) the second derivative. 
+--
+-- If iy exists in p(x) and ix exists in p'(x)|iy, the derivative is:
+--
+--     kx*ky*t''(x)*p'(x)|ix * p'(x)|iy + kxy*t'(x)p''(x)
+--
+-- where kx, ky are the original exponents of variables ix and iy,
+--     and kxy is ky * kx', with kx' the exponent of ix on p'(x)|iy
+--
 evalTermSndDiff :: Int -> Int -> Dataset Double -> Term -> Column Double
 evalTermSndDiff ix iy xss (Term t ks)
   | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
@@ -132,10 +155,10 @@ evalTermSndDiff ix iy xss (Term t ks)
     ki = fromIntegral $ ks M.! ix
     kj =  fromIntegral $  ks M.! iy
     kij = kj * fromIntegral (ks' M.! ix)
-    p    = monomial xss ks
-    px'  = monomial xss (M.update dec ix ks)
-    py'  = monomial xss (M.update dec iy ks)
-    pxy' = monomial xss (M.update dec ix ks')
+    p    = polynomial xss ks
+    px'  = polynomial xss (M.update dec ix ks)
+    py'  = polynomial xss (M.update dec iy ks)
+    pxy' = polynomial xss (M.update dec ix ks')
     t'   = derivative t
     t''  = sndDerivative t
     tp'  = LA.cmap t'  p
@@ -145,20 +168,22 @@ evalTermSndDiff ix iy xss (Term t ks)
     dec 1 = Nothing
     dec k = Just (k-1)
 
+-- | Same as 'evalTermDiff' but optimized for intervals. 
 evalTermDiffInterval :: Int -> [Interval Double] -> Term -> Interval Double
 evalTermDiffInterval ix domains (Term t ks)
   | M.member ix ks = ki * it * p'
   | otherwise      = singleton 0
   where
     ki = singleton . fromIntegral $ ks M.! ix
-    p  = monomialInterval domains ks
-    p' = monomialInterval domains (M.update dec ix ks)
+    p  = polynomialInterval domains ks
+    p' = polynomialInterval domains (M.update dec ix ks)
     t' = protected (derivative t)
     it = t' p
 
     dec 1 = Nothing
     dec k = Just (k-1)
 
+-- | Same as 'evalTermSndDiff' but optimized for intervals 
 evalTermSndDiffInterval :: Int -> Int -> [Interval Double] -> Term -> Interval Double
 evalTermSndDiffInterval ix iy domains (Term t ks)
   | M.member ix ks' && M.member iy ks = ki*kj*tp''*px'*py' + kij*tp'*pxy'
@@ -168,10 +193,10 @@ evalTermSndDiffInterval ix iy domains (Term t ks)
     ki = singleton . fromIntegral $ ks M.! ix
     kj = singleton . fromIntegral $ ks M.! iy
     kij = kj * singleton (fromIntegral (ks' M.! ix))
-    p    = monomialInterval domains ks
-    px'  = monomialInterval domains (M.update dec ix ks)
-    py'  = monomialInterval domains (M.update dec iy ks)
-    pxy' = monomialInterval domains (M.update dec ix $ M.update dec iy ks)
+    p    = polynomialInterval domains ks
+    px'  = polynomialInterval domains (M.update dec ix ks)
+    py'  = polynomialInterval domains (M.update dec iy ks)
+    pxy' = polynomialInterval domains (M.update dec ix $ M.update dec iy ks)
     t'   = protected (derivative t)
     t''  = protected (sndDerivative t)
     tp'  = t'  p
@@ -190,12 +215,15 @@ evalGeneric f xss terms ws = b + sum weightedTerms
     b             = V.head xss
     xss'          = V.tail xss
 
+-- | Evaluating an expression is simply applying 'evalTerm' 
 evalExpr :: Dataset Double -> Expr -> [Double] -> Column Double
 evalExpr = evalGeneric evalTerm
 
+-- | Evaluating the derivative is applying 'evalTermDiff' in the expression 
 evalDiff :: Int -> Dataset Double -> Expr -> [Double] -> Column Double
 evalDiff ix = evalGeneric (evalTermDiff ix)
 
+-- | Evaluating the second derivative is applying 'evalTermSndDiff' in the expression
 evalSndDiff :: Int -> Int -> Dataset Double -> Expr -> [Double] -> Column Double
 evalSndDiff ix iy = evalGeneric (evalTermSndDiff ix iy)
 
@@ -232,7 +260,8 @@ isValid = all (\x -> not (isNaN x) && not (isInfinite x) && abs x < 1e150)
 exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
 exprToMatrix xss = LA.fromColumns . (V.head xss :) . map (evalTerm (V.tail xss))
 
--- | Clean the expression by removing the invalid teerms
+-- | Clean the expression by removing the invalid terms
+-- TODO: move to IT.Regression 
 cleanExpr :: Dataset Double -> Expr -> (Expr, LA.Matrix Double)
 cleanExpr xss = second (LA.fromColumns . (b:)) . foldr p ([], [])
   where

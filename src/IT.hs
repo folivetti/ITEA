@@ -18,11 +18,10 @@ with \(t_i\) being a transformation function.
 
 Any given expression can be represented by a list of terms, with each term
 being composed of a transformatioon function and an interaction.
-The transformation function is represented by a `String` of its name and
-a function of the type `a -> a`.
-The interaction is represented as a `Map Int Int` where the key is the 
+The transformation function is represented by a `Transformation` sum type.
+The interaction is represented as an `IntMap Int` where the key is the 
 predictor index and the value is the strength of the predictor in this
-term. The strengths with a value of zero are omitted.
+term. Strengths with a value of zero are omitted.
 -}
 module IT where
 
@@ -37,8 +36,8 @@ import qualified Data.Vector as V
 -- variable should be raised to the power of p.
 type Interaction = M.IntMap Int
 
--- | The 'Transformation' type contains the name of the function
--- and the transformation function.
+-- | The 'Transformation' type describes the function that 
+-- should be evaluated. The evaluation is defined in 'IT.Eval' module.
 data Transformation = Id | Sin | Cos | Tan | Tanh | Sqrt | SqrtAbs | Log | Exp | Log1p
                         deriving (Show, Read, Eq, Ord)
 
@@ -54,16 +53,17 @@ type Expr = [Term]
 type Column a = LA.Vector a
 
 -- | The 'Dataset' is a 'Vector' of 'Column's for efficiency.
--- TODO: use Accelerate for large data sets.
+-- TODO: try Repa or Accelerate for large data sets.
 type Dataset a = V.Vector (Column a)
 
--- 'Show' and 'Eq' instances
--- obs.: maybe this makes more sense specifically for each instance of IT
-
-
-prettyPrint :: ((Int, Int) -> String) -> (Transformation -> String) -> Expr -> [Double] -> String 
-prettyPrint _ _ [] _ = ""
-prettyPrint _ _ _ [] = error "ERROR: prettyPrint on non fitted expression."
+-- | Base interface for converting an expression to string 
+prettyPrint :: ((Int, Int) -> String)         -- ^ A function that converts an interaction to a string
+            -> (Transformation -> String)     -- ^ A function that converts a transformation to a string
+            -> Expr                           -- ^ The expression to convert to string 
+            -> [Double]                       -- ^ The fitted coefficients
+            -> String                         -- ^ A string representing the expression 
+prettyPrint _ _ [] _ = "" -- empty expression 
+prettyPrint _ _ _ [] = error "ERROR: prettyPrint on non fitted expression." -- no coefficients 
 prettyPrint k2str t2str terms (b:ws) = show b ++ " + " ++ expr
   where
     expr = intercalate " + " (zipWith weight2str ws (map terms2str terms))
@@ -72,6 +72,7 @@ prettyPrint k2str t2str terms (b:ws) = show b ++ " + " ++ expr
     terms2str (Term t ks) = t2str t ++ "(" ++ interaction2str ks ++ ")"
     weight2str w t        = show w ++ "*" ++ t
 
+-- | Converts an expression to a readable format 
 toExprStr :: Expr -> [Double] -> String
 toExprStr = prettyPrint k2str show
   where 
@@ -79,6 +80,7 @@ toExprStr = prettyPrint k2str show
     k2str (n, 1) = 'x' : show n
     k2str (n, k) = ('x' : show n) ++ "^(" ++ show k ++ ")"
 
+-- | Converts an expression to a numpy compatible format 
 toPython :: Expr -> [Double] -> String
 toPython = prettyPrint k2str numpy
   where
@@ -133,10 +135,16 @@ exprLength terms (b:ws) = biasTerm + addSymbs + weightSymbs + totTerms
     addSymbs     = length terms' - 1
     totTerms     = sum (map termLength terms)
     
+-- | The length of a term is the interaction length plus 1 if the
+-- transformation function is not 'Id'. 
 termLength :: Term -> Int
 termLength (Term Id ks) = interactionLength ks
 termLength (Term _  ks) = 1 + interactionLength ks
 
+-- | The interaction length is calculated as:
+-- +2 for every exponent different from 0 and 1 (^k)
+-- +1 for every nonzero exponent, except for the first (*)
+-- +1 for every nonzero exponent (x_i)
 interactionLength :: Interaction -> Int
 interactionLength ks = mulSymbs + termSymbs + powSymbs
   where

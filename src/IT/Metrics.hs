@@ -1,13 +1,13 @@
 {-|
-Module      : IT.Regression
-Description : Specific functions for Symbolic Regression
+Module      : IT.Metrics
+Description : Error measures for Classification and Regression.
 Copyright   : (c) Fabricio Olivetti de Franca, 2020
 License     : GPL-3
 Maintainer  : fabricio.olivetti@gmail.com
 Stability   : experimental
 Portability : POSIX
 
-Definitions of IT data structure and support functions.
+Definitions of support functions to calculate a set of error measures for regression and classification.
 -}
 
 module IT.Metrics where
@@ -21,7 +21,7 @@ type Vector = LA.Vector Double
 -- * Performance measures
 
 data Measure = Measure { _name :: String
-                       , _fun  :: Vector -> Vector -> Double -- ^ true -> predicted -> measure 
+                       , _fun  :: Vector -> Vector -> Double -- ^ true values -> predicted values -> measure 
                        }
 
 -- | Mean for a vector of doubles
@@ -85,7 +85,7 @@ _precision = Measure "Precision" precision
 _f1        = Measure "F1" f1
 _logloss   = Measure "Log-Loss" logloss
 
--- | Accuracy
+-- | Accuracy: ratio of correct classification 
 accuracy :: Vector -> Vector -> Double
 accuracy ysHat ys = -equals/tot
   where
@@ -97,6 +97,7 @@ accuracy ysHat ys = -equals/tot
       | yH == y   = (Sum 1, Sum 1)
       | otherwise = (Sum 0, Sum 1)
 
+-- | Precision: ratio of correct positive classification 
 precision :: Vector -> Vector -> Double
 precision ysHat ys = equals/tot
   where
@@ -108,6 +109,7 @@ precision ysHat ys = equals/tot
     cmp (1, 0)  = (Sum 0, Sum 1)
     cmp (_, _) = (Sum 0, Sum 0)
 
+-- | Recall: ratio of retrieval of positive labels 
 recall :: Vector -> Vector -> Double
 recall ysHat ys = equals/tot
   where
@@ -120,13 +122,15 @@ recall ysHat ys = equals/tot
     cmp (0, 1)  = (Sum 0, Sum 1)
     cmp (_, _) = (Sum 0, Sum 0)
 
+-- | Harmonic average between Precision and Recall 
 f1 :: Vector -> Vector -> Double
 f1 ysHat ys = 2*prec*rec/(prec+rec)
   where
     prec = precision ysHat ys
     rec  = recall ysHat ys
 
-logloss :: Vector -> Vector -> Double
+-- | LogLoss of a classifier that returns a probability.
+logloss :: Vector -> Vector -> Double 
 logloss ysHat ys = mean $ -(ys * log ysHat' + (1 - ys)*log(1 - ysHat'))
   where
     ysHat' = LA.cmap (min (1.0 - 1e-15) . max 1e-15) ysHat

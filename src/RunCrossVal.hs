@@ -9,6 +9,8 @@ Portability : POSIX
 
 Run a 5-fold cross-validation on the training set to find the best
 combination of hyperparameters.
+
+TODO: refactor, document, write the best configuration in a config file
 -}
 module RunCrossVal where
 
@@ -60,8 +62,8 @@ validateArgs (x:y:_) = (x, read y)
 validateArgs _ = error "Usage: crossval dataname fold"
 
 -- | Runs a single experiment with a given configuration
-runITEARegCV :: Fitness                         -- ^ Training fitness function
-             -> (Solution -> Maybe [Double])          -- ^ Test fitness function
+runITEARegCV :: Fitness                                             -- ^ Training fitness function
+             -> (Solution -> Maybe [Double])                        -- ^ Test fitness function
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
@@ -79,8 +81,8 @@ runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
       result             = fromMaybe [1e+10] $ fitTest best
   (return.head) result
 
-runFI2POPRegCV :: Fitness                         -- ^ Training fitness function
-             -> (Solution -> Maybe [Double])          -- ^ Test fitness function
+runFI2POPRegCV :: Fitness                                           -- ^ Training fitness function
+             -> (Solution -> Maybe [Double])                        -- ^ Test fitness function
              -> Int                                                 -- ^ Problem dimension
              -> MutationCfg                                         -- ^ Mutation configuration
              -> Int                                                 -- ^ population size
