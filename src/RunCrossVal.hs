@@ -74,7 +74,7 @@ runITEARegCV fitTrain fitTest dim mcfg nPop nGens = do
   g <- newStdGen
 
   -- run ITEA with given configuration
-  let (mutFun, rndTerm)  = withMutation mcfg Nothing dim
+  let (mutFun, rndTerm)  = withMutation mcfg dim
       p0                 = initialPop 4 nPop rndTerm fitTrain 
       gens               = (p0 >>= itea mutFun fitTrain) `evalState` g
       best               = getBest nGens gens
@@ -93,7 +93,7 @@ runFI2POPRegCV fitTrain fitTest dim mcfg nPop nGens = do
   g <- newStdGen
 
   -- run ITEA with given configuration
-  let (mutFun, rndTerm)  = withMutation mcfg Nothing dim
+  let (mutFun, rndTerm)  = withMutation mcfg dim
       p0                 = splitPop <$> initialPop 4 nPop rndTerm fitTrain 
       gens               = map fst $ (p0 >>= fi2pop mutFun fitTrain) `evalState` g
       mBest              = getBestMaybe nGens gens

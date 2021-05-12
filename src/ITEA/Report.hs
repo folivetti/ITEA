@@ -66,10 +66,10 @@ interleave xs' ys' = getLeft xs' ys' []
 
 
 -- | Generates the reports into the output
-genReports :: Output -> NonEmpty Measure -> [Population] -> Int -> (Solution -> Maybe [Double]) -> (Expr -> Expr -> Maybe Solution) -> IO ()
+genReports :: Output -> NonEmpty Measure -> [Population] -> Int -> (Solution -> Maybe [Double]) -> (Expr -> Maybe Solution) -> IO ()
 genReports Screen _ pop n fitTest refit = do
   let best  = getBest n pop
-      best' = case refit (_expr best) (_ratio best) of
+      best' = case refit (_expr best) of
                 Nothing -> best
                 Just x  -> x
   putStrLn "Best expression applied to the training set:\n"
@@ -88,7 +88,7 @@ genReports (PartialLog dirname) measures pop n fitTest refit = do
     headReport = intercalate "," (["name", "time", "length"] ++ interleave trainNames testNames)
     headExpr   = intercalate "," ["expr", "weights", "python"]
     best'      = getBest n pop
-    best       = case refit (_expr best') (_ratio best') of
+    best       = case refit (_expr best') of
                    Nothing -> best'
                    Just x  -> x
 

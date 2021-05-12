@@ -24,7 +24,7 @@ import IT.Regression
 --
 -- ITEA is the mutation-based Symbolic Regression for IT representation
 -- FI2POP splits the population as feasible and infeasible to deal with constraints
-data Alg = ITEA | FI2POP | RITEA deriving (Show, Read)
+data Alg = ITEA | FI2POP deriving (Show, Read)
 
 -- | Read the option 'x' located at section 'cat' from configuration 'cp'.
 getSetting :: Get_C a => ConfigParser -> SectionSpec -> OptionSpec -> a
@@ -48,12 +48,8 @@ runWithConfig fname = do
     (termmin, termmax) = getSetting cp "Mutation"  "termlimit"
     nzExps             = getSetting cp "Mutation"  "nonzeroexps"
     tfuncs             = getSetting cp "Mutation"  "transfunctions"
+    perf_mes           = getSetting cp "Mutation"  "measures"
     
-    (expminR, expmaxR)   = getWithDefault (0,0) cp "Ratio"  "exponents"
-    (termminR, termmaxR) = getWithDefault (0,0) cp "Ratio"  "termlimit"
-    nzExpsR              = getWithDefault 0     cp "Ratio"  "nonzeroexps"
-    tfuncsR              = getWithDefault []    cp "Ratio"  "transfunctions"
-
     trainname          = getSetting cp "IO"   "train"
     testname           = getSetting cp "IO"   "test"
     task               = getSetting cp "IO"   "task"
@@ -62,7 +58,6 @@ runWithConfig fname = do
     nPop               = getSetting cp "Algorithm"   "npop"
     nGens              = getSetting cp "Algorithm"   "ngens"
     alg                = getSetting cp "Algorithm"   "algorithm"
-    perf_mes           = getSetting cp "Algorithm"  "measures"
     
     penalty            = getWithDefault NoPenalty cp "Constraints" "penalty"
     shapes             = getWithDefault [] cp "Constraints" "shapes"
@@ -76,24 +71,14 @@ runWithConfig fname = do
            <> transFunctions tfuncs
            <> measures perf_mes 
 
-    mutCfgR =  if null tfuncsR 
-                  then Nothing 
-                  else Just $ validateConfig
-                            $  exponents expminR expmaxR
-                            <> termLimit termminR termmaxR
-                            <> nonzeroExps nzExpsR
-                            <> transFunctions tfuncsR
-                            <> measures perf_mes 
-
     datasetCfg =  validateConfig
                $  trainingset trainname
                <> testset testname
 
   -- run ITEA with the given configuration
   case alg of
-    ITEA    -> run runITEA datasetCfg mutCfg mutCfgR logg nPop nGens task penalty shapes domains
-    RITEA   -> run runRITEA datasetCfg mutCfg mutCfgR logg nPop nGens task penalty shapes domains
-    FI2POP  -> run runFI2POP datasetCfg mutCfg mutCfgR logg nPop nGens task penalty shapes domains
+    ITEA   -> run runITEA datasetCfg mutCfg logg nPop nGens task penalty shapes domains
+    FI2POP -> run runFI2POP datasetCfg mutCfg logg nPop nGens task penalty shapes domains
 
 -- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()

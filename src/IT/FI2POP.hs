@@ -32,7 +32,7 @@ import Control.Monad.Extra (iterateM)
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
-fi2pop :: RatioMutation -> Fitness -> (Population, Population) -> Rnd [(Population, Population)]
+fi2pop :: Mutation -> Fitness -> (Population, Population) -> Rnd [(Population, Population)]
 fi2pop f g (feas0, infeas0) = let n = length feas0 -- + length infeas0
                               in  iterateM (step2pop f g n) (feas0, infeas0)
 
@@ -46,12 +46,11 @@ splitPop pop = go pop [] []
       | otherwise      = go ps feas (p:infeas)
       
 -- | Performs one iteration of FI2POP
-step2pop :: RatioMutation -> Fitness -> Int -> (Population, Population) -> Rnd (Population, Population)
+step2pop :: Mutation -> Fitness -> Int -> (Population, Population) -> Rnd (Population, Population)
 step2pop mutFun fitFun nPop (feas, infeas) = do
   let tourn = if nPop >= 1000 then tournamentSeq else tournament
-      mutf s = mutFun (_expr s) (_ratio s)
-  childrenF <- parRndMap nPop mutf (uncurry fitFun) feas
-  childrenI <- parRndMap nPop mutf (uncurry fitFun) infeas
+  childrenF <- parRndMap nPop (mutFun . _expr) fitFun feas
+  childrenI <- parRndMap nPop (mutFun . _expr) fitFun infeas
   let (feas', infeas') = splitPop (childrenF ++ childrenI)
   nextFeas <- tourn (feas ++ feas') nPop
   nextInfeas <- tourn (infeas ++ infeas') nPop  
