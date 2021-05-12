@@ -18,10 +18,10 @@ TODO: move interval evaluation to IT.Eval.Interval
 module IT.Eval where
 
 import qualified Data.Vector as V
-import qualified Data.Vector.Storable as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.IntMap.Strict as M
 import Numeric.Interval hiding (null)
+import qualified Numeric.Interval as I
 import Data.Bifunctor
 
 import IT
@@ -262,15 +262,29 @@ exprToMatrix xss = LA.fromColumns . (V.head xss :) . map (evalTerm (V.tail xss))
 
 -- | Clean the expression by removing the invalid terms
 -- TODO: move to IT.Regression 
-cleanExpr :: Dataset Double -> Expr -> (Expr, LA.Matrix Double)
-cleanExpr xss = second (LA.fromColumns . (b:)) . foldr p ([], [])
+cleanExpr :: Dataset Double -> [Interval Double] -> Expr -> (Expr, LA.Matrix Double)
+cleanExpr xss domains = second (LA.fromColumns . (b:)) . foldr p ([], [])
   where
     xss'           = V.tail xss
     b              = V.head xss
-    p t (ts, cols) = let col = evalTerm xss' t
-                     in  if VV.all (not.isInvalid) col
+    p t (ts, cols) = if isInvalidInterval (evalTermInterval domains t)
+                        then (ts, cols)
+                        else (t:ts, evalTerm xss' t : cols)
+{-                        
+    p' t (ts, cols) = let col = evalTerm xss' t
+                      in  if VV.all (not.isInvalid) col
                             then (t:ts, col:cols)
                             else (ts, cols)
+-}
+isInvalidInterval :: Interval Double -> Bool                        
+isInvalidInterval ys = I.null ys 
+                     ||  isInfinite ys1 || isInfinite ys2 
+                     || ys2 < ys1 
+                     || abs ys1 >= 1e150 || abs ys2 >= 1e150
+                     || isNaN ys1 || isNaN ys2
+  where
+    ys1 = inf ys
+    ys2 = sup ys 
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution -> Bool

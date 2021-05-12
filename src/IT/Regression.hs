@@ -22,6 +22,7 @@ import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Vector.Storable as V
 import qualified Numeric.LinearAlgebra as LA
+import Numeric.Interval (Interval)
 import qualified MachineLearning.Classification.Binary as BC
 import qualified MachineLearning.LogisticModel as LM
 import qualified MachineLearning.Classification.OneVsAll as OVA
@@ -99,9 +100,10 @@ evalTrain :: Task
           -> Vector
           -> Dataset Double
           -> Vector
+          -> [Interval Double]
           -> Expr
           -> Maybe Solution
-evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr
+evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val domains expr
   | null expr' = Nothing 
   | otherwise  = Just $ Sol expr' fit cnst len pnlty ws
   where
@@ -113,7 +115,7 @@ evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr
     cnst  = cnstrFun expr' ws'
     pnlty = evalPenalty penalty len cnst
 
-    (expr', zss) = cleanExpr xss_train expr
+    (expr', zss) = cleanExpr xss_train domains expr
     zss_val      = exprToMatrix xss_val expr'
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since

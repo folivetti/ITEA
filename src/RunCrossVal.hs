@@ -16,6 +16,8 @@ module RunCrossVal where
 
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.Vector as V
+import qualified Numeric.Morpheus.MatrixReduce as MTX
+import Numeric.Interval ((...))
 
 import Data.List
 import qualified Data.List.NonEmpty as NE
@@ -124,6 +126,12 @@ runCfg fname fold mutCfg = do
   let nRows = LA.rows trainX
       dim   = LA.cols trainX - 1
 
+      minX = Prelude.tail $ LA.toList $ MTX.columnPredicate min trainX
+      maxX = Prelude.tail $ LA.toList $ MTX.columnPredicate max trainX
+      domains' = case domains of
+                      Nothing -> zipWith (...) minX maxX
+                      Just ds -> map (uncurry (...)) ds
+
       -- random 5-cv split
       cycle' []     = []
       cycle' (x:xs) = xs ++ [x]
@@ -145,7 +153,7 @@ runCfg fname fold mutCfg = do
       toRegMtx = V.fromList . LA.toColumns
       criteria = NE.fromList [_nmse]
 
-      fitTrains = zipWith (\x y  -> evalTrain Regression criteria (fromShapes shapes domains) NoPenalty (toRegMtx x) y (toRegMtx x) y) trXs trYs
+      fitTrains = zipWith (\x y  -> evalTrain Regression criteria (fromShapes shapes domains) NoPenalty (toRegMtx x) y (toRegMtx x) y domains') trXs trYs
 
       fitTests  =  zipWith (\x y -> evalTest Regression criteria (toRegMtx x) y) tvXs tvYs
 

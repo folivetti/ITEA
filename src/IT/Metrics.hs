@@ -15,6 +15,7 @@ module IT.Metrics where
 import Data.Semigroup
 
 import qualified Numeric.LinearAlgebra as LA
+import qualified Numeric.Morpheus.Statistics as Stat
 import qualified Data.Vector.Storable as V
 
 type Vector = LA.Vector Double
@@ -47,11 +48,12 @@ meanError op ysHat ys = mean $ op $ ysHat - ys
 
 -- | Mean Squared Error
 mse :: Vector -> Vector -> Double
-mse           = meanError (^(2 :: Int))
+--mse           = meanError (^(2 :: Int))
+mse ysHat ys = mean $ (ysHat - ys) ^(2 :: Int)
 
 -- | Mean Absolute Error
 mae :: Vector -> Vector -> Double
-mae           = meanError abs
+mae ysHat ys = Stat.mean $ abs (ysHat - ys) -- meanError abs
 
 -- | Normalized Mean Squared Error
 nmse :: Vector -> Vector -> Double
@@ -65,7 +67,7 @@ rmse ysHat ys = sqrt $ mse ysHat ys
 rSq :: Vector -> Vector -> Double
 rSq ysHat ys  = negate (1 - r/t)
   where
-    ym      = mean ys
+    ym      = Stat.mean ys
     t       = sumOfSq $ V.map (\yi -> yi - ym) ys
     r       = sumOfSq $ ys - ysHat
     sumOfSq = V.foldl (\s di -> s + di^(2 :: Int)) 0

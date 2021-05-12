@@ -19,4 +19,4 @@ executable itea
   main-is:             Main.hs
   other-modules:       IT, IT.Random, IT.Regression, IT.ITEA, IT.FI2POP, IT.Mutation, IT.Algorithms, IT.Eval, IT.Metrics, IT.Shape, ITEA.Config, ITEA.Report, ITEA.Regression, RunConfig, RunCrossVal 
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5, random, mtl, hmatrix, containers, vector, split, parallel, deepseq, random-shuffle, mltool, directory, monad-extras, clock, ConfigFile, MissingH, intervals 
+  build-depends:       base >= 4.7 && < 5, random, mtl, hmatrix, containers, vector, split, parallel, deepseq, random-shuffle, mltool, directory, monad-extras, clock, ConfigFile, MissingH, intervals, monad-par, hmatrix-morpheus

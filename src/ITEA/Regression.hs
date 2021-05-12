@@ -23,10 +23,12 @@ import IT.Shape
 import ITEA.Config
 import ITEA.Report
 
-import Data.List.NonEmpty hiding (map)
+import Data.List.NonEmpty hiding (map, zipWith)
 
 import qualified Numeric.LinearAlgebra as LA
+import qualified Numeric.Morpheus.MatrixReduce as MTX
 import qualified Data.Vector as V
+import Numeric.Interval ((...), Interval)
 
 import Control.Monad.State
 import System.Random
@@ -79,10 +81,17 @@ run alg (D tr te) mcfg output nPop nGens task penalty shapes domains =
         xss_test                             = toVecOfColumns testX
         (xss_train, y_train, xss_val, y_val) = splitValidation 0.5 trainX trainY
 
+        minX = Prelude.tail $ LA.toList $ MTX.columnPredicate min trainX
+        maxX = Prelude.tail $ LA.toList $ MTX.columnPredicate max trainX
+        domains' :: [Interval Double]
+        domains' = case domains of
+                     Nothing -> zipWith (...) minX maxX
+                     Just ds -> map (uncurry (...)) ds
+
         measureList = fromList $ getMeasure mcfg
         -- Create the fitness function for the training and test set 
-        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_val y_val 
-        refit       = evalTrain task measureList (fromShapes shapes domains) penalty xss_all trainY xss_all trainY
+        fitTrain    = evalTrain task measureList (fromShapes shapes domains) penalty xss_train y_train xss_val y_val domains'
+        refit       = evalTrain task measureList (fromShapes shapes domains) penalty xss_all trainY xss_all trainY domains'
         fitTest     = evalTest task measureList xss_test testY
         dim         = LA.cols trainX - 1
 

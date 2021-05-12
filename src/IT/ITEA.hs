@@ -141,3 +141,4 @@ parMaybeMap :: Int -> ((StdGen, Solution) -> Maybe Solution) -> [(StdGen, Soluti
 parMaybeMap n f pop = catMaybes parmap
   where
     parmap = map f pop `using` parListChunk n rpar
+
