@@ -39,7 +39,7 @@ import qualified Data.Sequence as Seq
 
 -- | Creates a stream of generations the /i/-th 
 -- element corresponds to the population of the /i/-th generation.
-itea :: Mutation -> Fitness -> Population -> Rnd [Population]
+itea :: RatioMutation -> Fitness -> Population -> Rnd [Population]
 itea f g p0 = let n = length p0
                       in  iterateM (step f g n) p0
 
@@ -51,10 +51,10 @@ initialPop :: Int                -- ^ maxTerms
            -> Rnd Population
 initialPop maxTerms nPop rndTerm fit = 
   do pop <- traverse rndIndividual $ replicate nPop ()
-     parRndMap nPop (return . _expr) fit pop
+     parRndMap nPop (\s -> return (_expr s, [])) (uncurry fit) pop
   where
-    rndExpr = sampleExpr rndTerm
-    createSol e = Sol e [] 0.0 0 0.0 []
+    rndExpr     = sampleExpr rndTerm
+    createSol e = Sol e [] [] 0.0 0 0.0 []
 
     -- return a random list of random expressions
     rndIndividual () = do n <- sampleRng 1 maxTerms
@@ -87,21 +87,21 @@ tournament p n = do let npop = length p
                     return $ zipWith chooseOne ixs1 ixs2
 
 -- | Perform one iteration of ITEA
-step :: Mutation -> Fitness -> Int -> Population -> Rnd Population
+step :: RatioMutation -> Fitness -> Int -> Population -> Rnd Population
 step mutFun fitFun nPop pop = do
   let tourn = if nPop >= 1000 then tournamentSeq else tournament
-      mutf s = mutFun (_expr s)
-  children <- mapMaybe fitFun <$> traverse mutf pop
+      mutf s = mutFun (_expr s) (_ratio s)
+  children <- mapMaybe (uncurry fitFun) <$> traverse mutf pop
   if null children
      then tourn pop nPop
      else tourn (pop <> children) nPop
 
 -- | EXPERIMENTAL: step function with parallel evaluation 
-stepPar :: Mutation -> Fitness -> Int -> Population -> Rnd Population
+stepPar :: RatioMutation -> Fitness -> Int -> Population -> Rnd Population
 stepPar mutFun fitFun nPop pop = do
   let tourn  = if nPop >= 1000 then tournamentSeq else tournament
-      mutf s = mutFun (_expr s)
-  children  <- parRndMap nPop mutf fitFun pop
+      mutf s = mutFun (_expr s) (_ratio s)
+  children  <- parRndMap nPop mutf (uncurry fitFun) pop
   if null children
    then tourn pop nPop
    else tourn (pop <> children) nPop
@@ -112,7 +112,7 @@ stepPar mutFun fitFun nPop pop = do
 -- a function that maybe returns a result.
 --parRndMap :: NFData c => Int -> (a -> Rnd b) -> (b -> Maybe c) -> [a] -> Rnd [c]
 --parRndMap :: Int -> Mutation -> (Solution -> Maybe Expr) -> [Solution] -> Rnd [Solution]
-parRndMap :: Int -> (Solution -> Rnd Expr) -> (Expr -> Maybe Solution) -> [Solution] -> Rnd [Solution]
+parRndMap :: Int -> (Solution -> Rnd (Expr, Expr)) -> ((Expr, Expr) -> Maybe Solution) -> [Solution] -> Rnd [Solution]
 parRndMap nPop rndf randFun pop = state stFun
   where
     stFun seed = let seeds         = genNseeds (nPop+1) seed

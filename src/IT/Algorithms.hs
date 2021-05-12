@@ -22,6 +22,7 @@ import qualified Numeric.LinearAlgebra as LA
 -- | data type containing a solution, its fitness and weight vector 
 --  'a' refers to the type of 'Expr', 'b' refers to a container of statistics.
 data Solution = Sol { _expr    :: Expr     -- ^ The IT expression of type a
+                    , _ratio   :: Expr     -- ^ denominator of rational expression
                     , _fit     :: [Double] -- ^ Fitness and other measures for evaluating the expression
                     , _constr  :: Double   -- ^ Amount of Shape Constraint violation associated with the expression, always positive
                     , _len     :: Int      -- ^ Expression size as per https://github.com/EpistasisLab/regression-benchmark/blob/dev/CONTRIBUTING.md
@@ -30,17 +31,21 @@ data Solution = Sol { _expr    :: Expr     -- ^ The IT expression of type a
                     }
 
 instance Show Solution where
-  show (Sol e f c l _ w) = concat ["Expression: "  , expr,    "\n"
-                                , "Fitness: "    , fit,     "\n"
-                                , "Weights: "    , weights, "\n"
-                                , "Constraints: ", constr,  "\n"
-                                , "Length: "     , len,     "\n"]
+  show (Sol e r f c l _ w) = concat ["Expression: "  , expr,    "\n"
+                                    , "Fitness: "    , fit,     "\n"
+                                    , "Weights: "    , weights, "\n"
+                                    , "Constraints: ", constr,  "\n"
+                                    , "Length: "     , len,     "\n"]
     where
-      expr    = toExprStr e (LA.toList $ head w)
+      exprQ   = if null r then "" else " / (" ++ toExprStr r wq ++ ")"
+      expr    = toExprStr e wp ++ exprQ
       fit     = (show . head) f
       weights = show w
       constr  = show c
       len     = show l
+      w'      = LA.toList $ head w
+      wp      = take (length e + 1) w'
+      wq      = 1.0 : drop (length e + 1) w' 
   
 -- | These instances are only to find the best and worst individuals
 -- of a population.
@@ -64,7 +69,7 @@ instance NFData Solution where
 -- returns an evaluated population. 
 -- This function is a good candidate for parallelization.
 --type Fitness    a b = [Expr a] -> Population a b -- (Expr a, Double, b)
-type Fitness = Expr -> Maybe Solution
+type Fitness = Expr -> Expr -> Maybe Solution
 
 -- | 'Constraint' is a function that receives an expression and its coefficients
 -- and return the penalty associated with the constraint violation.
@@ -72,3 +77,4 @@ type Constraint = Expr -> [Double] -> Double
 
 -- | 'Mutation' function with signature 'Solution a b -> Rnd (Solution a b)'
 type Mutation = Expr -> Rnd Expr
+type RatioMutation = Expr -> Expr -> Rnd (Expr, Expr)

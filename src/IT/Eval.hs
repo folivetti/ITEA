@@ -18,11 +18,9 @@ TODO: move interval evaluation to IT.Eval.Interval
 module IT.Eval where
 
 import qualified Data.Vector as V
-import qualified Data.Vector.Storable as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified Data.IntMap.Strict as M
 import Numeric.Interval hiding (null)
-import Data.Bifunctor
 
 import IT
 import IT.Algorithms
@@ -253,24 +251,6 @@ isInvalid x = isNaN x || isInfinite x || abs x >= 1e150
 isValid :: [Double] -> Bool
 isValid = all (\x -> not (isNaN x) && not (isInfinite x) && abs x < 1e150)
 -- not (any isInvalid xs)
-
--- | evaluate an expression to a set of samples 
---
--- (1 LA.|||) adds a bias dimension
-exprToMatrix :: Dataset Double -> Expr -> LA.Matrix Double
-exprToMatrix xss = LA.fromColumns . (V.head xss :) . map (evalTerm (V.tail xss))
-
--- | Clean the expression by removing the invalid terms
--- TODO: move to IT.Regression 
-cleanExpr :: Dataset Double -> Expr -> (Expr, LA.Matrix Double)
-cleanExpr xss = second (LA.fromColumns . (b:)) . foldr p ([], [])
-  where
-    xss'           = V.tail xss
-    b              = V.head xss
-    p t (ts, cols) = let col = evalTerm xss' t
-                     in  if VV.all (not.isInvalid) col
-                            then (t:ts, col:cols)
-                            else (ts, cols)
 
 -- | Checks if the fitness of a solution is not Inf nor NaN.
 notInfNan :: Solution -> Bool

@@ -106,13 +106,28 @@ parseFile css = ML.splitToXY . LA.fromLists $ map (map read) dat
     dat = map (splitOn ",") $ lines css
 
 -- | Creates the mutation function and also returns the random term generator (for initialization)
-withMutation :: MutationCfg -> Int -> (Mutation, Rnd Term)
-withMutation (MCfg elim tlim nzExp transfun _) dim = (mutFun dim elim tlim rndTerm rndTrans, rndTerm)
+withMutation :: MutationCfg -> Maybe MutationCfg -> Int -> (Expr -> Expr -> Rnd (Expr, Expr), Rnd Term)
+withMutation mcfgP mmcfgQ dim = (mut, rndTerm)
   where
-    (minExp, maxExp) = elim
-    rndInter = sampleInterMax dim nzExp minExp maxExp
-    rndTrans = sampleTrans transfun -- (map read transfun)
+    (mutFunP, rndTerm) = createMutationFromCfg dim mcfgP
+    mmutFunQ           = fmap (fst . createMutationFromCfg dim) mmcfgQ
+    mut p q            = case mmutFunQ of
+                           Nothing    -> do p' <- mutFunP p
+                                            return (p', q)
+                           Just mutFunQ -> do b <- toss
+                                              if b then do p' <- mutFunP p
+                                                           return (p', q)
+                                                   else do q' <- mutFunQ q 
+                                                           return (p, q')
+
+createMutationFromCfg :: Int -> MutationCfg -> (Mutation, Rnd Term)
+createMutationFromCfg dim (MCfg elim tlim nzExp transfun _) = (mutFun dim elim tlim rndTerm rndTrans, rndTerm)
+  where
+    (e0, e1) = elim
+    rndInter = sampleInterMax dim nzExp e0 e1
+    rndTrans = sampleTrans transfun
     rndTerm  = sampleTerm rndTrans rndInter
+
 
 -- * Datasets configuration
 

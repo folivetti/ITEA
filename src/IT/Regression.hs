@@ -18,9 +18,11 @@ import IT.Eval
 import IT.Metrics
 
 import Data.List
+import Data.Bifunctor
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Vector.Storable as V
+import qualified Data.Vector as VV
 import qualified Numeric.LinearAlgebra as LA
 import qualified MachineLearning.Classification.Binary as BC
 import qualified MachineLearning.LogisticModel as LM
@@ -100,51 +102,70 @@ evalTrain :: Task
           -> Dataset Double
           -> Vector
           -> Expr
+          -> Expr
           -> Maybe Solution
-evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val expr
-  | null expr' = Nothing 
-  | otherwise  = Just $ Sol expr' fit cnst len pnlty ws
+evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val exprP exprQ
+  | null exprP' = Nothing 
+  | otherwise   = Just $ Sol exprP' exprQ' fit cnst len pnlty ws
   where
-    ws    = fitTask task zss ys_train
-    ysHat = predictTask task zss_val ws
-    fit   = applyMeasures measures ysHat ys_val
+    -- Fit the rational IT 
+    (exprP', zssP) = cleanExpr xss_train exprP 
+    (exprQ', zssQ) = second (createQ ys_train) $ cleanExpr xss_train exprQ
+    zss            = LA.fromColumns (zssP <> map negate zssQ)
+    ws             = fitTask task zss ys_train
+
+    -- Validate
+    np                     = length exprP' + 1
+    wsP                    = map (V.take np) ws
+    wsQ                    = map (V.cons 1.0 . V.drop np) ws
+    (zss_val_P, zss_val_Q) = applyBoth (LA.fromColumns . exprToMatrix xss_val) exprP' exprQ'
+    ysHat_P                = predictTask task zss_val_P wsP
+    ysHat_Q                = predictTask task zss_val_Q wsQ
+    ysHat                  = ysHat_P / ysHat_Q
+    fit                    = applyMeasures measures ysHat ys_val
+
+    -- Len and constraint
     ws'   = V.toList $ head ws
-    len   = exprLength expr' ws'
-    cnst  = cnstrFun expr' ws'
+    len   = exprLength exprP' (take np ws') + exprLength exprQ' (drop np ws')
+    cnst  = cnstrFun exprP' ws'
     pnlty = evalPenalty penalty len cnst
 
-    (expr', zss) = cleanExpr xss_train expr
-    zss_val      = exprToMatrix xss_val expr'
+    createQ ys      = map (*ys) . tail
+    applyBoth f x y = (f x, f y)
 
 -- | Evaluates an expression into the test set. This is different from `fitnessReg` since
 -- it doesn't apply OLS.
 -- It was: fitnessTest
 evalTest :: Task -> NonEmpty Measure -> Dataset Double -> Vector -> Solution -> Maybe [Double]
 evalTest task measures xss ys sol
-  | V.length (head ws) /= LA.cols zss = Nothing
-  | otherwise                         = Just fit
+  | V.length (head wsP) /= LA.cols zssP = Nothing
+  | otherwise                           = Just fit
   where
-    zss   = exprToMatrix xss (_expr sol)
-    ws    = _weights sol
-    ysHat = predictTask task zss ws 
-    fit   = applyMeasures measures ysHat ys 
+    exprP  = _expr sol
+    exprQ  = _ratio sol
+    np     = length exprP + 1
+    wsP    = map (V.take np) $ _weights sol
+    wsQ    = map (V.cons 1.0 . V.drop np) $ _weights sol
+    zssP   = LA.fromColumns $ exprToMatrix xss exprP
+    zssQ   = LA.fromColumns $ exprToMatrix xss exprQ
+    ysHatP = predictTask task zssP wsP
+    ysHatQ = predictTask task zssQ wsQ
+    ysHat  = ysHatP/ysHatQ
+    fit    = applyMeasures measures ysHat ys
 
-{-
--- | Experimental: round off floating point to the 1e-10 place.
-roundoff :: RealFrac a => a -> a
-roundoff x
-  | abs x < thr   = 0.0
-  | abs x > 1e200 = x
-  | otherwise = fromInteger (round (x / thr)) * thr
-  where thr = 1e-15
+-- | evaluates an expression to a set of samples 
+--
+exprToMatrix :: Dataset Double -> Expr -> [Vector]
+exprToMatrix xss = (VV.head xss :) . map (evalTerm (VV.tail xss))
 
--- what to do with you?
-tryToRound :: (Vector -> Double) -> LA.Matrix Double -> (Vector, [Vector]) -> (Vector, [Vector])
-tryToRound f zss (ysHat, (ws:_)) =
-  let ws'         = V.map roundoff ws
-      ysHat'      = predict zss ws'
-  in  (ysHat', [ws']) --if abs (f ysHat' - f ysHat) < 0.01
-          --then (ysHat', [ws'])
-          --else (ysHat, [ws])
-tryToRound _ _ _ = error "empty weight list"
--}
+-- | Clean the expression by removing the invalid terms
+cleanExpr :: Dataset Double -> Expr -> (Expr, [Vector])
+cleanExpr xss = second (b:) . foldr p ([], [])
+  where
+    xss'           = VV.tail xss
+    b              = VV.head xss
+    p t (ts, cols) = let col = evalTerm xss' t
+                     in  if V.all (not.isInvalid) col
+                            then (t:ts, col:cols)
+                            else (ts, cols)
+

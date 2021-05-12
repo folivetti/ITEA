@@ -125,7 +125,8 @@ mutFun :: Int                    -- ^ Dim
        -> Rnd Transformation -- ^ random term generator
        -> Expr                 -- ^ Expression to be mutated
        -> Rnd Expr           -- ^ Random Expression generator
-mutFun dim (minExp, maxExp) (minTerms, maxTerms) rndTerm rndTrans e = join (sampleFromList muts)
+mutFun dim (minExp, maxExp) (minTerms, maxTerms) rndTerm rndTrans [] = join (sampleFromList [addTerm rndTerm []]) 
+mutFun dim (minExp, maxExp) (minTerms, maxTerms) rndTerm rndTrans e  = join (sampleFromList muts)
   where
     muts   = [replaceTerm dim minExp maxExp e
              ,replaceTrans rndTrans         e

@@ -45,7 +45,7 @@ data Transformation = Id | Sin | Cos | Tan | Tanh | Sqrt | SqrtAbs | Log | Exp |
 data Term = Term Transformation Interaction
               deriving (Show, Read)
 
--- | An 'Expr' is just a list of 'Term's.
+-- | An 'Expr' is two lists of 'Term's. The first is the numerator and the second is the denominator.
 type Expr = [Term]
 
 -- | A 'Column' of a data set is stored as a LA.Vector to avoid conversions
