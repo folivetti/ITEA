@@ -58,6 +58,7 @@ runWithConfig fname = do
     nPop               = getSetting cp "Algorithm"   "npop"
     nGens              = getSetting cp "Algorithm"   "ngens"
     alg                = getSetting cp "Algorithm"   "algorithm"
+    seed               = getWithDefault Nothing cp "Algorithm" "seed"
     
     penalty            = getWithDefault NoPenalty cp "Constraints" "penalty"
     shapes             = getWithDefault [] cp "Constraints" "shapes"
@@ -77,8 +78,8 @@ runWithConfig fname = do
 
   -- run ITEA with the given configuration
   case alg of
-    ITEA   -> run runITEA datasetCfg mutCfg logg nPop nGens task penalty shapes domains
-    FI2POP -> run runFI2POP datasetCfg mutCfg logg nPop nGens task penalty shapes domains
+    ITEA   -> run runITEA seed datasetCfg mutCfg logg nPop nGens task penalty shapes domains
+    FI2POP -> run runFI2POP seed datasetCfg mutCfg logg nPop nGens task penalty shapes domains
 
 -- | Parse the filename from the system arguments.
 parseConfigFile :: [String] -> IO ()

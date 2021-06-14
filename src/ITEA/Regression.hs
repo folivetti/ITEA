@@ -49,7 +49,7 @@ dropNRows n xss = xss LA.?? (LA.Drop n, LA.All)
 splitValidation :: Double -> LA.Matrix Double -> LA.Vector Double 
                 -> (Dataset Double, Column Double, Dataset Double, Column Double)
 splitValidation ratio xss ys
-  | nRows <= 20 = (toVecOfColumns xss, ys, toVecOfColumns xss, ys)
+  | nRows <= 50 = (toVecOfColumns xss, ys, toVecOfColumns xss, ys)
   | otherwise    = (xss_train, y_train, xss_val, y_val)
   where
     nRows      = LA.rows xss
@@ -62,6 +62,7 @@ splitValidation ratio xss ys
 
 -- | Support function for running ITEA
 run :: AlgRunner
+    -> Maybe Int          -- random seed
     -> Datasets     -- training and test datasets
     -> MutationCfg  -- configuration of mutation operators
     -> Output       -- output to Screen | PartialLog filename | FullLog filename
@@ -72,8 +73,10 @@ run :: AlgRunner
     -> [Shape]
     -> Domains
     -> IO ()
-run alg (D tr te) mcfg output nPop nGens task penalty shapes domains =
- do g <- newStdGen
+run alg seed (D tr te) mcfg output nPop nGens task penalty shapes domains =
+ do g <- case seed of 
+           Nothing -> newStdGen
+           Just s  -> return $ mkStdGen s
     (trainX, trainY) <- readAndParse tr
     (testX,  testY ) <- readAndParse te
     let

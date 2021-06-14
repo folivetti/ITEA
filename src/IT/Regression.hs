@@ -105,6 +105,7 @@ evalTrain :: Task
           -> Maybe Solution
 evalTrain task measures cnstrFun penalty xss_train ys_train xss_val ys_val domains expr
   | null expr' = Nothing 
+--  | LA.rank zss < 1 = error $ show expr' <> show zss <> show (map (evalTermInterval domains) expr') <> show domains
   | otherwise  = Just $ Sol expr' fit cnst len pnlty ws
   where
     ws    = fitTask task zss ys_train

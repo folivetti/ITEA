@@ -21,14 +21,14 @@ packages:
 - completed:
     name: intervals
     version: 0.9.1
-    git: https://github.com/massma/intervals.git
+    git: https://github.com/folivetti/intervals.git
     pantry-tree:
-      size: 1076
-      sha256: 2d38b20ac6f956b0eb81298d52f63111c165d9355e389328157b422ae15975d4
-    commit: 3fe1c614dae10dc51554b5575b07ab042d448f9f
+      size: 1077
+      sha256: 78dc9e89247c5454b8242a87a189b756ccae18abfdce53c0c0a593f4a5750c77
+    commit: 1832dbbdf8c483b92e31e30168434c8e780ff58f
   original:
-    git: https://github.com/massma/intervals.git
-    commit: 3fe1c614dae10dc51554b5575b07ab042d448f9f
+    git: https://github.com/folivetti/intervals.git
+    commit: 1832dbbdf8c483b92e31e30168434c8e780ff58f
 snapshots:
 - completed:
     size: 567037

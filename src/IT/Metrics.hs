@@ -53,7 +53,7 @@ mse ysHat ys = mean $ (ysHat - ys) ^(2 :: Int)
 
 -- | Mean Absolute Error
 mae :: Vector -> Vector -> Double
-mae ysHat ys = Stat.mean $ abs (ysHat - ys) -- meanError abs
+mae ysHat ys = mean $ abs (ysHat - ys) -- meanError abs
 
 -- | Normalized Mean Squared Error
 nmse :: Vector -> Vector -> Double

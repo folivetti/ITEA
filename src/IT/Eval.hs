@@ -94,7 +94,7 @@ polynomialInterval :: [Interval Double] -> Interaction -> Interval Double
 polynomialInterval domains ks = foldr monoProduct (singleton 1) $ zip [0..] domains
   where
     monoProduct (ix, x) img
-      | ix `M.member` ks = img * x ** get ix
+      | ix `M.member` ks = img * x ^^ get ix
       | otherwise        = img
     get ix = fromIntegral (ks M.! ix)
 
@@ -282,6 +282,7 @@ isInvalidInterval ys = I.null ys
                      || ys2 < ys1 
                      || abs ys1 >= 1e150 || abs ys2 >= 1e150
                      || isNaN ys1 || isNaN ys2
+                     || width ys < 1e-10
   where
     ys1 = inf ys
     ys2 = sup ys 
@@ -302,6 +303,7 @@ hasInf x = any isInfinite [inf x, sup x]
 -- | Creates a protected function to avoid throwing exceptions
 protected :: RealFloat a => (Interval a -> Interval a) -> Interval a -> Interval a
 protected f x
+  | I.null y      = y
   | hasInf x      = nanInterval
   | sup y < inf y = sup y ... inf y
   | otherwise     = y
