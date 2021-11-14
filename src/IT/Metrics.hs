@@ -80,16 +80,21 @@ _nmse = Measure "NMSE" nmse
 _r2   = Measure "R^2" rSq
 
 -- * Classification measures 
-_accuracy,_recall,_precision,_f1,_logloss :: Measure
+_accuracy,_recall,_precision,_f1,_fbeta,_logloss :: Measure
 _accuracy  = Measure "Accuracy" accuracy
 _recall    = Measure "Recall" recall
 _precision = Measure "Precision" precision
 _f1        = Measure "F1" f1
+_fbeta     = Measure "FBeta" f1
 _logloss   = Measure "Log-Loss" logloss
+
+fromNaNtoInf x | isNaN x = 1/0
+               | otherwise = x
+{-# INLINE fromNaNtoInf #-}
 
 -- | Accuracy: ratio of correct classification 
 accuracy :: Vector -> Vector -> Double
-accuracy ysHat ys = -equals/tot
+accuracy ysHat ys = fromNaNtoInf $ -equals/tot
   where
     ys'    = map round $ LA.toList ys
     ysHat' = map round $ LA.toList ysHat
@@ -101,7 +106,7 @@ accuracy ysHat ys = -equals/tot
 
 -- | Precision: ratio of correct positive classification 
 precision :: Vector -> Vector -> Double
-precision ysHat ys = equals/tot
+precision ysHat ys = fromNaNtoInf $ -equals/tot
   where
     ys'    = map round $ LA.toList ys
     ysHat' = map round $ LA.toList ysHat
@@ -113,7 +118,7 @@ precision ysHat ys = equals/tot
 
 -- | Recall: ratio of retrieval of positive labels 
 recall :: Vector -> Vector -> Double
-recall ysHat ys = equals/tot
+recall ysHat ys = fromNaNtoInf $ -equals/tot
   where
     ys'    = map round $ LA.toList ys
     ysHat' = map round $ LA.toList ysHat
@@ -126,10 +131,19 @@ recall ysHat ys = equals/tot
 
 -- | Harmonic average between Precision and Recall 
 f1 :: Vector -> Vector -> Double
-f1 ysHat ys = 2*prec*rec/(prec+rec)
+f1 ysHat ys = fromNaNtoInf $ -2*prec*rec/(prec+rec)
   where
-    prec = precision ysHat ys
-    rec  = recall ysHat ys
+    prec = negate $ precision ysHat ys
+    rec  = negate $ recall ysHat ys
+
+-- | Harmonic average between Precision and Recall 
+fbeta :: Vector -> Vector -> Double
+fbeta ysHat ys = fromNaNtoInf f 
+  where
+    f    = -(1 + beta^2)*prec*rec/((beta^2 * prec)+rec)
+    prec = negate $ precision ysHat ys
+    rec  = negate $ recall ysHat ys
+    beta = 2.0
 
 -- | LogLoss of a classifier that returns a probability.
 logloss :: Vector -> Vector -> Double 
@@ -142,7 +156,7 @@ logloss ysHat ys = mean $ -(ys * log ysHat' + (1 - ys)*log(1 - ysHat'))
 -- | List of all measures
 measureAll :: [Measure]
 measureAll = [_rmse, _mae, _nmse, _r2
-             , _accuracy, _recall, _precision, _f1, _logloss
+             , _accuracy, _recall, _precision, _f1, _fbeta, _logloss
              ]
 
 -- | Read a string into a measure

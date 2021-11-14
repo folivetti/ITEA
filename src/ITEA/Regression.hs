@@ -82,7 +82,7 @@ run alg seed (D tr te) mcfg output nPop nGens task penalty shapes domains =
     let
         xss_all                              = toVecOfColumns trainX 
         xss_test                             = toVecOfColumns testX
-        (xss_train, y_train, xss_val, y_val) = splitValidation 0.5 trainX trainY
+        (xss_train, y_train, xss_val, y_val) = splitValidation 0.3 trainX trainY
 
         minX = Prelude.tail $ LA.toList $ MTX.columnPredicate min trainX
         maxX = Prelude.tail $ LA.toList $ MTX.columnPredicate max trainX
