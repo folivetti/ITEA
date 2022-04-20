@@ -6,6 +6,11 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
+        myintervals = pkgs.fetchFromGitHub {
+          owner = "folivetti";
+          repo  = "intervals";
+          rev = "1832dbbdf8c483b92e31e30168434c8e780ff58f";
+        };
         config = {
           packageOverrides = pkgs: {
             haskell = pkgs.haskell // {
@@ -13,6 +18,7 @@
                 ghc = pkgs.haskell.packages.ghc8107.override {
                   overrides = self: super: {
                     mltool = pkgs.haskell.lib.dontCheck super.mltool;
+                    intervals = super.callCabal2nix "intervals" myintervals {};
                   };
                 };
               };
