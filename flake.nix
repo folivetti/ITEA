@@ -9,7 +9,8 @@
         myintervals = pkgs.fetchFromGitHub {
           owner = "folivetti";
           repo  = "intervals";
-          rev = "1832dbbdf8c483b92e31e30168434c8e780ff58f";
+          rev = "1c6261bcc8c8d36cdb3678379ab01bbbd0af7364";
+          sha256 = "sha256-hJqLZS1YwAGddIHTrmb2V2rtCKuulgqxBHcCTacPLVg=";
         };
         config = {
           packageOverrides = pkgs: {
