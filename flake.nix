@@ -10,7 +10,7 @@
           owner = "folivetti";
           repo  = "intervals";
           rev = "8e93d157875eb4b9ebc452d19f256ade3561edf8";
-          sha256 = "";
+          sha256 = "sha256-JfN1EsWyQhxoe6BJVEG49OBUctNODqrtOeFdYxUHWKA=";
         };
         config = {
           packageOverrides = pkgs: {
