@@ -47,7 +47,7 @@ extra-deps:
   - random-1.2.0
   - splitmix-0.1.0.2
   - git: https://github.com/folivetti/intervals.git
-    commit: 1c6261bcc8c8d36cdb3678379ab01bbbd0af7364    
+    commit: 8e93d157875eb4b9ebc452d19f256ade3561edf8    
   - ConfigFile-1.1.4@sha256:ca56261e1deae6ef958a337b03812987bfd94ab37b047e27f262bc3137813165,2056
   - MissingH-1.4.3.0@sha256:32f9892ec98cd21df4f4d3ed8d95a3831ae74287ea0641d6f09b2dc6ef061d39,4859
       

@@ -24,11 +24,11 @@ packages:
     git: https://github.com/folivetti/intervals.git
     pantry-tree:
       size: 1077
-      sha256: 0c33b39f2a6eb6668b7a60428adb263fb9ee9bdae113ebdedecacefb1dd2d5fc
-    commit: 1c6261bcc8c8d36cdb3678379ab01bbbd0af7364
+      sha256: 79811af421c6643964f4028be2f7ede68bed44cf2f3ee04b7b4d4e5c389c774f
+    commit: 8e93d157875eb4b9ebc452d19f256ade3561edf8
   original:
     git: https://github.com/folivetti/intervals.git
-    commit: 1c6261bcc8c8d36cdb3678379ab01bbbd0af7364
+    commit: 8e93d157875eb4b9ebc452d19f256ade3561edf8
 - completed:
     hackage: ConfigFile-1.1.4@sha256:ca56261e1deae6ef958a337b03812987bfd94ab37b047e27f262bc3137813165,2056
     pantry-tree:
