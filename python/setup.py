@@ -11,5 +11,5 @@ setup(
 	url='https://github.com/folivetti/ITEA',
 	packages=['pyITEA'],
 	data_files=[('bin', ['itea'])],
-    install_requires=['scikit-learn', 'numpy'],
+    install_requires=['scikit-learn', 'numpy', 'pandas'],
 	)
