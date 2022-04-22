@@ -20,13 +20,21 @@ For Python wrapper:
 
 ## Installation
 
-1. Install the Haskell Stack tool following the instructions at [https://docs.haskellstack.org/en/stable/README/](https://docs.haskellstack.org/en/stable/README/).
+1. Clone the repository with `git clone https://github.com/folivetti/ITEA.git`.
 
-2. Clone the repository with `git clone https://github.com/folivetti/ITEA.git`.
+### Using Haskell stack
 
-3. In the repository root directory run `stack build` (and wait patiently).
+2. Install the Haskell Stack tool following the instructions at [https://docs.haskellstack.org/en/stable/README/](https://docs.haskellstack.org/en/stable/README/).
 
-If using `nix`, edit `stack.yaml` and change `nix: enable: false` to `true`.
+3. Run `install_stack.sh`
+
+### Using ghcup
+
+2. Run `install_ghcup.sh` (this will also install ghcup)
+
+### Using nix flake
+
+2. Run `install_nix.sh`
 
 ## Running
 
@@ -35,25 +43,31 @@ In order to run the algorithm, first create the training and test set files as a
 The config file is split into three sections where you can set different hyperparameters:
 
 ```
-[Dataset]
+[IO]
 train = path and name of the training set
 test  = path and name of the test set
 task  = Regression
+log   = PartialLog "path and name of the output file"
 
 [Mutation]
-exponents      = (-3, 3) 
-termlimit      = (2, 15)
+exponents      = (-3, 3)
+termlimit      = (2,15)
 nonzeroexps    = 10
-transfunctions = ["id", "sin", "cos", "tanh", "sqrt.abs", "log", "exp"]
+transfunctions = [Id, Sin, Cos, Tanh, SqrtAbs, Log, Exp]
 measures       = ["RMSE", "NMSE", "MAE", "R^2"]
 
 [Algorithm]
-npop  = 100
-ngens = 1000
-log   = PartialLog "path and name of the output file"
+npop      = 1000
+ngens     = 1000
+algorithm = ITEA
+
+[Constraints]
+penalty = NoPenalty
+shapes  = []
+domains = Nothing
 ```
 
-The `task` parameter can be set to `Regression` or `Classification`, `transfunctions` accepts a list of transformation functions supported (see `src/IT/Eval.hs` block "Transformation Functions"), `measures` accepts a list of error (minimization) functions to use in the report generator (see 'src/IT/Metrics.hs` blocks "Regression measures" and "Classification measures").
+The `task` parameter can be set to `Regression` or `Classification`, `transfunctions` accepts a list of transformation functions supported (see `src/IT/Eval.hs` block "Transformation Functions"), `measures` accepts a list of error (minimization) functions to use in the report generator (see 'src/IT/Metrics.hs` blocks "Regression measures" and "Classification measures"). The `penalty` option can be `NoPenalty`, `Len <double value>` or `Shape <double value>`. The `shapes` option is a list of shape constraints, see `src/IT/Shape.hs` for a list of choices. `domains` is either `Nothing` or `Just [min_x0 ... max_x0, ...]` a list of interval of each variable domain.
 
 Run the algorithm with the command:
 
@@ -63,7 +77,7 @@ stack run config <conf-file>
 
 where <conf-file> is the path and name of the config file.
 
-As an alternative an unsafe Python wrapper (`itea.py`) is included that works alike the scikit-learn library. An example of its usage can be found in the `example.py` file.
+As an alternative you can use the python wrapper as illustrated in `example.py`.
 
 ## Interaction-Transformation
 
