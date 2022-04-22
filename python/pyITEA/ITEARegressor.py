@@ -6,7 +6,6 @@ import sys
 
 sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'pyITEA'))
-print(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'pyITEA'))
 
 import tempfile
 import subprocess

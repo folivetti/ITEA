@@ -1,5 +1,5 @@
 import numpy as np
-import itea_srbench as itea
+import pyITEA as itea
 
 Z = np.loadtxt("datasets/airfoil/airfoil-train-0.dat", delimiter=",")
 clr = itea.ITEARegressor(500,1000,(-5,5),(2,15),10)
