@@ -1,0 +1,9 @@
+itea
+setup.py
+pyITEA/ITEARegressor.py
+pyITEA/__init__.py
+pyITEA.egg-info/PKG-INFO
+pyITEA.egg-info/SOURCES.txt
+pyITEA.egg-info/dependency_links.txt
+pyITEA.egg-info/requires.txt
+pyITEA.egg-info/top_level.txt
