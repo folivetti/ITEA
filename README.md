@@ -67,7 +67,8 @@ shapes  = []
 domains = Nothing
 ```
 
-The `task` parameter can be set to `Regression` or `Classification`, `transfunctions` accepts a list of transformation functions supported (see `src/IT/Eval.hs` block "Transformation Functions"), `measures` accepts a list of error (minimization) functions to use in the report generator (see 'src/IT/Metrics.hs` blocks "Regression measures" and "Classification measures"). The `penalty` option can be `NoPenalty`, `Len <double value>` or `Shape <double value>`. The `shapes` option is a list of shape constraints, see `src/IT/Shape.hs` for a list of choices. `domains` is either `Nothing` or `Just [min_x0 ... max_x0, ...]` a list of interval of each variable domain.
+The `task` parameter can be set to `Regression` or `Classification`, `transfunctions` accepts a list of transformation functions supported (see `src/IT/Eval.hs` block "Transformation Functions"), `measures` accepts a list of error (minimization) functions to use in the report generator (see 'src/IT/Metrics.hs` blocks "Regression measures" and "Classification measures"). 
+The `penalty` option can be `NoPenalty`, `Len <double value>` or `Shape <double value>`. The `shapes` option is a list of shape constraints, see `src/IT/Shape.hs` for a list of choices. `domains` is either `Nothing` or `Just [min_x0 ... max_x0, ...]` a list of interval of each variable domain.
 
 Run the algorithm with the command:
 
