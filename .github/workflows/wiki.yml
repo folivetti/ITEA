@@ -1,0 +1,12 @@
+name: Email notifier
+
+on:
+  gollum:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test-env
+        run: echo ":error ${{ github.event.commits[0].message }}"
