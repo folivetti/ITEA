@@ -5,12 +5,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  echo:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: test-my
-        run: |
-          echo "${{ github.event }}"
+    - uses: hmarr/debug-action@v2
   test:
     runs-on: ubuntu-latest
     if: "contains(github.gollum.pages[0].summary, '[Important]')"
