@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: test-env
-        run: echo ":error ${{ github.event.commits[0].message }}"
+        run: echo "::warning ${{ github.event.commits[0].message }}"
