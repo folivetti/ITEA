@@ -25,5 +25,6 @@ jobs:
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
           to: 'fabricio.olivetti@gmail.com'
+          from: 'Github Wiki - Knowledge Integration SR'
           subject: 'Important change in ${{ github.event.pages[0].page_name }} Wiki'
           body: 'Check the changes in $${{ github.event.pages[0].html_url }}'
