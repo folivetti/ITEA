@@ -17,3 +17,8 @@ jobs:
     steps:
       - name: test-env
         run: echo "enviar email"
+      - uses: cinotify/github-action@main
+        with:
+          to: 'fabricio.olivetti@gmail.com'
+          subject: 'Important change in $${{ github.event.pages[0].page_name }} Wiki'
+          body: 'Check the changes in $${{ github.event.pages[0].html_url }}'
