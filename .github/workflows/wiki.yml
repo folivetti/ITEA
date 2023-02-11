@@ -7,6 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    if: "contains(github.event.head_commit.message, '[Important]')"
     steps:
       - name: test-env
-        run: echo "::warning ${{ github.event.commits[0].message }}"
+        run: echo "enviar email"
