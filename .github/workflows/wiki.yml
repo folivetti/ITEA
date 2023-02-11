@@ -17,8 +17,13 @@ jobs:
     steps:
       - name: test-env
         run: echo "enviar email"
-      - uses: cinotify/github-action@main
+      - uses: dawidd6/action-send-mail@v3
         with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
           to: 'fabricio.olivetti@gmail.com'
-          subject: 'Important change in $${{ github.event.pages[0].page_name }} Wiki'
+          subject: 'Important change in ${{ github.event.pages[0].page_name }} Wiki'
           body: 'Check the changes in $${{ github.event.pages[0].html_url }}'
