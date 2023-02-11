@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: "contains(github.gollum.pages[].summary, '[Important]')"
+    if: "contains(github.gollum.pages[0].summary, '[Important]')"
     steps:
       - name: test-env
         run: echo "enviar email"
