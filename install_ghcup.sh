@@ -1,4 +1,4 @@
-!#/bin/bash
+# !/bin/bash
 
 # install ghcup
 export BOOTSTRAP_HASKELL_NONINTERACTIVE=1
