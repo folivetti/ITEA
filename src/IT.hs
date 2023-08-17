@@ -69,16 +69,20 @@ prettyPrint k2str t2str terms (b:ws) = show b ++ " + " ++ expr
     expr = intercalate " + " (zipWith weight2str ws (map terms2str terms))
 
     interaction2str       = intercalate "*" . filter (/="") . map k2str . M.toList
+    terms2str (Term SqrtAbs ks) = t2str SqrtAbs ++ "(" ++ interaction2str ks ++ "))"
     terms2str (Term t ks) = t2str t ++ "(" ++ interaction2str ks ++ ")"
     weight2str w t        = show w ++ "*" ++ t
 
 -- | Converts an expression to a readable format 
 toExprStr :: Expr -> [Double] -> String
-toExprStr = prettyPrint k2str show
+toExprStr = prettyPrint k2str show'
   where 
     k2str (_, 0) = ""
     k2str (n, 1) = 'x' : show n
     k2str (n, k) = ('x' : show n) ++ "^(" ++ show k ++ ")"
+
+    show' SqrtAbs = "Sqrt(Abs"
+    show' t       = show t
 
 -- | Converts an expression to a numpy compatible format 
 toPython :: Expr -> [Double] -> String
@@ -94,7 +98,7 @@ toPython = prettyPrint k2str numpy
     numpy Tan     = "np.tan"
     numpy Tanh    = "np.tanh"
     numpy Sqrt    = "np.sqrt"
-    numpy SqrtAbs = "sqrtAbs"
+    numpy SqrtAbs = "np.sqrt(np.abs"
     numpy Exp     = "np.exp"
     numpy Log     = "np.log"
     numpy Log1p   = "np.log1p"

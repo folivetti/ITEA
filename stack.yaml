@@ -18,7 +18,8 @@
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
 #resolver: lts-17.9
-resolver: lts-18.28
+resolver: lts-20.26
+  #lts-18.28
 
 apply-ghc-options: everything
 rebuild-ghc-options: true
@@ -44,8 +45,9 @@ packages:
 #
 # extra-deps: []
 extra-deps:
-  - random-1.2.0
+  - random-1.2.1.1
   - splitmix-0.1.0.2
+  - mltool-0.2.0.1
   - git: https://github.com/folivetti/intervals.git
     commit: 8e93d157875eb4b9ebc452d19f256ade3561edf8    
   - ConfigFile-1.1.4@sha256:ca56261e1deae6ef958a337b03812987bfd94ab37b047e27f262bc3137813165,2056

@@ -5,47 +5,54 @@
 
 packages:
 - completed:
-    hackage: random-1.2.0@sha256:4321209c8faedc034810ea8ed0dbc4a36f1a1df97b75af024219f2f533da57de,6094
+    hackage: random-1.2.1.1@sha256:dea1f11e5569332dc6c8efaad1cb301016a5587b6754943a49f9de08ae0e56d9,6541
     pantry-tree:
-      size: 1259
-      sha256: 29ff0a7ec5bf123e2c40f849b7af163950854a6c08c68b4a1b4364ce7a515af0
+      sha256: 646ee77fe01178837ee928b61ae8653dcf190e9b5353ebebd094079c77a18b76
+      size: 1528
   original:
-    hackage: random-1.2.0
+    hackage: random-1.2.1.1
 - completed:
     hackage: splitmix-0.1.0.2@sha256:e0e1fcd8b011aba928104895f94340989d884ce1f91dee691331e8bc87060678,6049
     pantry-tree:
-      size: 1400
       sha256: 0351665fd1015af6974ecb7b11822f70a008c2c3fb513f2ae4f38e0e03ec1c49
+      size: 1400
   original:
     hackage: splitmix-0.1.0.2
 - completed:
-    name: intervals
-    version: 0.9.1
-    git: https://github.com/folivetti/intervals.git
+    hackage: mltool-0.2.0.1@sha256:566e5c7479fe1df9dced0e556f46f4f399e08550bc303c2012584760ee916b5b,5044
     pantry-tree:
-      size: 1077
-      sha256: 79811af421c6643964f4028be2f7ede68bed44cf2f3ee04b7b4d4e5c389c774f
-    commit: 8e93d157875eb4b9ebc452d19f256ade3561edf8
+      sha256: 33676881db2a938d4755e774c0a9bdbdbcdbff65bef81ab78521c50e282bfc1c
+      size: 4621
   original:
-    git: https://github.com/folivetti/intervals.git
+    hackage: mltool-0.2.0.1
+- completed:
     commit: 8e93d157875eb4b9ebc452d19f256ade3561edf8
+    git: https://github.com/folivetti/intervals.git
+    name: intervals
+    pantry-tree:
+      sha256: 79811af421c6643964f4028be2f7ede68bed44cf2f3ee04b7b4d4e5c389c774f
+      size: 1077
+    version: 0.9.1
+  original:
+    commit: 8e93d157875eb4b9ebc452d19f256ade3561edf8
+    git: https://github.com/folivetti/intervals.git
 - completed:
     hackage: ConfigFile-1.1.4@sha256:ca56261e1deae6ef958a337b03812987bfd94ab37b047e27f262bc3137813165,2056
     pantry-tree:
-      size: 1016
       sha256: 58c2dbae1878d8f5bcac2848712ccfe90391bb1e6b719f43d044ead6c496f748
+      size: 1016
   original:
     hackage: ConfigFile-1.1.4@sha256:ca56261e1deae6ef958a337b03812987bfd94ab37b047e27f262bc3137813165,2056
 - completed:
     hackage: MissingH-1.4.3.0@sha256:32f9892ec98cd21df4f4d3ed8d95a3831ae74287ea0641d6f09b2dc6ef061d39,4859
     pantry-tree:
-      size: 5271
       sha256: 6cd6a7213615d72a7db3234c7fcd4346ceb4889bc8fb14b302b5878768018fcd
+      size: 5271
   original:
     hackage: MissingH-1.4.3.0@sha256:32f9892ec98cd21df4f4d3ed8d95a3831ae74287ea0641d6f09b2dc6ef061d39,4859
 snapshots:
 - completed:
-    size: 590100
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/28.yaml
-    sha256: 428ec8d5ce932190d3cbe266b9eb3c175cd81e984babf876b64019e2cbe4ea68
-  original: lts-18.28
+    sha256: 5a59b2a405b3aba3c00188453be172b85893cab8ebc352b1ef58b0eae5d248a2
+    size: 650475
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/26.yaml
+  original: lts-20.26

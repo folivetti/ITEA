@@ -116,6 +116,7 @@ varnames = []
 
         df = pd.read_csv(f"{logname}/exprs.csv")
         self.expr = df.python.values[0]
+        self.sympy = df.expr.values[0].replace("Id","")
         
         df = pd.read_csv(f"{logname}/stats.csv")
         self.len = df.length.values[0]

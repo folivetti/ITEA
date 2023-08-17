@@ -10,7 +10,7 @@ maintainer:          folivetti@ufabc.edu.br
 copyright:           2020 Fabrício Olivetti de França
 category:            Web
 build-type:          Simple
-cabal-version:       >=1.10
+cabal-version:       >=1.16
 extra-source-files:  README.md
 
 executable itea
